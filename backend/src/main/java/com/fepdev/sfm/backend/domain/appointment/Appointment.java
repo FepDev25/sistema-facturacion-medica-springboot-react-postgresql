@@ -42,7 +42,7 @@ public class Appointment extends BaseEntity {
     private Integer durationMinutes;
 
     @Column(nullable = false)
-    private String status;
+    private Status status;
 
     @Column(name = "chief_complaint")
     private String chiefComplaint;
@@ -50,4 +50,3 @@ public class Appointment extends BaseEntity {
     private String notes;
 
 }
-
