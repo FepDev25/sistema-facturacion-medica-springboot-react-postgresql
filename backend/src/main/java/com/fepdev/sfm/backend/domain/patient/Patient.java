@@ -49,29 +49,3 @@ public class Patient extends BaseEntity {
     private String allergies;
 
 }
-
-/*
-
-CREATE TABLE patients (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    dni VARCHAR(20) NOT NULL UNIQUE,
-    first_name VARCHAR(100) NOT NULL,
-    last_name VARCHAR(100) NOT NULL,
-    birth_date DATE NOT NULL,
-    gender VARCHAR(20) NOT NULL,
-    phone VARCHAR(20) NOT NULL,
-    email VARCHAR(100),
-    address TEXT,
-    blood_type VARCHAR(5),
-    allergies TEXT,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-
-    -- Constraints
-    CONSTRAINT chk_patients_gender CHECK (gender IN ('male', 'female', 'other', 'prefer_not_to_say')),
-    CONSTRAINT chk_patients_birth_date CHECK (birth_date <= CURRENT_DATE),
-    CONSTRAINT chk_patients_blood_type CHECK (blood_type IN ('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-') OR blood_type IS NULL),
-    CONSTRAINT chk_patients_email CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$' OR email IS NULL)
-);
-
-*/
