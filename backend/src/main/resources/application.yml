@@ -1,0 +1,52 @@
+spring:
+  application:
+    name: sfm-backend
+
+  # JPA / Hibernate
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          time_zone: UTC
+        format_sql: false
+    show-sql: false
+
+  # Flyway - configuracion base (la URL/user/pass vienen del perfil activo)
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: false
+
+  # Redis - configuracion base (host/puerto vienen del perfil activo)
+  data:
+    redis:
+      timeout: 2000ms
+
+# JWT - propiedades custom del proyecto
+app:
+  jwt:
+    # Clave generica de desarrollo. REEMPLAZAR por variable de entorno en produccion.
+    secret: c2ZtLXNlY3JldC1rZXktZm9yLWRldmVsb3BtZW50LXVzZS1vbmx5LTI1NmJpdHM=
+    access-token-expiration: 900000      # 15 minutos en milisegundos
+    refresh-token-expiration: 604800000  # 7 dias en milisegundos
+
+# SpringDoc / Swagger UI
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: when-authorized

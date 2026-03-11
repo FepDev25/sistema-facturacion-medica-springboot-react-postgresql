@@ -1,0 +1,28 @@
+spring:
+  # Base de datos - nombre de servicio interno de Docker Compose
+  datasource:
+    url: jdbc:postgresql://postgres:5432/fac_med_db
+    username: medisys
+    password: medisys_dev
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      pool-name: HikariPool-SFM-Docker
+
+  jpa:
+    show-sql: false
+
+  flyway:
+    locations: classpath:db/migration
+
+  # Redis - nombre de servicio interno de Docker Compose
+  data:
+    redis:
+      host: redis
+      port: 6379
+
+logging:
+  level:
+    com.fepdev.sfm: INFO
+    org.flywaydb: INFO

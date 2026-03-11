@@ -1,0 +1,20 @@
+spring:
+  # La URL de datasource la inyecta Testcontainers via @ServiceConnection en cada test.
+  # Solo se sobreescriben las propiedades que deben diferir del perfil base.
+  flyway:
+    locations: classpath:db/migration
+    # Los seeds NO se cargan en tests para tener un estado de BD predecible.
+
+  jpa:
+    show-sql: false
+
+  # Redis en tests: usar un mock o instancia embebida segun el test lo requiera.
+  data:
+    redis:
+      host: localhost
+      port: 6370  # Puerto diferente para no interferir con Redis de dev
+
+logging:
+  level:
+    com.fepdev.sfm: WARN
+    org.flywaydb: WARN
