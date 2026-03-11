@@ -41,7 +41,7 @@ public class Appointment extends BaseEntity {
     @Column(name = "duration_minutes", nullable = false)
     private Integer durationMinutes;
 
-    @Column(nullable = false)
+    @Column(name = "status", nullable = false)
     private Status status;
 
     @Column(name = "chief_complaint")

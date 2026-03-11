@@ -8,11 +8,11 @@ public class StatusConverter implements AttributeConverter<Status, String> {
     
     @Override
     public String convertToDatabaseColumn(Status status) {
-        return status == null ? null : status.name();
+        return status == null ? null : status.name().toLowerCase();
     }
 
     @Override
     public Status convertToEntityAttribute(String dbData) {
-        return dbData == null ? null : Status.valueOf(dbData);
+        return dbData == null ? null : Status.valueOf(dbData.toUpperCase());
     }
 }
