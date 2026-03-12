@@ -1,7 +1,6 @@
 package com.fepdev.sfm.backend.domain.payment;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -56,7 +55,7 @@ public class Payment {
     private String notes;
 
     @Column(name = "payment_date", nullable = false)
-    private LocalDateTime paymentDate;
+    private OffsetDateTime paymentDate;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
