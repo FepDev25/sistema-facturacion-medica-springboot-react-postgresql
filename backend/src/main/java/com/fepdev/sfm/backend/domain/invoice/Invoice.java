@@ -30,8 +30,9 @@ public class Invoice extends BaseEntity {
     @JoinColumn(name = "patient_id", nullable = false)
     private Patient patient;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "appointment_id", nullable = false)
+    // appointment_id es nullable desde V4: permite facturar sin cita previa (emergencias)
+    @ManyToOne(optional = true, fetch = FetchType.LAZY)
+    @JoinColumn(name = "appointment_id")
     private Appointment appointment;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -65,5 +66,8 @@ public class Invoice extends BaseEntity {
 
     @Column(name = "due_date", nullable = false)
     private LocalDate dueDate;
+
+    // Obligatorio cuando appointment_id es null (constraint chk_invoices_requires_reference)
+    private String notes;
 
 }
