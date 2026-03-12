@@ -41,7 +41,7 @@ public class InsurancePolicy extends BaseEntity{
     @Column(name = "coverage_percentage", nullable = false, precision = 5, scale = 2)
     private BigDecimal coveragePercentage;
 
-    @Column(precision = 10, scale = 2)
+    @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal deductible;
 
     @Column(name = "start_date", nullable = false)
