@@ -34,7 +34,7 @@ public class Doctor extends BaseEntity {
     @Column(name = "email", nullable = false, length = 100)
     private String email;
 
-    @Column(name = "is_active", nullable = false, columnDefinition = "BOOLEAN NOT NULL DEFAULT TRUE")
+    @Column(name = "is_active", nullable = false)
     private boolean isActive;
     
 }
