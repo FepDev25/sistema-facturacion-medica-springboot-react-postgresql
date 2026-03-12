@@ -1,6 +1,6 @@
 package com.fepdev.sfm.backend.domain.medicalrecord;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.Map;
 
 import org.hibernate.annotations.JdbcTypeCode;
@@ -50,5 +50,5 @@ public class MedicalRecord extends BaseEntity {
     private String clinicalNotes;
 
     @Column(name = "record_date", nullable = false)
-    private LocalDateTime recordDate;
+    private OffsetDateTime recordDate;
 }

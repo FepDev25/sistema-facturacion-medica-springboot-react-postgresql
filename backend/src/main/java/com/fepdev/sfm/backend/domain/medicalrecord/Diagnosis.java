@@ -1,6 +1,5 @@
 package com.fepdev.sfm.backend.domain.medicalrecord;
 
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -53,7 +52,7 @@ public class Diagnosis {
     private Severity severity;
 
     @Column(name = "diagnosed_at", nullable = false)
-    private LocalDateTime diagnosedAt;
+    private OffsetDateTime diagnosedAt;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)

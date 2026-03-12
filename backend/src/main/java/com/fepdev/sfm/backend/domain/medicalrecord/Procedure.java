@@ -1,6 +1,5 @@
 package com.fepdev.sfm.backend.domain.medicalrecord;
 
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -54,7 +53,7 @@ public class Procedure {
     private String notes;
 
     @Column(name = "performed_at", nullable = false)
-    private LocalDateTime performedAt;
+    private OffsetDateTime performedAt;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
