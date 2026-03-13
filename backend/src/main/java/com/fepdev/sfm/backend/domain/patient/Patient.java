@@ -1,11 +1,17 @@
 package com.fepdev.sfm.backend.domain.patient;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
+import com.fepdev.sfm.backend.domain.appointment.Appointment;
+import com.fepdev.sfm.backend.domain.insurance.InsurancePolicy;
 import com.fepdev.sfm.backend.shared.domain.BaseEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,6 +24,14 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Patient extends BaseEntity {
 
+    // relaciones, solo para navegación
+    @OneToMany(mappedBy = "patient", fetch = FetchType.LAZY)
+    private List<Appointment> appointments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "patient", fetch = FetchType.LAZY)
+    private List<InsurancePolicy> insurancePolicies = new ArrayList<>();
+
+    // entidad
     @Column(nullable = false, unique = true, length = 20)
     private String dni;
 
