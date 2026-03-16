@@ -119,23 +119,15 @@ public class PatientService {
             .map(appointmentMapper::toSummaryResponse);
     }
 
-    // pólizas del paciente
+    // obtener las pólizas de un paciente con paginación y filtro de activas
     @Transactional(readOnly = true)
-    public List<InsurancePolicySummaryResponse> getPatientPolicies(UUID patientId) {
-        patientRepository.findById(patientId)
-            .orElseThrow(() -> new EntityNotFoundException("Paciente no encontrado"));
-        return insurancePolicyMapper.toSummaryResponseList(
-            insurancePolicyRepository.findByPatientId(patientId)
-        );
-    }
+    public Page<InsurancePolicySummaryResponse> getPatientPolicies(UUID patientId, Boolean onlyActive, Pageable pageable) {
+        
+        if (!patientRepository.existsById(patientId)) {
+            throw new EntityNotFoundException("Paciente con ID " + patientId + " no encontrado.");
+        }
 
-    // pólizas activas del paciente
-    @Transactional(readOnly = true)
-    public List<InsurancePolicySummaryResponse> getPatientActivePolicies(UUID patientId) {
-        patientRepository.findById(patientId)
-            .orElseThrow(() -> new EntityNotFoundException("Paciente no encontrado"));
-        return insurancePolicyMapper.toSummaryResponseList(
-            insurancePolicyRepository.findActiveByPatientId(patientId)
-        );
+        return insurancePolicyRepository.findByPatientIdWithFilter(patientId, onlyActive, pageable)
+            .map(insurancePolicyMapper::toSummaryResponse);
     }
 }
