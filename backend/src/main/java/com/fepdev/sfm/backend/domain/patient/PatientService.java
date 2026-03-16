@@ -20,6 +20,7 @@ import com.fepdev.sfm.backend.domain.patient.dto.PatientCreateRequest;
 import com.fepdev.sfm.backend.domain.patient.dto.PatientResponse;
 import com.fepdev.sfm.backend.domain.patient.dto.PatientSummaryResponse;
 import com.fepdev.sfm.backend.domain.patient.dto.PatientUpdateRequest;
+import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -52,7 +53,7 @@ public class PatientService {
     public PatientResponse createPatient(PatientCreateRequest request){
 
         if (request.dni() != null && patientRepository.existsByDni(request.dni())) {
-            throw new EntityNotFoundException("El DNI " + request.dni() + " ya se encuentra registrado en el sistema.");
+            throw new BusinessRuleException("El DNI " + request.dni() + " ya se encuentra registrado en el sistema.");
         }
 
         Patient patient = patientMapper.toEntity(request);
