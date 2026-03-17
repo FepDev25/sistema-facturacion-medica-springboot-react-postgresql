@@ -1,6 +1,6 @@
 package com.fepdev.sfm.backend.domain.doctor;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -8,7 +8,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fepdev.sfm.backend.domain.appointment.Appointment;
 import com.fepdev.sfm.backend.domain.appointment.AppointmentMapper;
 import com.fepdev.sfm.backend.domain.appointment.AppointmentRepository;
 import com.fepdev.sfm.backend.domain.appointment.dto.AppointmentSummaryResponse;
@@ -97,18 +96,14 @@ public class DoctorService {
 
     // obtener agenda de un doctor, con filtros opcionales de fecha, validando que el doctor exista
     @Transactional(readOnly = true)
-    public Page<AppointmentSummaryResponse> getAppointmentsByDoctorId(
-            UUID doctorId, 
-            LocalDateTime startDate, 
-            LocalDateTime endDate, 
-            Pageable pageable) {
-            
+    public Page<AppointmentSummaryResponse> getAppointmentsByDoctorId(UUID doctorId, OffsetDateTime startDate, OffsetDateTime endDate, Pageable pageable) {
+
         if (!doctorRepository.existsById(doctorId)) {
             throw new EntityNotFoundException("Doctor con ID " + doctorId + " no encontrado.");
         }
 
-        Page<Appointment> appointmentsPage = appointmentRepository.findDoctorAgenda(doctorId, startDate, endDate, pageable);
-        return appointmentsPage.map(appointmentMapper::toSummaryResponse);
+        return appointmentRepository.findWithFilters(doctorId, null, null, startDate, endDate, pageable)
+                .map(appointmentMapper::toSummaryResponse);
     }
 
 }
