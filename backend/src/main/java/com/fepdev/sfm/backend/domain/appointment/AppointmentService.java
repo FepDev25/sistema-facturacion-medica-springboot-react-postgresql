@@ -14,6 +14,7 @@ import com.fepdev.sfm.backend.domain.appointment.dto.AppointmentResponse;
 import com.fepdev.sfm.backend.domain.appointment.dto.AppointmentSummaryResponse;
 import com.fepdev.sfm.backend.domain.doctor.Doctor;
 import com.fepdev.sfm.backend.domain.doctor.DoctorRepository;
+import com.fepdev.sfm.backend.domain.invoice.InvoiceService;
 import com.fepdev.sfm.backend.domain.medicalrecord.MedicalRecord;
 import com.fepdev.sfm.backend.domain.medicalrecord.MedicalRecordMapper;
 import com.fepdev.sfm.backend.domain.medicalrecord.MedicalRecordRepository;
@@ -38,14 +39,18 @@ public class AppointmentService {
     private final MedicalRecordRepository medicalRecordRepository;
     private final MedicalRecordMapper medicalRecordMapper;
 
+    private final InvoiceService invoiceService;
+
     public AppointmentService(AppointmentRepository appointmentRepository, AppointmentMapper appointmentMapper,
-            DoctorRepository doctorRepository, PatientRepository patientRepository, MedicalRecordRepository medicalRecordRepository, MedicalRecordMapper medicalRecordMapper) {
+            DoctorRepository doctorRepository, PatientRepository patientRepository, MedicalRecordRepository medicalRecordRepository,
+            MedicalRecordMapper medicalRecordMapper, InvoiceService invoiceService) {
         this.appointmentRepository = appointmentRepository;
         this.appointmentMapper = appointmentMapper;
         this.doctorRepository = doctorRepository;
         this.patientRepository = patientRepository;
         this.medicalRecordRepository = medicalRecordRepository;
         this.medicalRecordMapper = medicalRecordMapper;
+        this.invoiceService = invoiceService;
     }
 
     // crear una cita
@@ -126,6 +131,9 @@ public class AppointmentService {
         medicalRecord.setPatient(appointment.getPatient());
         medicalRecord.setRecordDate(OffsetDateTime.now());
         medicalRecordRepository.save(medicalRecord);
+
+        // crear factura draft con número generado y montos en cero
+        invoiceService.createDraftInvoice(appointment);
 
         return appointmentMapper.toResponse(appointmentRepository.save(appointment));
     }
