@@ -6,7 +6,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
-import com.fepdev.sfm.backend.domain.invoice.Status;
+import com.fepdev.sfm.backend.domain.invoice.InvoiceStatus;
 
 public record InvoiceResponse(
     UUID id,
@@ -21,7 +21,7 @@ public record InvoiceResponse(
     BigDecimal total,
     BigDecimal insuranceCoverage,
     BigDecimal patientResponsibility,
-    Status status,
+    InvoiceStatus status,
     LocalDate issueDate,
     LocalDate dueDate,
     String notes,

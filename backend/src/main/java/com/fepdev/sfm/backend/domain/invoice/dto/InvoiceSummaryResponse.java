@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
-import com.fepdev.sfm.backend.domain.invoice.Status;
+import com.fepdev.sfm.backend.domain.invoice.InvoiceStatus;
 
 public record InvoiceSummaryResponse(
     UUID id,
@@ -13,7 +13,7 @@ public record InvoiceSummaryResponse(
     String patientFirstName,
     String patientLastName,
     BigDecimal total,
-    Status status,
+    InvoiceStatus status,
     LocalDate issueDate,
     LocalDate dueDate
 ) {}
