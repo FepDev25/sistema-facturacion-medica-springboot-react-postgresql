@@ -7,6 +7,7 @@ import com.fepdev.sfm.backend.domain.medicalrecord.Severity;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public record DiagnosisCreateRequest(
@@ -19,6 +20,8 @@ public record DiagnosisCreateRequest(
 
     @NotBlank(message = "El código ICD-10 es obligatorio")
     @Size(max = 10, message = "El código ICD-10 no puede exceder los 10 caracteres")
+    @Pattern(regexp = "^[A-Z][0-9]{2}(\\.[0-9A-Z]{1,4})?$",
+             message = "Formato ICD-10 inválido. Debe ser una letra mayúscula seguida de 2 dígitos y opcionalmente un punto con hasta 4 caracteres (ej: J02.9)")
     String icd10Code,
 
     @NotBlank(message = "La descripción es obligatoria")
