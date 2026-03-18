@@ -3,7 +3,7 @@ package com.fepdev.sfm.backend.domain.invoice;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-public enum Status {
+public enum InvoiceStatus {
     // 'draft', 'pending', 'partial_paid', 'paid', 'cancelled', 'overdue'
     DRAFT,
     PENDING,
@@ -18,7 +18,7 @@ public enum Status {
     }
 
     @JsonCreator
-    public static Status fromJson(String value) {
-        return value == null ? null : Status.valueOf(value.toUpperCase());
+    public static InvoiceStatus fromJson(String value) {
+        return value == null ? null : InvoiceStatus.valueOf(value.toUpperCase());
     }
 }
