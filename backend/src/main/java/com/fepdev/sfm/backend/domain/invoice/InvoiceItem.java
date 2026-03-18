@@ -68,5 +68,9 @@ public class InvoiceItem {
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
+
+    public BigDecimal getTotalPrice() {
+        return unitPrice.multiply(BigDecimal.valueOf(quantity));
+    }
     
 }
