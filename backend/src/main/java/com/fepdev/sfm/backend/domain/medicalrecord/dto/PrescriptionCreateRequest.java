@@ -2,9 +2,10 @@ package com.fepdev.sfm.backend.domain.medicalrecord.dto;
 
 import java.util.UUID;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 
 public record PrescriptionCreateRequest(
 
@@ -24,7 +25,8 @@ public record PrescriptionCreateRequest(
     String frequency,
 
     @NotNull(message = "La duración en días es obligatoria")
-    @Positive(message = "La duración debe ser un valor positivo")
+    @Min(value = 1, message = "La duración mínima es 1 día")
+    @Max(value = 365, message = "La duración máxima es 365 días")
     Integer durationDays,
 
     String instructions
