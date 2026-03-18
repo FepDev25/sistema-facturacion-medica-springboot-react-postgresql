@@ -8,9 +8,9 @@ import com.fepdev.sfm.backend.domain.insurance.InsurancePolicy;
 import com.fepdev.sfm.backend.domain.patient.Patient;
 import com.fepdev.sfm.backend.shared.domain.BaseEntity;
 
-import jakarta.persistence.FetchType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -59,7 +59,7 @@ public class Invoice extends BaseEntity {
     private BigDecimal patientResponsibility;
 
     @Column(name = "status", nullable = false, length = 20)
-    private Status status;
+    private InvoiceStatus status;
 
     @Column(name = "issue_date", nullable = false)
     private LocalDate issueDate;
