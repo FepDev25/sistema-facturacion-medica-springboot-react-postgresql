@@ -14,6 +14,10 @@ import com.fepdev.sfm.backend.domain.appointment.dto.AppointmentResponse;
 import com.fepdev.sfm.backend.domain.appointment.dto.AppointmentSummaryResponse;
 import com.fepdev.sfm.backend.domain.doctor.Doctor;
 import com.fepdev.sfm.backend.domain.doctor.DoctorRepository;
+import com.fepdev.sfm.backend.domain.medicalrecord.MedicalRecord;
+import com.fepdev.sfm.backend.domain.medicalrecord.MedicalRecordMapper;
+import com.fepdev.sfm.backend.domain.medicalrecord.MedicalRecordRepository;
+import com.fepdev.sfm.backend.domain.medicalrecord.dto.MedicalRecordCreateRequest;
 import com.fepdev.sfm.backend.domain.patient.PatientRepository;
 import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
 
@@ -27,15 +31,21 @@ public class AppointmentService {
 
     private final AppointmentRepository appointmentRepository;
     private final AppointmentMapper appointmentMapper;
+
     private final DoctorRepository doctorRepository;
     private final PatientRepository patientRepository;
 
+    private final MedicalRecordRepository medicalRecordRepository;
+    private final MedicalRecordMapper medicalRecordMapper;
+
     public AppointmentService(AppointmentRepository appointmentRepository, AppointmentMapper appointmentMapper,
-            DoctorRepository doctorRepository, PatientRepository patientRepository) {
+            DoctorRepository doctorRepository, PatientRepository patientRepository, MedicalRecordRepository medicalRecordRepository, MedicalRecordMapper medicalRecordMapper) {
         this.appointmentRepository = appointmentRepository;
         this.appointmentMapper = appointmentMapper;
         this.doctorRepository = doctorRepository;
         this.patientRepository = patientRepository;
+        this.medicalRecordRepository = medicalRecordRepository;
+        this.medicalRecordMapper = medicalRecordMapper;
     }
 
     // crear una cita
@@ -100,7 +110,7 @@ public class AppointmentService {
 
     // completar consulta: IN_PROGRESS a COMPLETED
     @Transactional
-    public AppointmentResponse completeAppointment(UUID id) {
+    public AppointmentResponse completeAppointment(UUID id, MedicalRecordCreateRequest medicalRecordRequest) {
         Appointment appointment = appointmentRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("La cita con el id: " + id + " no existe"));
 
@@ -109,6 +119,14 @@ public class AppointmentService {
         }
 
         appointment.setStatus(Status.COMPLETED);
+
+        // crear registro médico asociado a la cita completada
+        MedicalRecord medicalRecord = medicalRecordMapper.toEntity(medicalRecordRequest);
+        medicalRecord.setAppointment(appointment);
+        medicalRecord.setPatient(appointment.getPatient());
+        medicalRecord.setRecordDate(OffsetDateTime.now());
+        medicalRecordRepository.save(medicalRecord);
+
         return appointmentMapper.toResponse(appointmentRepository.save(appointment));
     }
 
