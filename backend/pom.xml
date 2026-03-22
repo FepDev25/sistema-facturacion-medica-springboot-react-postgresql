@@ -113,6 +113,12 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<!-- AOP - para auditoría con @Aspect. spring-aop ya viene incluido via spring-context; solo se necesita el runtime de AspectJ para los pointcuts -->
+		<dependency>
+			<groupId>org.aspectj</groupId>
+			<artifactId>aspectjweaver</artifactId>
+		</dependency>
+
 		<!-- Lombok -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
