@@ -2,6 +2,9 @@ package com.fepdev.sfm.backend.domain.catalog;
 
 import java.util.UUID;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -29,6 +32,10 @@ public class MedicationsCatalogService {
     }
 
     // crear medicamento
+    @Caching(evict = {
+        @CacheEvict(value = "medications", allEntries = true),
+        @CacheEvict(value = "medications-list", allEntries = true)
+    })
     @Transactional
     public MedicationResponse createMedication(MedicationCreateRequest request){
         MedicationsCatalog entity = mapper.toEntity(request);
@@ -38,6 +45,10 @@ public class MedicationsCatalogService {
     }
 
     // actualizar medicamento, si cambia el precio, guardar el cambio en CatalogPriceHistory
+    @Caching(evict = {
+        @CacheEvict(value = "medications", allEntries = true),
+        @CacheEvict(value = "medications-list", allEntries = true)
+    })
     @Transactional
     public MedicationResponse updateMedication(UUID id, MedicationUpdateRequest request){
         MedicationsCatalog entity = repository.findById(id)
@@ -60,6 +71,10 @@ public class MedicationsCatalogService {
     }
 
     // desactivar medicamento
+    @Caching(evict = {
+        @CacheEvict(value = "medications", allEntries = true),
+        @CacheEvict(value = "medications-list", allEntries = true)
+    })
     @Transactional
     public void deactivateMedication(UUID id) {
         MedicationsCatalog entity = repository.findById(id)
@@ -69,6 +84,7 @@ public class MedicationsCatalogService {
     }
 
     // obtener medicamento por id
+    @Cacheable(value = "medications", key = "#id")
     @Transactional(readOnly = true)
     public MedicationResponse getMedicationById(UUID id) {
         MedicationsCatalog entity = repository.findById(id)
@@ -85,6 +101,8 @@ public class MedicationsCatalogService {
     }
 
     // método de búsqueda con filtros y paginación, si el nombre tiene menos de 2 caracteres y no está vacío, lanzar excepción
+    @Cacheable(value = "medications-list",
+               key = "#isActive + '-' + #unit + '-' + #requiresPrescription + '-' + #name + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort")
     @Transactional(readOnly = true)
     public Page<MedicationSummaryResponse> searchMedications(Boolean isActive, Unit unit, Boolean requiresPrescription, String name, Pageable pageable) {
         if (name != null && name.trim().length() < 2 && !name.trim().isEmpty()) {

@@ -3,6 +3,9 @@ package com.fepdev.sfm.backend.domain.catalog;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -29,6 +32,10 @@ public class ServiceCatalogService {
         this.catalogPriceHistoryRepository = catalogPriceHistoryRepository;
     }
 
+    @Caching(evict = {
+        @CacheEvict(value = "services", allEntries = true),
+        @CacheEvict(value = "services-list", allEntries = true)
+    })
     @Transactional
     public ServiceResponse createServicesCatalog(ServiceCreateRequest request){
         // create request a entidad, setear isActive=true
@@ -40,6 +47,10 @@ public class ServiceCatalogService {
         return servicesCatalogMapper.toResponse(savedEntity);
     }
 
+    @Caching(evict = {
+        @CacheEvict(value = "services", allEntries = true),
+        @CacheEvict(value = "services-list", allEntries = true)
+    })
     @Transactional
     public ServiceResponse updateServiceCatalog(UUID id, ServiceUpdateRequest request){
 
@@ -69,6 +80,10 @@ public class ServiceCatalogService {
     }
 
     // metodo para desactivar un servicio
+    @Caching(evict = {
+        @CacheEvict(value = "services", allEntries = true),
+        @CacheEvict(value = "services-list", allEntries = true)
+    })
     @Transactional
     public void deactivateServiceCatalog(UUID id) {
         ServicesCatalog entity = servicesCatalogRepository.findById(id)
@@ -78,6 +93,7 @@ public class ServiceCatalogService {
     }
 
     // metodo para obtener un servicio por id, si no existe lanzar excepcion
+    @Cacheable(value = "services", key = "#id")
     @Transactional(readOnly = true)
     public ServiceResponse getServiceCatalogById(UUID id) {
         ServicesCatalog entity = servicesCatalogRepository.findById(id)
@@ -96,6 +112,8 @@ public class ServiceCatalogService {
     }
 
     // metodo para obtener la lista de servicios con filtros de categoria y estado, paginada
+    @Cacheable(value = "services-list",
+               key = "#category + '-' + #isActive + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort")
     @Transactional(readOnly = true)
     public Page<ServiceSummaryResponse> getServiceCatalogs(Category category, Boolean isActive, Pageable pageable) {
         // obtener la pagina de entidades de la base de datos

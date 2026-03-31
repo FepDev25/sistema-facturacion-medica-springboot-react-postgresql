@@ -3,6 +3,8 @@ package com.fepdev.sfm.backend.domain.insurance;
 import java.time.LocalDate;
 import java.util.UUID;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -40,6 +42,7 @@ public class InsuranceService {
     // *** Insurance Provider Management ***
 
     // crear nuevo proveedor de seguro
+    @CacheEvict(value = "insurance-providers", allEntries = true)
     @Transactional
     public InsuranceProviderResponse createProvider(InsuranceProviderCreateRequest request) {
 
@@ -54,6 +57,7 @@ public class InsuranceService {
     }
 
     // actualizar proveedor de seguro
+    @CacheEvict(value = "insurance-providers", allEntries = true)
     @Transactional
     public InsuranceProviderResponse updateProvider(UUID id, InsuranceProviderUpdateRequest request) {
         
@@ -66,6 +70,7 @@ public class InsuranceService {
     }
 
     // desactivar proveedor de seguro, solo si no tiene pólizas activas
+    @CacheEvict(value = "insurance-providers", allEntries = true)
     @Transactional
     public void deactivateProvider(UUID id) {
 
@@ -81,6 +86,8 @@ public class InsuranceService {
     }
 
     // listar proveedores de seguro con filtros opcionales
+    @Cacheable(value = "insurance-providers",
+               key = "'list-' + #isActive + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort")
     @Transactional(readOnly = true)
     public Page<InsuranceProviderResponse> listProviders(Boolean isActive, Pageable pageable) {
         return providerRepo.findWithFilters(isActive, pageable)
@@ -88,6 +95,7 @@ public class InsuranceService {
     }
 
     // adicional: obtener detalles de un proveedor por ID
+    @Cacheable(value = "insurance-providers", key = "'id-' + #id")
     @Transactional(readOnly = true)
     public InsuranceProviderResponse getProviderById(UUID id) {
         InsuranceProvider provider = providerRepo.findById(id)
