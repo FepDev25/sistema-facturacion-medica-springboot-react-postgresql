@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5434/fac_med_db_test
+    username: medisys
+    password: medisys_dev
+
+  flyway:
+    locations: classpath:db/migration
+
+  jpa:
+    show-sql: false
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
