@@ -22,8 +22,8 @@ public interface InvoiceRepository extends JpaRepository<Invoice, UUID> {
             SELECT i FROM Invoice i
             WHERE (:patientId IS NULL OR i.patient.id = :patientId)
               AND (:status    IS NULL OR i.status = :status)
-              AND (:startDate IS NULL OR i.issueDate >= :startDate)
-              AND (:endDate   IS NULL OR i.issueDate <= :endDate)
+              AND (cast(:startDate as date) IS NULL OR i.issueDate >= :startDate)
+              AND (cast(:endDate as date) IS NULL OR i.issueDate <= :endDate)
             ORDER BY i.issueDate DESC
             """)
     Page<Invoice> findWithFilters(
