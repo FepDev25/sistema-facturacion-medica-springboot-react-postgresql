@@ -16,6 +16,6 @@ public interface InsuranceProviderRepository extends JpaRepository<InsuranceProv
     @Query("""
         SELECT p
         FROM InsuranceProvider p
-        WHERE (:isActive IS NULL OR p.active = :isActive)""")
+        WHERE (:isActive IS NULL OR p.isActive = :isActive)""")
     Page<InsuranceProvider> findWithFilters(@Param("isActive") Boolean isActive, Pageable pageable);
 }
