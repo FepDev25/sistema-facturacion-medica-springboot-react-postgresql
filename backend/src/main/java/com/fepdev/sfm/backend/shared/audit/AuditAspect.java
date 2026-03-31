@@ -13,8 +13,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fepdev.sfm.backend.domain.invoice.Invoice;
 import com.fepdev.sfm.backend.domain.invoice.InvoiceItem;
 import com.fepdev.sfm.backend.domain.invoice.InvoiceItemRepository;
@@ -22,6 +20,9 @@ import com.fepdev.sfm.backend.domain.invoice.InvoiceRepository;
 import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceItemResponse;
 import com.fepdev.sfm.backend.domain.medicalrecord.dto.DiagnosisResponse;
 import com.fepdev.sfm.backend.domain.medicalrecord.dto.PrescriptionResponse;
+
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 // aspecto que audita operaciones sensibles sobre Diagnosis, Prescription e Invoice
 //
@@ -171,7 +172,7 @@ public class AuditAspect {
         if (obj == null) return null;
         try {
             return objectMapper.writeValueAsString(obj);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             return "{\"error\":\"serialization_failed\"}";
         }
     }
