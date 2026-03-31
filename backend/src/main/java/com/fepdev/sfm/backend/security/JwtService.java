@@ -1,6 +1,9 @@
 package com.fepdev.sfm.backend.security;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Date;
+import java.util.UUID;
 import java.util.function.Function;
 
 import javax.crypto.SecretKey;
@@ -43,10 +46,11 @@ public class JwtService {
         return buildToken(userDetails, refreshTokenExpiration, TYPE_REFRESH);
     }
 
-    // Genera un token con el username como subject, el rol del usuario 
-    // y un claim "type" para distinguir access vs refresh tokens.
+    // Genera un token con el username como subject, el rol del usuario,
+    // un claim "type" para distinguir access vs refresh tokens, y un jti unico.
     private String buildToken(UserDetails userDetails, long expirationMs, String tokenType) {
         return Jwts.builder()
+                .id(UUID.randomUUID().toString())
                 .subject(userDetails.getUsername())
                 .claim(CLAIM_TYPE, tokenType)
                 .claim("role", userDetails.getAuthorities().iterator().next().getAuthority())
@@ -76,6 +80,16 @@ public class JwtService {
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
+    }
+
+    public String extractJti(String token) {
+        return extractClaim(token, Claims::getId);
+    }
+
+    public Duration getRemainingTtl(String token) {
+        Date expiration = extractExpiration(token);
+        Duration remaining = Duration.between(Instant.now(), expiration.toInstant());
+        return remaining.isNegative() ? Duration.ZERO : remaining;
     }
 
     private String extractType(String token) {
