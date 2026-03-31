@@ -1,5 +1,7 @@
 package com.fepdev.sfm.backend.domain.auth;
 
+import java.time.Duration;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -9,10 +11,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fepdev.sfm.backend.domain.auth.dto.LoginRequest;
+import com.fepdev.sfm.backend.domain.auth.dto.LogoutRequest;
 import com.fepdev.sfm.backend.domain.auth.dto.RefreshTokenRequest;
 import com.fepdev.sfm.backend.domain.auth.dto.TokenResponse;
 import com.fepdev.sfm.backend.security.JwtService;
 import com.fepdev.sfm.backend.security.SystemUser;
+import com.fepdev.sfm.backend.security.TokenBlacklistService;
 import com.fepdev.sfm.backend.security.UserDetailsServiceImpl;
 import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
 
@@ -27,13 +31,16 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final UserDetailsServiceImpl userDetailsService;
+    private final TokenBlacklistService tokenBlacklistService;
 
     public AuthController(AuthenticationManager authenticationManager,
             JwtService jwtService,
-            UserDetailsServiceImpl userDetailsService) {
+            UserDetailsServiceImpl userDetailsService,
+            TokenBlacklistService tokenBlacklistService) {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
+        this.tokenBlacklistService = tokenBlacklistService;
     }
 
     
@@ -75,5 +82,30 @@ public class AuthController {
         } catch (JwtException e) {
             throw new BusinessRuleException("El refresh token es invalido o ha expirado");
         }
+    }
+
+    // Logout: revoca el refresh token agregando su jti a la blacklist de Redis.
+    // El access token expira naturalmente (15 min), riesgo aceptable.
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(@Valid @RequestBody LogoutRequest request) {
+        final String token = request.refreshToken();
+
+        try {
+            final String username = jwtService.extractUsername(token);
+            SystemUser user = (SystemUser) userDetailsService.loadUserByUsername(username);
+
+            if (!jwtService.isRefreshTokenValid(token, user)) {
+                throw new BusinessRuleException("El refresh token es invalido o ha expirado");
+            }
+
+            String jti = jwtService.extractJti(token);
+            Duration remainingTtl = jwtService.getRemainingTtl(token);
+            tokenBlacklistService.blacklist(jti, remainingTtl);
+
+        } catch (JwtException e) {
+            // Token invalido o expirado: no hace falta blacklistearlo, el logout es efectivo
+        }
+
+        return ResponseEntity.noContent().build();
     }
 }
