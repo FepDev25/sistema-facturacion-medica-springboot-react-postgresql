@@ -1,0 +1,17 @@
+spring:
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  data:
+    redis:
+      host: localhost
+      port: 6370
+
+  cache:
+    type: simple
+
+logging:
+  level:
+    com.fepdev.sfm: WARN
+    org.flywaydb: WARN
