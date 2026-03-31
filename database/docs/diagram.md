@@ -1,3 +1,7 @@
+# Diagram viewer
+
+```mermaid
+
 erDiagram
     PATIENTS ||--o{ APPOINTMENTS : "tiene"
     PATIENTS ||--o{ MEDICAL_RECORDS : "posee"
@@ -206,3 +210,6 @@ erDiagram
         timestamptz created_at
         timestamptz updated_at
     }
+
+
+```
