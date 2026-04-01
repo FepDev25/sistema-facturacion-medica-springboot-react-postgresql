@@ -74,7 +74,8 @@ class InvoiceRepositoryDataJpaTest extends AbstractPostgresDataJpaTest {
 
     private Patient persistPatient(String dniPrefix) {
         Patient patient = new Patient();
-        patient.setDni((dniPrefix + System.nanoTime()).substring(0, 20));
+        String suffix = String.valueOf(System.nanoTime());
+        patient.setDni(dniPrefix + suffix.substring(Math.max(0, suffix.length() - 8)));
         patient.setFirstName("Ana");
         patient.setLastName("Lopez");
         patient.setBirthDate(LocalDate.of(1990, 1, 1));

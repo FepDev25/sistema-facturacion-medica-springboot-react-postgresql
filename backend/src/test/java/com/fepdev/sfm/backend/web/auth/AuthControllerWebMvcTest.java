@@ -1,10 +1,13 @@
 package com.fepdev.sfm.backend.web.auth;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.hamcrest.Matchers.nullValue;
 
 import java.time.Duration;
 
@@ -28,6 +31,8 @@ import com.fepdev.sfm.backend.security.SystemUser;
 import com.fepdev.sfm.backend.security.TokenBlacklistService;
 import com.fepdev.sfm.backend.security.UserDetailsServiceImpl;
 import com.fepdev.sfm.backend.shared.exception.HandlerException;
+
+import io.jsonwebtoken.JwtException;
 
 @WebMvcTest(AuthController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -109,6 +114,85 @@ class AuthControllerWebMvcTest {
     }
 
     @Test
+    void refresh_whenValidToken_returns200() throws Exception {
+        SystemUser user = activeAdmin();
+
+        when(jwtService.extractJti("refresh-token")).thenReturn("jti-123");
+        when(tokenBlacklistService.isBlacklisted("jti-123")).thenReturn(false);
+        when(jwtService.extractUsername("refresh-token")).thenReturn("admin");
+        when(userDetailsService.loadUserByUsername("admin")).thenReturn(user);
+        when(jwtService.isRefreshTokenValid("refresh-token", user)).thenReturn(true);
+        when(jwtService.generateAccessToken(user)).thenReturn("new-access-token");
+
+        String body = """
+                {
+                  "refreshToken": "refresh-token"
+                }
+                """;
+
+        mockMvc.perform(post("/api/v1/auth/refresh").contentType("application/json").content(body))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").value("new-access-token"))
+                .andExpect(jsonPath("$.role").value("ADMIN"))
+                .andExpect(jsonPath("$.tokenType").value("Bearer"))
+                .andExpect(jsonPath("$.refreshToken").value(nullValue()));
+    }
+
+    @Test
+    void refresh_whenTokenIsBlacklisted_returns422() throws Exception {
+        when(jwtService.extractJti("refresh-token")).thenReturn("jti-123");
+        when(tokenBlacklistService.isBlacklisted("jti-123")).thenReturn(true);
+
+        String body = """
+                {
+                  "refreshToken": "refresh-token"
+                }
+                """;
+
+        mockMvc.perform(post("/api/v1/auth/refresh").contentType("application/json").content(body))
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.status").value(422));
+    }
+
+    @Test
+    void refresh_whenTokenMalformed_returns422() throws Exception {
+        when(jwtService.extractJti("refresh-token")).thenReturn("jti-123");
+        when(tokenBlacklistService.isBlacklisted("jti-123")).thenReturn(false);
+        when(jwtService.extractUsername("refresh-token")).thenThrow(new JwtException("Malformed"));
+
+        String body = """
+                {
+                  "refreshToken": "refresh-token"
+                }
+                """;
+
+        mockMvc.perform(post("/api/v1/auth/refresh").contentType("application/json").content(body))
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.status").value(422));
+    }
+
+    @Test
+    void refresh_whenTokenValidationFails_returns422() throws Exception {
+        SystemUser user = activeAdmin();
+
+        when(jwtService.extractJti("refresh-token")).thenReturn("jti-123");
+        when(tokenBlacklistService.isBlacklisted("jti-123")).thenReturn(false);
+        when(jwtService.extractUsername("refresh-token")).thenReturn("admin");
+        when(userDetailsService.loadUserByUsername("admin")).thenReturn(user);
+        when(jwtService.isRefreshTokenValid("refresh-token", user)).thenReturn(false);
+
+        String body = """
+                {
+                  "refreshToken": "refresh-token"
+                }
+                """;
+
+        mockMvc.perform(post("/api/v1/auth/refresh").contentType("application/json").content(body))
+                .andExpect(status().isUnprocessableContent())
+                .andExpect(jsonPath("$.status").value(422));
+    }
+
+    @Test
     void logout_whenValidRefreshToken_returns204() throws Exception {
         SystemUser user = activeAdmin();
 
@@ -126,5 +210,23 @@ class AuthControllerWebMvcTest {
 
         mockMvc.perform(post("/api/v1/auth/logout").contentType("application/json").content(body))
                 .andExpect(status().isNoContent());
+
+        verify(tokenBlacklistService).blacklist("jti-123", Duration.ofMinutes(5));
+    }
+
+    @Test
+    void logout_whenTokenIsInvalid_returns204AndDoesNotBlacklist() throws Exception {
+        when(jwtService.extractUsername("refresh-token")).thenThrow(new JwtException("Expired"));
+
+        String body = """
+                {
+                  "refreshToken": "refresh-token"
+                }
+                """;
+
+        mockMvc.perform(post("/api/v1/auth/logout").contentType("application/json").content(body))
+                .andExpect(status().isNoContent());
+
+        verify(tokenBlacklistService, never()).blacklist(any(), any());
     }
 }
