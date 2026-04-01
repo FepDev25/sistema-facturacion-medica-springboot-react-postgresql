@@ -69,6 +69,11 @@ public class AuthController {
         final String token = request.refreshToken();
 
         try {
+            String jti = jwtService.extractJti(token);
+            if (tokenBlacklistService.isBlacklisted(jti)) {
+                throw new BusinessRuleException("El refresh token es invalido o ha expirado");
+            }
+
             final String username = jwtService.extractUsername(token);
             SystemUser user = (SystemUser) userDetailsService.loadUserByUsername(username);
 
