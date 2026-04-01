@@ -32,15 +32,6 @@ app:
     access-token-expiration: 900000      # 15 minutos en milisegundos
     refresh-token-expiration: 604800000  # 7 dias en milisegundos
 
-# SpringDoc / Swagger UI
-springdoc:
-  api-docs:
-    path: /api-docs
-  swagger-ui:
-    path: /swagger-ui.html
-    tags-sorter: alpha
-    operations-sorter: alpha
-
 # Actuator
 management:
   endpoints:

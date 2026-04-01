@@ -1,0 +1,2535 @@
+openapi: 3.1.0
+info:
+  title: Sistema de Facturacion Medica API
+  version: 0.6.0-draft
+  description: |
+    Contrato API contract-first en construccion por lotes.
+    Lote 1 implementado: auth + base global.
+    Lote 2 implementado: patients, doctors, insurance.
+    Lote 3 implementado: appointments + medical-records.
+    Lote 4 implementado: invoices + payments.
+    Lote 5 implementado: catalog.
+servers:
+  - url: http://localhost:8080
+    description: Local dev
+tags:
+  - name: Auth
+  - name: Appointments
+  - name: Catalog Medications
+  - name: Catalog Services
+  - name: Invoices
+  - name: Medical Records
+  - name: Payments
+  - name: Patients
+  - name: Doctors
+  - name: Insurance Providers
+  - name: Insurance Policies
+paths:
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      operationId: auth_login
+      summary: Login con usuario y contrasena
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login exitoso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+
+  /api/v1/auth/refresh:
+    post:
+      tags: [Auth]
+      operationId: auth_refresh
+      summary: Renovar access token con refresh token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: Refresh exitoso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '422': { $ref: '#/components/responses/UnprocessableError' }
+
+  /api/v1/auth/logout:
+    post:
+      tags: [Auth]
+      operationId: auth_logout
+      summary: Cerrar sesion (revoca refresh token)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogoutRequest'
+      responses:
+        '204':
+          description: Logout procesado
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '422': { $ref: '#/components/responses/UnprocessableError' }
+
+  /api/v1/patients:
+    post:
+      tags: [Patients]
+      operationId: patients_create
+      summary: Crear paciente
+      description: Requiere rol ADMIN o RECEPTIONIST.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatientCreateRequest'
+      responses:
+        '201':
+          description: Paciente creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatientResponse'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '409': { $ref: '#/components/responses/ConflictError' }
+        '422': { $ref: '#/components/responses/UnprocessableError' }
+    get:
+      tags: [Patients]
+      operationId: patients_list
+      summary: Listar pacientes
+      parameters:
+        - name: lastName
+          in: query
+          required: false
+          schema: { type: string }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200':
+          description: Lista paginada de pacientes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagePatientSummaryResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+
+  /api/v1/patients/{id}:
+    put:
+      tags: [Patients]
+      operationId: patients_update
+      summary: Actualizar paciente
+      description: Requiere rol ADMIN o RECEPTIONIST.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatientUpdateRequest'
+      responses:
+        '200':
+          description: Paciente actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatientResponse'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/UnprocessableError' }
+    get:
+      tags: [Patients]
+      operationId: patients_get_by_id
+      summary: Obtener paciente por id
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Paciente encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatientResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+
+  /api/v1/patients/dni/{dni}:
+    get:
+      tags: [Patients]
+      operationId: patients_get_by_dni
+      summary: Obtener paciente por DNI
+      parameters:
+        - name: dni
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Paciente encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatientResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+
+  /api/v1/patients/search:
+    get:
+      tags: [Patients]
+      operationId: patients_autocomplete
+      summary: Buscar pacientes por texto
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Lista de coincidencias
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PatientSummaryResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+
+  /api/v1/patients/{id}/appointments:
+    get:
+      tags: [Patients]
+      operationId: patients_get_appointments
+      summary: Listar citas del paciente
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200':
+          description: Lista paginada de citas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageAppointmentSummaryResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+
+  /api/v1/patients/{id}/policies:
+    get:
+      tags: [Patients]
+      operationId: patients_get_policies
+      summary: Listar polizas del paciente
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - name: onlyActive
+          in: query
+          required: false
+          schema: { type: boolean }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200':
+          description: Lista paginada de polizas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageInsurancePolicySummaryResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+
+  /api/v1/doctors:
+    post:
+      tags: [Doctors]
+      operationId: doctors_create
+      summary: Crear medico
+      description: Requiere rol ADMIN.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DoctorCreateRequest'
+      responses:
+        '201':
+          description: Medico creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DoctorResponse'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '409': { $ref: '#/components/responses/ConflictError' }
+        '422': { $ref: '#/components/responses/UnprocessableError' }
+    get:
+      tags: [Doctors]
+      operationId: doctors_list
+      summary: Listar medicos
+      parameters:
+        - name: active
+          in: query
+          required: false
+          schema: { type: boolean }
+        - name: specialty
+          in: query
+          required: false
+          schema: { type: string }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200':
+          description: Lista paginada de medicos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageDoctorSummaryResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+
+  /api/v1/doctors/{id}:
+    put:
+      tags: [Doctors]
+      operationId: doctors_update
+      summary: Actualizar medico
+      description: Requiere rol ADMIN.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DoctorUpdateRequest'
+      responses:
+        '200':
+          description: Medico actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DoctorResponse'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/UnprocessableError' }
+    delete:
+      tags: [Doctors]
+      operationId: doctors_deactivate
+      summary: Desactivar medico
+      description: Requiere rol ADMIN.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204': { description: Medico desactivado }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+    get:
+      tags: [Doctors]
+      operationId: doctors_get_by_id
+      summary: Obtener medico por id
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Medico encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DoctorResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+
+  /api/v1/doctors/license/{licenseNumber}:
+    get:
+      tags: [Doctors]
+      operationId: doctors_get_by_license
+      summary: Obtener medico por numero de licencia
+      parameters:
+        - name: licenseNumber
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Medico encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DoctorResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+
+  /api/v1/doctors/{id}/schedule:
+    get:
+      tags: [Doctors]
+      operationId: doctors_get_schedule
+      summary: Obtener citas ocupadas del medico
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200':
+          description: Lista de citas ocupadas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AppointmentSummaryResponse'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+
+  /api/v1/insurance/providers:
+    post:
+      tags: [Insurance Providers]
+      operationId: insurance_providers_create
+      summary: Crear proveedor de seguro
+      description: Requiere rol ADMIN.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InsuranceProviderCreateRequest'
+      responses:
+        '201':
+          description: Proveedor creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InsuranceProviderResponse'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '409': { $ref: '#/components/responses/ConflictError' }
+        '422': { $ref: '#/components/responses/UnprocessableError' }
+    get:
+      tags: [Insurance Providers]
+      operationId: insurance_providers_list
+      summary: Listar proveedores de seguro
+      parameters:
+        - name: active
+          in: query
+          required: false
+          schema: { type: boolean }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200':
+          description: Lista paginada de proveedores
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageInsuranceProviderResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+
+  /api/v1/insurance/providers/{id}:
+    put:
+      tags: [Insurance Providers]
+      operationId: insurance_providers_update
+      summary: Actualizar proveedor de seguro
+      description: Requiere rol ADMIN.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InsuranceProviderUpdateRequest'
+      responses:
+        '200':
+          description: Proveedor actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InsuranceProviderResponse'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/UnprocessableError' }
+    delete:
+      tags: [Insurance Providers]
+      operationId: insurance_providers_deactivate
+      summary: Desactivar proveedor de seguro
+      description: Requiere rol ADMIN.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204': { description: Proveedor desactivado }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+    get:
+      tags: [Insurance Providers]
+      operationId: insurance_providers_get_by_id
+      summary: Obtener proveedor por id
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Proveedor encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InsuranceProviderResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+
+  /api/v1/insurance/policies:
+    post:
+      tags: [Insurance Policies]
+      operationId: insurance_policies_create
+      summary: Crear poliza de seguro
+      description: Requiere rol ADMIN.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InsurancePolicyCreateRequest'
+      responses:
+        '201':
+          description: Poliza creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InsurancePolicyResponse'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '409': { $ref: '#/components/responses/ConflictError' }
+        '422': { $ref: '#/components/responses/UnprocessableError' }
+    get:
+      tags: [Insurance Policies]
+      operationId: insurance_policies_list_by_patient
+      summary: Listar polizas por paciente
+      parameters:
+        - name: patientId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: onlyActive
+          in: query
+          required: false
+          schema: { type: boolean }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200':
+          description: Lista paginada de polizas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageInsurancePolicyResponse'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+
+  /api/v1/insurance/policies/{id}:
+    put:
+      tags: [Insurance Policies]
+      operationId: insurance_policies_update
+      summary: Actualizar poliza de seguro
+      description: Requiere rol ADMIN.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InsurancePolicyUpdateRequest'
+      responses:
+        '200':
+          description: Poliza actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InsurancePolicyResponse'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/UnprocessableError' }
+    get:
+      tags: [Insurance Policies]
+      operationId: insurance_policies_get_by_id
+      summary: Obtener poliza por id
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Poliza encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InsurancePolicyResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+
+  /api/v1/insurance/policies/number/{policyNumber}:
+    get:
+      tags: [Insurance Policies]
+      operationId: insurance_policies_get_by_number
+      summary: Obtener poliza por numero
+      parameters:
+        - name: policyNumber
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Poliza encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InsurancePolicyResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+
+  /api/v1/appointments:
+    post:
+      tags: [Appointments]
+      operationId: appointments_create
+      summary: Crear cita
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentCreateRequest'
+      responses:
+        '201':
+          description: Cita creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentResponse'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/UnprocessableError' }
+    get:
+      tags: [Appointments]
+      operationId: appointments_list
+      summary: Listar citas con filtros
+      parameters:
+        - name: doctorId
+          in: query
+          required: false
+          schema: { type: string, format: uuid }
+        - name: patientId
+          in: query
+          required: false
+          schema: { type: string, format: uuid }
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [SCHEDULED, CONFIRMED, IN_PROGRESS, COMPLETED, CANCELLED, NO_SHOW]
+        - name: from
+          in: query
+          required: false
+          schema: { type: string, format: date-time }
+        - name: to
+          in: query
+          required: false
+          schema: { type: string, format: date-time }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200':
+          description: Lista paginada de citas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageAppointmentSummaryResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+
+  /api/v1/appointments/{id}:
+    get:
+      tags: [Appointments]
+      operationId: appointments_get_by_id
+      summary: Obtener cita por id
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Cita encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+
+  /api/v1/appointments/availability:
+    get:
+      tags: [Appointments]
+      operationId: appointments_get_availability
+      summary: Obtener bloques ocupados de un medico
+      parameters:
+        - name: doctorId
+          in: query
+          required: true
+          schema: { type: string, format: uuid }
+        - name: from
+          in: query
+          required: true
+          schema: { type: string, format: date-time }
+        - name: to
+          in: query
+          required: true
+          schema: { type: string, format: date-time }
+      responses:
+        '200':
+          description: Lista de bloques ocupados
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AppointmentSummaryResponse'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+
+  /api/v1/appointments/{id}/confirm:
+    patch:
+      tags: [Appointments]
+      operationId: appointments_confirm
+      summary: Confirmar cita
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Cita confirmada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/UnprocessableError' }
+
+  /api/v1/appointments/{id}/start:
+    patch:
+      tags: [Appointments]
+      operationId: appointments_start
+      summary: Iniciar cita
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Cita iniciada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/UnprocessableError' }
+
+  /api/v1/appointments/{id}/complete:
+    patch:
+      tags: [Appointments]
+      operationId: appointments_complete
+      summary: Completar cita y generar expediente
+      description: Requiere rol DOCTOR.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MedicalRecordCreateRequest'
+      responses:
+        '200':
+          description: Cita completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentResponse'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/UnprocessableError' }
+
+  /api/v1/appointments/{id}/cancel:
+    patch:
+      tags: [Appointments]
+      operationId: appointments_cancel
+      summary: Cancelar cita
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Cita cancelada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/UnprocessableError' }
+
+  /api/v1/appointments/{id}/no-show:
+    patch:
+      tags: [Appointments]
+      operationId: appointments_no_show
+      summary: Marcar cita como no show
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Cita marcada como no show
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppointmentResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/UnprocessableError' }
+
+  /api/v1/medical-records/{id}:
+    get:
+      tags: [Medical Records]
+      operationId: medical_records_get_by_id
+      summary: Obtener expediente medico por id
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Expediente encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MedicalRecordResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+
+  /api/v1/medical-records/appointment/{appointmentId}:
+    get:
+      tags: [Medical Records]
+      operationId: medical_records_get_by_appointment
+      summary: Obtener expediente por cita
+      parameters:
+        - name: appointmentId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Expediente encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MedicalRecordResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+
+  /api/v1/medical-records/patient/{patientId}:
+    get:
+      tags: [Medical Records]
+      operationId: medical_records_list_by_patient
+      summary: Listar expedientes por paciente
+      parameters:
+        - name: patientId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200':
+          description: Lista paginada de expedientes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageMedicalRecordResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+
+  /api/v1/medical-records/{id}/diagnoses:
+    post:
+      tags: [Medical Records]
+      operationId: medical_records_add_diagnosis
+      summary: Agregar diagnostico
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DiagnosisCreateRequest'
+      responses:
+        '200':
+          description: Diagnostico creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DiagnosisResponse'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/UnprocessableError' }
+    get:
+      tags: [Medical Records]
+      operationId: medical_records_get_diagnoses
+      summary: Listar diagnosticos de un expediente
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200':
+          description: Lista paginada de diagnosticos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageDiagnosisResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+
+  /api/v1/medical-records/diagnoses/icd10:
+    get:
+      tags: [Medical Records]
+      operationId: medical_records_get_diagnoses_by_icd10
+      summary: Listar diagnosticos por codigo ICD-10
+      parameters:
+        - name: code
+          in: query
+          required: true
+          schema: { type: string }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200':
+          description: Lista paginada de diagnosticos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageDiagnosisResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+
+  /api/v1/medical-records/{id}/prescriptions:
+    post:
+      tags: [Medical Records]
+      operationId: medical_records_add_prescription
+      summary: Agregar prescripcion
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrescriptionCreateRequest'
+      responses:
+        '200':
+          description: Prescripcion creada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrescriptionResponse'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/UnprocessableError' }
+    get:
+      tags: [Medical Records]
+      operationId: medical_records_get_prescriptions
+      summary: Listar prescripciones de un expediente
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200':
+          description: Lista paginada de prescripciones
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagePrescriptionResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+
+  /api/v1/medical-records/{id}/procedures:
+    post:
+      tags: [Medical Records]
+      operationId: medical_records_add_procedure
+      summary: Agregar procedimiento
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProcedureCreateRequest'
+      responses:
+        '200':
+          description: Procedimiento creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProcedureResponse'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/UnprocessableError' }
+    get:
+      tags: [Medical Records]
+      operationId: medical_records_get_procedures
+      summary: Listar procedimientos de un expediente
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200':
+          description: Lista paginada de procedimientos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageProcedureResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+
+  /api/v1/invoices/{id}:
+    get:
+      tags: [Invoices]
+      operationId: invoices_get_by_id
+      summary: Obtener factura por id
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Factura encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+
+  /api/v1/invoices/number/{invoiceNumber}:
+    get:
+      tags: [Invoices]
+      operationId: invoices_get_by_number
+      summary: Obtener factura por numero
+      parameters:
+        - name: invoiceNumber
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Factura encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+
+  /api/v1/invoices:
+    get:
+      tags: [Invoices]
+      operationId: invoices_list
+      summary: Listar facturas con filtros
+      parameters:
+        - name: patientId
+          in: query
+          required: false
+          schema: { type: string, format: uuid }
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [DRAFT, PENDING, PARTIAL_PAID, PAID, CANCELLED, OVERDUE]
+        - name: startDate
+          in: query
+          required: false
+          schema: { type: string, format: date }
+        - name: endDate
+          in: query
+          required: false
+          schema: { type: string, format: date }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200':
+          description: Lista paginada de facturas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageInvoiceResponse'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+
+  /api/v1/invoices/{id}/items:
+    post:
+      tags: [Invoices]
+      operationId: invoices_add_item
+      summary: Agregar item a factura
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvoiceItemRequest'
+      responses:
+        '201':
+          description: Item agregado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceItemResponse'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/UnprocessableError' }
+
+  /api/v1/invoices/{invoiceId}/items/{itemId}:
+    delete:
+      tags: [Invoices]
+      operationId: invoices_remove_item
+      summary: Eliminar item de factura
+      parameters:
+        - name: invoiceId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - name: itemId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '204':
+          description: Item eliminado
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/UnprocessableError' }
+
+  /api/v1/invoices/{id}/confirm:
+    patch:
+      tags: [Invoices]
+      operationId: invoices_confirm
+      summary: Confirmar factura
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Factura actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/UnprocessableError' }
+
+  /api/v1/invoices/{id}/overdue:
+    patch:
+      tags: [Invoices]
+      operationId: invoices_mark_overdue
+      summary: Marcar factura como vencida
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Factura actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/UnprocessableError' }
+
+  /api/v1/invoices/{id}/cancel:
+    patch:
+      tags: [Invoices]
+      operationId: invoices_cancel
+      summary: Cancelar factura
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Factura actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/UnprocessableError' }
+
+  /api/v1/payments:
+    post:
+      tags: [Payments]
+      operationId: payments_register
+      summary: Registrar pago
+      description: Requiere rol ADMIN o RECEPTIONIST.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentCreateRequest'
+      responses:
+        '201':
+          description: Pago registrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/UnprocessableError' }
+
+  /api/v1/payments/invoice/{invoiceId}:
+    get:
+      tags: [Payments]
+      operationId: payments_get_by_invoice
+      summary: Listar pagos por factura
+      parameters:
+        - name: invoiceId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200':
+          description: Lista paginada de pagos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagePaymentResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+
+  /api/v1/catalog/services:
+    post:
+      tags: [Catalog Services]
+      operationId: catalog_services_create
+      summary: Crear servicio de catalogo
+      description: Requiere rol ADMIN.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceCreateRequest'
+      responses:
+        '201':
+          description: Servicio creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceResponse'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '409': { $ref: '#/components/responses/ConflictError' }
+        '422': { $ref: '#/components/responses/UnprocessableError' }
+    get:
+      tags: [Catalog Services]
+      operationId: catalog_services_list
+      summary: Listar servicios de catalogo
+      parameters:
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [CONSULTATION, LABORATORY, IMAGING, SURGERY, THERAPY, EMERGENCY, OTHER]
+        - name: active
+          in: query
+          required: false
+          schema: { type: boolean }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200':
+          description: Lista paginada de servicios
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageServiceSummaryResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+
+  /api/v1/catalog/services/{id}:
+    put:
+      tags: [Catalog Services]
+      operationId: catalog_services_update
+      summary: Actualizar servicio de catalogo
+      description: Requiere rol ADMIN.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceUpdateRequest'
+      responses:
+        '200':
+          description: Servicio actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceResponse'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/UnprocessableError' }
+    delete:
+      tags: [Catalog Services]
+      operationId: catalog_services_deactivate
+      summary: Desactivar servicio de catalogo
+      description: Requiere rol ADMIN.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204':
+          description: Servicio desactivado
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+    get:
+      tags: [Catalog Services]
+      operationId: catalog_services_get_by_id
+      summary: Obtener servicio por id
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Servicio encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+
+  /api/v1/catalog/services/search:
+    get:
+      tags: [Catalog Services]
+      operationId: catalog_services_search
+      summary: Buscar servicios por nombre
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Lista de servicios
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ServiceSummaryResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '422': { $ref: '#/components/responses/UnprocessableError' }
+
+  /api/v1/catalog/medications:
+    post:
+      tags: [Catalog Medications]
+      operationId: catalog_medications_create
+      summary: Crear medicamento de catalogo
+      description: Requiere rol ADMIN.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MedicationCreateRequest'
+      responses:
+        '201':
+          description: Medicamento creado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MedicationResponse'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '409': { $ref: '#/components/responses/ConflictError' }
+        '422': { $ref: '#/components/responses/UnprocessableError' }
+    get:
+      tags: [Catalog Medications]
+      operationId: catalog_medications_list
+      summary: Listar y buscar medicamentos
+      parameters:
+        - name: active
+          in: query
+          required: false
+          schema: { type: boolean }
+        - name: unit
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [TABLET, CAPSULE, ML, MG, G, UNIT, BOX, VIAL, INHALER]
+        - name: requiresPrescription
+          in: query
+          required: false
+          schema: { type: boolean }
+        - name: q
+          in: query
+          required: false
+          schema: { type: string }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200':
+          description: Lista paginada de medicamentos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageMedicationSummaryResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '422': { $ref: '#/components/responses/UnprocessableError' }
+
+  /api/v1/catalog/medications/{id}:
+    put:
+      tags: [Catalog Medications]
+      operationId: catalog_medications_update
+      summary: Actualizar medicamento de catalogo
+      description: Requiere rol ADMIN.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MedicationUpdateRequest'
+      responses:
+        '200':
+          description: Medicamento actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MedicationResponse'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/UnprocessableError' }
+    delete:
+      tags: [Catalog Medications]
+      operationId: catalog_medications_deactivate
+      summary: Desactivar medicamento de catalogo
+      description: Requiere rol ADMIN.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204':
+          description: Medicamento desactivado
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+    get:
+      tags: [Catalog Medications]
+      operationId: catalog_medications_get_by_id
+      summary: Obtener medicamento por id
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Medicamento encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MedicationResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+
+  /api/v1/catalog/medications/code/{code}:
+    get:
+      tags: [Catalog Medications]
+      operationId: catalog_medications_get_by_code
+      summary: Obtener medicamento por codigo
+      parameters:
+        - name: code
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: Medicamento encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MedicationResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    Page:
+      name: page
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+    Size:
+      name: size
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+    Sort:
+      name: sort
+      in: query
+      required: false
+      schema:
+        type: string
+        description: Formato de Spring Data, por ejemplo `lastName,asc`
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+        error:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
+
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+
+    RefreshTokenRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+
+    LogoutRequest:
+      type: object
+      required: [refreshToken]
+      properties:
+        refreshToken:
+          type: string
+
+    TokenResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+          nullable: true
+        tokenType:
+          type: string
+          enum: [Bearer]
+        role:
+          type: string
+          enum: [ADMIN, DOCTOR, RECEPTIONIST]
+
+    AppointmentCreateRequest:
+      type: object
+      required: [patientId, doctorId, scheduledAt, durationMinutes]
+      properties:
+        patientId:
+          type: string
+          format: uuid
+        doctorId:
+          type: string
+          format: uuid
+        scheduledAt:
+          type: string
+          format: date-time
+        durationMinutes:
+          type: integer
+          minimum: 1
+        chiefComplaint:
+          type: string
+          maxLength: 500
+        notes:
+          type: string
+          nullable: true
+
+    AppointmentResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        patientId: { type: string, format: uuid }
+        patientFirstName: { type: string }
+        patientLastName: { type: string }
+        doctorId: { type: string, format: uuid }
+        doctorFirstName: { type: string }
+        doctorLastName: { type: string }
+        scheduledAt: { type: string, format: date-time }
+        scheduledEndAt: { type: string, format: date-time }
+        durationMinutes: { type: integer }
+        status:
+          type: string
+          enum: [scheduled, confirmed, in_progress, completed, cancelled, no_show]
+        chiefComplaint: { type: string, nullable: true }
+        notes: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time, nullable: true }
+        updatedAt: { type: string, format: date-time, nullable: true }
+
+    MedicalRecordCreateRequest:
+      type: object
+      required: [patientId, appointmentId, clinicalNotes, recordDate]
+      properties:
+        patientId:
+          type: string
+          format: uuid
+        appointmentId:
+          type: string
+          format: uuid
+        vitalSigns:
+          type: object
+          additionalProperties: true
+          nullable: true
+        physicalExam:
+          type: string
+          nullable: true
+        clinicalNotes:
+          type: string
+        recordDate:
+          type: string
+          format: date-time
+
+    MedicalRecordResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        patientId: { type: string, format: uuid }
+        patientFirstName: { type: string }
+        patientLastName: { type: string }
+        appointmentId: { type: string, format: uuid }
+        vitalSigns:
+          type: object
+          additionalProperties: true
+          nullable: true
+        physicalExam: { type: string, nullable: true }
+        clinicalNotes: { type: string }
+        recordDate: { type: string, format: date-time }
+        createdAt: { type: string, format: date-time, nullable: true }
+        updatedAt: { type: string, format: date-time, nullable: true }
+
+    DiagnosisCreateRequest:
+      type: object
+      required: [appointmentId, medicalRecordId, icd10Code, description, diagnosedAt]
+      properties:
+        appointmentId: { type: string, format: uuid }
+        medicalRecordId: { type: string, format: uuid }
+        icd10Code:
+          type: string
+          maxLength: 10
+          pattern: '^[A-Z][0-9]{2}(\.[0-9A-Z]{1,4})?$'
+        description: { type: string }
+        severity:
+          type: string
+          enum: [mild, moderate, severe, critical]
+          nullable: true
+        diagnosedAt: { type: string, format: date-time }
+
+    DiagnosisResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        appointmentId: { type: string, format: uuid }
+        medicalRecordId: { type: string, format: uuid }
+        icd10Code: { type: string }
+        description: { type: string }
+        severity:
+          type: string
+          enum: [mild, moderate, severe, critical]
+          nullable: true
+        diagnosedAt: { type: string, format: date-time }
+        createdAt: { type: string, format: date-time }
+
+    PrescriptionCreateRequest:
+      type: object
+      required: [appointmentId, medicalRecordId, medicationId, dosage, frequency, durationDays]
+      properties:
+        appointmentId: { type: string, format: uuid }
+        medicalRecordId: { type: string, format: uuid }
+        medicationId: { type: string, format: uuid }
+        dosage: { type: string }
+        frequency: { type: string }
+        durationDays:
+          type: integer
+          minimum: 1
+          maximum: 365
+        instructions:
+          type: string
+          nullable: true
+
+    PrescriptionResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        appointmentId: { type: string, format: uuid }
+        medicalRecordId: { type: string, format: uuid }
+        medicationId: { type: string, format: uuid }
+        medicationName: { type: string }
+        dosage: { type: string }
+        frequency: { type: string }
+        durationDays: { type: integer }
+        instructions: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time }
+
+    ProcedureCreateRequest:
+      type: object
+      required: [appointmentId, medicalRecordId, procedureCode, description, performedAt]
+      properties:
+        appointmentId: { type: string, format: uuid }
+        medicalRecordId: { type: string, format: uuid }
+        procedureCode:
+          type: string
+          maxLength: 50
+        description: { type: string }
+        notes:
+          type: string
+          nullable: true
+        performedAt: { type: string, format: date-time }
+
+    ProcedureResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        appointmentId: { type: string, format: uuid }
+        medicalRecordId: { type: string, format: uuid }
+        procedureCode: { type: string }
+        description: { type: string }
+        notes: { type: string, nullable: true }
+        performedAt: { type: string, format: date-time }
+        createdAt: { type: string, format: date-time }
+
+    InvoiceItemRequest:
+      type: object
+      required: [itemType, description, quantity, unitPrice]
+      properties:
+        serviceId: { type: string, format: uuid, nullable: true }
+        medicationId: { type: string, format: uuid, nullable: true }
+        itemType:
+          type: string
+          enum: [service, medication, procedure, other]
+        description: { type: string }
+        quantity:
+          type: integer
+          minimum: 1
+        unitPrice:
+          type: number
+          exclusiveMinimum: 0
+
+    InvoiceItemResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        invoiceId: { type: string, format: uuid }
+        serviceId: { type: string, format: uuid, nullable: true }
+        serviceName: { type: string, nullable: true }
+        medicationId: { type: string, format: uuid, nullable: true }
+        medicationName: { type: string, nullable: true }
+        itemType:
+          type: string
+          enum: [service, medication, procedure, other]
+        description: { type: string }
+        quantity: { type: integer }
+        unitPrice: { type: number }
+        subtotal: { type: number }
+        createdAt: { type: string, format: date-time, nullable: true }
+
+    InvoiceResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        patientId: { type: string, format: uuid }
+        patientFirstName: { type: string }
+        patientLastName: { type: string }
+        appointmentId: { type: string, format: uuid, nullable: true }
+        insurancePolicyId: { type: string, format: uuid, nullable: true }
+        invoiceNumber: { type: string }
+        subtotal: { type: number }
+        tax: { type: number }
+        total: { type: number }
+        insuranceCoverage: { type: number }
+        patientResponsibility: { type: number }
+        status:
+          type: string
+          enum: [draft, pending, partial_paid, paid, cancelled, overdue]
+        issueDate: { type: string, format: date }
+        dueDate: { type: string, format: date }
+        notes: { type: string, nullable: true }
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvoiceItemResponse'
+        createdAt: { type: string, format: date-time, nullable: true }
+        updatedAt: { type: string, format: date-time, nullable: true }
+
+    PaymentCreateRequest:
+      type: object
+      required: [invoiceId, amount, paymentMethod, paymentDate]
+      properties:
+        invoiceId: { type: string, format: uuid }
+        amount:
+          type: number
+          exclusiveMinimum: 0
+        paymentMethod:
+          type: string
+          enum: [cash, credit_card, debit_card, bank_transfer, check, insurance, other]
+        referenceNumber:
+          type: string
+          maxLength: 100
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        paymentDate:
+          type: string
+          format: date-time
+
+    PaymentResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        invoiceId: { type: string, format: uuid }
+        invoiceNumber: { type: string }
+        amount: { type: number }
+        paymentMethod:
+          type: string
+          enum: [cash, credit_card, debit_card, bank_transfer, check, insurance, other]
+        referenceNumber: { type: string, nullable: true }
+        notes: { type: string, nullable: true }
+        paymentDate: { type: string, format: date-time }
+        createdAt: { type: string, format: date-time, nullable: true }
+
+    PatientCreateRequest:
+      type: object
+      required: [dni, firstName, lastName, birthDate, gender, phone]
+      properties:
+        dni:
+          type: string
+          maxLength: 20
+        firstName:
+          type: string
+          maxLength: 100
+        lastName:
+          type: string
+          maxLength: 100
+        birthDate:
+          type: string
+          format: date
+        gender:
+          type: string
+          enum: [male, female, other, prefer_not_to_say]
+        phone:
+          type: string
+          maxLength: 20
+        email:
+          type: string
+          format: email
+          maxLength: 100
+        address:
+          type: string
+          maxLength: 200
+        bloodType:
+          type: string
+          maxLength: 5
+        allergies:
+          type: string
+          maxLength: 500
+
+    PatientUpdateRequest:
+      type: object
+      properties:
+        firstName:
+          type: string
+          maxLength: 100
+        lastName:
+          type: string
+          maxLength: 100
+        birthDate:
+          type: string
+          format: date
+        gender:
+          type: string
+          enum: [male, female, other, prefer_not_to_say]
+        phone:
+          type: string
+          maxLength: 20
+        email:
+          type: string
+          format: email
+          maxLength: 100
+        address:
+          type: string
+          maxLength: 200
+        bloodType:
+          type: string
+          maxLength: 5
+        allergies:
+          type: string
+          maxLength: 500
+
+    PatientResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        dni: { type: string }
+        firstName: { type: string }
+        lastName: { type: string }
+        birthDate: { type: string, format: date }
+        gender:
+          type: string
+          enum: [male, female, other, prefer_not_to_say]
+        phone: { type: string }
+        email: { type: string, format: email, nullable: true }
+        address: { type: string, nullable: true }
+        bloodType: { type: string, nullable: true }
+        allergies: { type: string, nullable: true }
+        createdAt: { type: string, format: date-time, nullable: true }
+        updatedAt: { type: string, format: date-time, nullable: true }
+
+    PatientSummaryResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        dni: { type: string }
+        firstName: { type: string }
+        lastName: { type: string }
+        phone: { type: string }
+
+    DoctorCreateRequest:
+      type: object
+      required: [licenseNumber, firstName, lastName, specialty, phone, email]
+      properties:
+        licenseNumber: { type: string, maxLength: 50 }
+        firstName: { type: string, maxLength: 100 }
+        lastName: { type: string, maxLength: 100 }
+        specialty: { type: string, maxLength: 100 }
+        phone: { type: string, maxLength: 20 }
+        email: { type: string, format: email, maxLength: 100 }
+
+    DoctorUpdateRequest:
+      type: object
+      required: [isActive]
+      properties:
+        firstName: { type: string, maxLength: 100 }
+        lastName: { type: string, maxLength: 100 }
+        specialty: { type: string, maxLength: 100 }
+        phone: { type: string, maxLength: 20 }
+        email: { type: string, format: email, maxLength: 100 }
+        isActive: { type: boolean }
+
+    DoctorResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        licenseNumber: { type: string }
+        firstName: { type: string }
+        lastName: { type: string }
+        specialty: { type: string }
+        phone: { type: string }
+        email: { type: string, format: email }
+        isActive: { type: boolean }
+        createdAt: { type: string, format: date-time, nullable: true }
+        updatedAt: { type: string, format: date-time, nullable: true }
+
+    DoctorSummaryResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        firstName: { type: string }
+        lastName: { type: string }
+        specialty: { type: string }
+
+    InsuranceProviderCreateRequest:
+      type: object
+      required: [name, code, phone]
+      properties:
+        name: { type: string, maxLength: 200 }
+        code: { type: string, maxLength: 50 }
+        phone: { type: string, maxLength: 20 }
+        email: { type: string, format: email, maxLength: 100 }
+        address: { type: string, maxLength: 255 }
+
+    InsuranceProviderUpdateRequest:
+      type: object
+      required: [isActive]
+      properties:
+        name: { type: string, maxLength: 200 }
+        phone: { type: string, maxLength: 20 }
+        email: { type: string, format: email, maxLength: 100 }
+        address: { type: string, maxLength: 255 }
+        isActive: { type: boolean }
+
+    InsuranceProviderResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        code: { type: string }
+        phone: { type: string }
+        email: { type: string, format: email, nullable: true }
+        address: { type: string, nullable: true }
+        isActive: { type: boolean }
+        createdAt: { type: string, format: date-time, nullable: true }
+        updatedAt: { type: string, format: date-time, nullable: true }
+
+    InsurancePolicyCreateRequest:
+      type: object
+      required: [patientId, providerId, policyNumber, coveragePercentage, deductible, startDate, endDate]
+      properties:
+        patientId: { type: string, format: uuid }
+        providerId: { type: string, format: uuid }
+        policyNumber: { type: string, maxLength: 100 }
+        coveragePercentage:
+          type: number
+          minimum: 0
+          maximum: 100
+        deductible:
+          type: number
+          minimum: 0
+        startDate: { type: string, format: date }
+        endDate: { type: string, format: date }
+
+    InsurancePolicyUpdateRequest:
+      type: object
+      required: [coveragePercentage]
+      properties:
+        coveragePercentage:
+          type: number
+          minimum: 0
+          maximum: 100
+        deductible:
+          type: number
+          minimum: 0
+        startDate: { type: string, format: date, nullable: true }
+        endDate: { type: string, format: date, nullable: true }
+        isActive: { type: boolean, nullable: true }
+
+    InsurancePolicyResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        patientId: { type: string, format: uuid }
+        patientFirstName: { type: string }
+        patientLastName: { type: string }
+        providerId: { type: string, format: uuid }
+        providerName: { type: string }
+        policyNumber: { type: string }
+        coveragePercentage: { type: number }
+        deductible: { type: number }
+        startDate: { type: string, format: date }
+        endDate: { type: string, format: date }
+        isActive: { type: boolean }
+        createdAt: { type: string, format: date-time, nullable: true }
+        updatedAt: { type: string, format: date-time, nullable: true }
+
+    InsurancePolicySummaryResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        policyNumber: { type: string }
+        providerName: { type: string }
+        coveragePercentage: { type: number }
+        isActive: { type: boolean }
+
+    AppointmentSummaryResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        patientFirstName: { type: string }
+        patientLastName: { type: string }
+        doctorFirstName: { type: string }
+        doctorLastName: { type: string }
+        scheduledAt: { type: string, format: date-time }
+        status:
+          type: string
+          enum: [scheduled, confirmed, in_progress, completed, cancelled, no_show]
+
+    PagePatientSummaryResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/PatientSummaryResponse'
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+        size: { type: integer }
+        number: { type: integer }
+
+    PageDoctorSummaryResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/DoctorSummaryResponse'
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+        size: { type: integer }
+        number: { type: integer }
+
+    PageInsuranceProviderResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/InsuranceProviderResponse'
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+        size: { type: integer }
+        number: { type: integer }
+
+    PageInsurancePolicyResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/InsurancePolicyResponse'
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+        size: { type: integer }
+        number: { type: integer }
+
+    PageInsurancePolicySummaryResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/InsurancePolicySummaryResponse'
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+        size: { type: integer }
+        number: { type: integer }
+
+    PageAppointmentSummaryResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/AppointmentSummaryResponse'
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+        size: { type: integer }
+        number: { type: integer }
+
+    PageMedicalRecordResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/MedicalRecordResponse'
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+        size: { type: integer }
+        number: { type: integer }
+
+    PageDiagnosisResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/DiagnosisResponse'
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+        size: { type: integer }
+        number: { type: integer }
+
+    PagePrescriptionResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/PrescriptionResponse'
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+        size: { type: integer }
+        number: { type: integer }
+
+    PageProcedureResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProcedureResponse'
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+        size: { type: integer }
+        number: { type: integer }
+
+    PageInvoiceResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvoiceResponse'
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+        size: { type: integer }
+        number: { type: integer }
+
+    PagePaymentResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/PaymentResponse'
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+        size: { type: integer }
+        number: { type: integer }
+
+    ServiceCreateRequest:
+      type: object
+      required: [code, name, price, category]
+      properties:
+        code:
+          type: string
+          maxLength: 50
+        name:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+          nullable: true
+        price:
+          type: number
+          exclusiveMinimum: 0
+        category:
+          type: string
+          enum: [consultation, laboratory, imaging, surgery, therapy, emergency, other]
+
+    ServiceUpdateRequest:
+      type: object
+      required: [isActive]
+      properties:
+        name:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+          nullable: true
+        price:
+          type: number
+          exclusiveMinimum: 0
+        category:
+          type: string
+          enum: [consultation, laboratory, imaging, surgery, therapy, emergency, other]
+          nullable: true
+        isActive:
+          type: boolean
+
+    ServiceResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        name: { type: string }
+        description: { type: string, nullable: true }
+        price: { type: number }
+        category:
+          type: string
+          enum: [consultation, laboratory, imaging, surgery, therapy, emergency, other]
+        isActive: { type: boolean }
+        createdAt: { type: string, format: date-time, nullable: true }
+        updatedAt: { type: string, format: date-time, nullable: true }
+
+    ServiceSummaryResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        name: { type: string }
+        price: { type: number }
+        category:
+          type: string
+          enum: [consultation, laboratory, imaging, surgery, therapy, emergency, other]
+        isActive: { type: boolean }
+
+    MedicationCreateRequest:
+      type: object
+      required: [code, name, price, unit, requiresPrescription]
+      properties:
+        code:
+          type: string
+          maxLength: 50
+        name:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+          nullable: true
+        price:
+          type: number
+          exclusiveMinimum: 0
+        unit:
+          type: string
+          enum: [tablet, capsule, ml, mg, g, unit, box, vial, inhaler]
+        requiresPrescription:
+          type: boolean
+
+    MedicationUpdateRequest:
+      type: object
+      required: [isActive]
+      properties:
+        name:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+          nullable: true
+        price:
+          type: number
+          exclusiveMinimum: 0
+        unit:
+          type: string
+          enum: [tablet, capsule, ml, mg, g, unit, box, vial, inhaler]
+          nullable: true
+        requiresPrescription:
+          type: boolean
+          nullable: true
+        isActive:
+          type: boolean
+
+    MedicationResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        name: { type: string }
+        description: { type: string, nullable: true }
+        price: { type: number }
+        unit:
+          type: string
+          enum: [tablet, capsule, ml, mg, g, unit, box, vial, inhaler]
+        requiresPrescription: { type: boolean }
+        isActive: { type: boolean }
+        createdAt: { type: string, format: date-time, nullable: true }
+        updatedAt: { type: string, format: date-time, nullable: true }
+
+    MedicationSummaryResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        name: { type: string }
+        price: { type: number }
+        unit:
+          type: string
+          enum: [tablet, capsule, ml, mg, g, unit, box, vial, inhaler]
+
+    PageServiceSummaryResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ServiceSummaryResponse'
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+        size: { type: integer }
+        number: { type: integer }
+
+    PageMedicationSummaryResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/MedicationSummaryResponse'
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+        size: { type: integer }
+        number: { type: integer }
+
+  responses:
+    BadRequestError:
+      description: Solicitud invalida
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    UnauthorizedError:
+      description: No autenticado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ForbiddenError:
+      description: Sin permisos
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFoundError:
+      description: Recurso no encontrado
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ConflictError:
+      description: Conflicto de datos
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    UnprocessableError:
+      description: Regla de negocio violada
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+security:
+  - bearerAuth: []
