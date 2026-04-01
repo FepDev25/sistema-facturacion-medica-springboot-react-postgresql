@@ -5,6 +5,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.ArgumentMatchers.eq;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -121,6 +124,17 @@ class InvoiceServiceTest {
     }
 
     @Test
+    void addItem_whenInvoiceNotFound_throwsEntityNotFoundException() {
+        UUID invoiceId = UUID.randomUUID();
+        InvoiceItemRequest req = serviceItemRequest(UUID.randomUUID());
+
+        when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> invoiceService.addItem(invoiceId, req))
+                .isInstanceOf(EntityNotFoundException.class);
+    }
+
+    @Test
     void addItem_serviceType_whenServiceInactive_throwsBusinessRuleException() {
         UUID invoiceId = UUID.randomUUID();
         UUID serviceId = UUID.randomUUID();
@@ -203,6 +217,64 @@ class InvoiceServiceTest {
     }
 
     @Test
+    void addItem_medicationType_whenMedicationRequiresPrescriptionButInvoiceHasNoAppointment_throwsBusinessRuleException() {
+        UUID invoiceId = UUID.randomUUID();
+        UUID medId = UUID.randomUUID();
+
+        MedicationsCatalog med = new MedicationsCatalog();
+        med.setActive(true);
+        med.setRequiresPrescription(true);
+
+        Invoice invoice = draftInvoice();
+        invoice.setAppointment(null);
+
+        when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
+        when(medicationsCatalogRepository.findById(medId)).thenReturn(Optional.of(med));
+        when(invoiceItemMapper.toEntity(any())).thenReturn(new InvoiceItem());
+
+        assertThatThrownBy(() -> invoiceService.addItem(invoiceId, medicationItemRequest(medId)))
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("no tiene cita asociada");
+    }
+
+    @Test
+    void addItem_medicationType_whenPrescriptionExists_savesItem() {
+        UUID invoiceId = UUID.randomUUID();
+        UUID medId = UUID.randomUUID();
+        UUID appointmentId = UUID.randomUUID();
+
+        MedicationsCatalog med = new MedicationsCatalog();
+        med.setActive(true);
+        med.setRequiresPrescription(true);
+
+        com.fepdev.sfm.backend.domain.appointment.Appointment appointment =
+                new com.fepdev.sfm.backend.domain.appointment.Appointment();
+        ReflectionTestUtils.setField(appointment, "id", appointmentId);
+
+        Invoice invoice = draftInvoice();
+        invoice.setAppointment(appointment);
+
+        InvoiceItem item = new InvoiceItem();
+        InvoiceItemResponse mapped = new InvoiceItemResponse(
+                UUID.randomUUID(), invoiceId, null, null, medId, null,
+                ItemType.MEDICATION, "Amoxicilina", 2, new BigDecimal("15.00"), new BigDecimal("30.00"), null);
+
+        when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
+        when(medicationsCatalogRepository.findById(medId)).thenReturn(Optional.of(med));
+        when(prescriptionRepository.existsByAppointmentIdAndMedicationId(appointmentId, medId)).thenReturn(true);
+        when(invoiceItemMapper.toEntity(any())).thenReturn(item);
+        when(invoiceItemRepository.save(item)).thenReturn(item);
+        when(invoiceItemMapper.toResponse(item)).thenReturn(mapped);
+        when(invoiceItemRepository.findByInvoiceId(invoiceId)).thenReturn(List.of(item));
+        when(invoiceRepository.save(invoice)).thenReturn(invoice);
+
+        var response = invoiceService.addItem(invoiceId, medicationItemRequest(medId));
+
+        assertThat(response.itemType()).isEqualTo(ItemType.MEDICATION);
+        verify(prescriptionRepository).existsByAppointmentIdAndMedicationId(appointmentId, medId);
+    }
+
+    @Test
     void addItem_serviceType_success_calculatesSubtotalAndRecalculatesTotals() {
         UUID invoiceId = UUID.randomUUID();
         UUID serviceId = UUID.randomUUID();
@@ -282,6 +354,15 @@ class InvoiceServiceTest {
         assertThat(invoice.getStatus()).isEqualTo(InvoiceStatus.PENDING);
     }
 
+    @Test
+    void confirmInvoice_whenInvoiceNotFound_throwsEntityNotFoundException() {
+        UUID invoiceId = UUID.randomUUID();
+        when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> invoiceService.confirmInvoice(invoiceId))
+                .isInstanceOf(EntityNotFoundException.class);
+    }
+
     // =========================================================
     // cancelInvoice
     // =========================================================
@@ -327,6 +408,31 @@ class InvoiceServiceTest {
         assertThat(invoice.getStatus()).isEqualTo(InvoiceStatus.CANCELLED);
     }
 
+    @Test
+    void cancelInvoice_pending_withNoPayments_setsStatusCancelled() {
+        UUID invoiceId = UUID.randomUUID();
+        Invoice invoice = new Invoice();
+        invoice.setStatus(InvoiceStatus.PENDING);
+
+        when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
+        when(paymentRepository.existsByInvoiceId(invoiceId)).thenReturn(false);
+        when(invoiceRepository.save(invoice)).thenReturn(invoice);
+
+        invoiceService.cancelInvoice(invoiceId);
+
+        assertThat(invoice.getStatus()).isEqualTo(InvoiceStatus.CANCELLED);
+    }
+
+    @Test
+    void cancelInvoice_whenInvoiceNotFound_throwsEntityNotFoundException() {
+        UUID invoiceId = UUID.randomUUID();
+        when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> invoiceService.cancelInvoice(invoiceId))
+                .isInstanceOf(EntityNotFoundException.class);
+        verify(paymentRepository, never()).existsByInvoiceId(invoiceId);
+    }
+
     // =========================================================
     // markOverdue
     // =========================================================
@@ -346,6 +452,20 @@ class InvoiceServiceTest {
         UUID invoiceId = UUID.randomUUID();
         Invoice invoice = new Invoice();
         invoice.setStatus(InvoiceStatus.PENDING);
+
+        when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
+        when(invoiceRepository.save(invoice)).thenReturn(invoice);
+
+        invoiceService.markOverdue(invoiceId);
+
+        assertThat(invoice.getStatus()).isEqualTo(InvoiceStatus.OVERDUE);
+    }
+
+    @Test
+    void markOverdue_whenPartialPaid_setsStatusOverdue() {
+        UUID invoiceId = UUID.randomUUID();
+        Invoice invoice = new Invoice();
+        invoice.setStatus(InvoiceStatus.PARTIAL_PAID);
 
         when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
         when(invoiceRepository.save(invoice)).thenReturn(invoice);
@@ -379,6 +499,182 @@ class InvoiceServiceTest {
         assertThatThrownBy(() -> invoiceService.removeItem(invoiceId, itemId))
             .isInstanceOf(BusinessRuleException.class)
             .hasMessageContaining("no pertenece");
+    }
+
+    @Test
+    void removeItem_whenInvoiceNotDraft_throwsBusinessRuleException() {
+        UUID invoiceId = UUID.randomUUID();
+        UUID itemId = UUID.randomUUID();
+        Invoice invoice = new Invoice();
+        invoice.setStatus(InvoiceStatus.PENDING);
+
+        when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
+
+        assertThatThrownBy(() -> invoiceService.removeItem(invoiceId, itemId))
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("DRAFT");
+    }
+
+    @Test
+    void removeItem_success_deletesAndRecalculates() {
+        UUID invoiceId = UUID.randomUUID();
+        UUID itemId = UUID.randomUUID();
+        Invoice invoice = draftInvoice();
+        ReflectionTestUtils.setField(invoice, "id", invoiceId);
+        InvoiceItem item = new InvoiceItem();
+        item.setInvoice(invoice);
+        item.setSubtotal(new BigDecimal("100.00"));
+
+        when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
+        when(invoiceItemRepository.findById(itemId)).thenReturn(Optional.of(item));
+        when(invoiceItemRepository.findByInvoiceId(invoiceId)).thenReturn(List.of());
+        when(invoiceRepository.save(invoice)).thenReturn(invoice);
+
+        invoiceService.removeItem(invoiceId, itemId);
+
+        verify(invoiceItemRepository).delete(item);
+        verify(invoiceRepository).save(invoice);
+    }
+
+    @Test
+    void getInvoicesWithFilters_whenPatientNotFound_throwsEntityNotFoundException() {
+        UUID patientId = UUID.randomUUID();
+        when(patientRepository.existsById(patientId)).thenReturn(false);
+
+        assertThatThrownBy(() -> invoiceService.getInvoicesWithFilters(patientId, null, null, null,
+                org.springframework.data.domain.Pageable.unpaged()))
+                .isInstanceOf(EntityNotFoundException.class);
+    }
+
+    @Test
+    void getInvoicesWithFilters_whenPatientExists_returnsMappedPage() {
+        UUID patientId = UUID.randomUUID();
+        Invoice invoice = draftInvoice();
+        ReflectionTestUtils.setField(invoice, "id", UUID.randomUUID());
+        var pageable = org.springframework.data.domain.PageRequest.of(0, 10);
+        var mapped = new com.fepdev.sfm.backend.domain.invoice.dto.InvoiceResponse(
+                UUID.randomUUID(), patientId, "Ana", "Lopez", null, null, "FAC-2026-09999",
+                new BigDecimal("100.00"), new BigDecimal("15.00"), new BigDecimal("115.00"),
+                BigDecimal.ZERO, new BigDecimal("115.00"), InvoiceStatus.PENDING,
+                LocalDate.now(), LocalDate.now().plusDays(30), null, List.of(), null, null);
+
+        when(patientRepository.existsById(patientId)).thenReturn(true);
+        when(invoiceRepository.findWithFilters(eq(patientId), eq(null), eq(null), eq(null), eq(pageable)))
+                .thenReturn(new org.springframework.data.domain.PageImpl<>(List.of(invoice), pageable, 1));
+        when(invoiceMapper.toResponse(invoice)).thenReturn(mapped);
+
+        var result = invoiceService.getInvoicesWithFilters(patientId, null, null, null, pageable);
+
+        assertThat(result.getTotalElements()).isEqualTo(1);
+        assertThat(result.getContent().getFirst().invoiceNumber()).isEqualTo("FAC-2026-09999");
+    }
+
+    @Test
+    void getInvoiceById_whenFound_returnsFullResponseWithItems() {
+        UUID invoiceId = UUID.randomUUID();
+        UUID patientId = UUID.randomUUID();
+
+        Invoice invoice = draftInvoice();
+        ReflectionTestUtils.setField(invoice, "id", invoiceId);
+
+        var base = new com.fepdev.sfm.backend.domain.invoice.dto.InvoiceResponse(
+                invoiceId, patientId, "Ana", "Lopez", null, null, "FAC-2026-01001",
+                new BigDecimal("100.00"), new BigDecimal("15.00"), new BigDecimal("115.00"),
+                BigDecimal.ZERO, new BigDecimal("115.00"), InvoiceStatus.PENDING,
+                LocalDate.now(), LocalDate.now().plusDays(30), null, List.of(), null, null);
+        var item = new com.fepdev.sfm.backend.domain.invoice.dto.InvoiceItemResponse(
+                UUID.randomUUID(), invoiceId, null, null, null, null,
+                ItemType.OTHER, "Insumo", 1, new BigDecimal("10.00"), new BigDecimal("10.00"), null);
+
+        when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
+        when(invoiceMapper.toResponse(invoice)).thenReturn(base);
+        when(invoiceItemRepository.findByInvoiceId(invoiceId)).thenReturn(List.of(new InvoiceItem()));
+        when(invoiceItemMapper.toResponseList(any())).thenReturn(List.of(item));
+
+        var result = invoiceService.getInvoiceById(invoiceId);
+
+        assertThat(result.invoiceNumber()).isEqualTo("FAC-2026-01001");
+        assertThat(result.items()).hasSize(1);
+        assertThat(result.items().getFirst().itemType()).isEqualTo(ItemType.OTHER);
+    }
+
+    @Test
+    void getInvoiceByNumber_whenNotFound_throwsEntityNotFoundException() {
+        when(invoiceRepository.findByInvoiceNumber("FAC-404")).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> invoiceService.getInvoiceByNumber("FAC-404"))
+                .isInstanceOf(EntityNotFoundException.class);
+    }
+
+    @Test
+    void addItem_withOtherType_skipsCatalogLookupsAndPersists() {
+        UUID invoiceId = UUID.randomUUID();
+        Invoice invoice = draftInvoice();
+        InvoiceItemRequest req = new InvoiceItemRequest(
+                null, null, ItemType.OTHER, "Material", 2, new BigDecimal("5.00"));
+        InvoiceItem item = new InvoiceItem();
+
+        when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
+        when(invoiceItemMapper.toEntity(req)).thenReturn(item);
+        when(invoiceItemRepository.save(item)).thenReturn(item);
+        when(invoiceItemRepository.findByInvoiceId(invoiceId)).thenReturn(List.of(item));
+        when(invoiceRepository.save(invoice)).thenReturn(invoice);
+        when(invoiceItemMapper.toResponse(item)).thenReturn(new InvoiceItemResponse(
+                UUID.randomUUID(), invoiceId, null, null, null, null,
+                ItemType.OTHER, "Material", 2, new BigDecimal("5.00"), new BigDecimal("10.00"), null));
+
+        var result = invoiceService.addItem(invoiceId, req);
+
+        assertThat(result.itemType()).isEqualTo(ItemType.OTHER);
+        verify(servicesCatalogRepository, never()).findById(any());
+        verify(medicationsCatalogRepository, never()).findById(any());
+    }
+
+    @Test
+    void privateHelpers_validateAmountsAndToMoney_coverBranches() {
+        Invoice invalid = new Invoice();
+        invalid.setInsuranceCoverage(new BigDecimal("50.00"));
+        invalid.setPatientResponsibility(new BigDecimal("20.00"));
+        invalid.setTotal(new BigDecimal("100.00"));
+
+        assertThatThrownBy(() -> ReflectionTestUtils.invokeMethod(invoiceService, "validateAmounts", invalid))
+                .isInstanceOf(BusinessRuleException.class);
+
+        BigDecimal zeroFromNull = ReflectionTestUtils.invokeMethod(invoiceService, "toMoney", (Object) null);
+        assertThat(zeroFromNull).isEqualByComparingTo("0.00");
+    }
+
+    @Test
+    void recalculateTotals_whenIssueDateNullAndPolicyValuesNull_handlesDefaults() {
+        UUID invoiceId = UUID.randomUUID();
+
+        InsuranceProvider provider = new InsuranceProvider();
+        provider.setActive(true);
+
+        InsurancePolicy policy = new InsurancePolicy();
+        policy.setActive(true);
+        policy.setProvider(provider);
+        policy.setStartDate(LocalDate.now().minusDays(1));
+        policy.setEndDate(LocalDate.now().plusDays(1));
+        policy.setCoveragePercentage(null);
+        policy.setDeductible(null);
+
+        Invoice invoice = new Invoice();
+        invoice.setInsurancePolicy(policy);
+        invoice.setIssueDate(null);
+
+        InvoiceItem item = new InvoiceItem();
+        item.setSubtotal(new BigDecimal("100.00"));
+
+        when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
+        when(invoiceItemRepository.findByInvoiceId(invoiceId)).thenReturn(List.of(item));
+        when(invoiceRepository.save(any(Invoice.class))).thenReturn(invoice);
+
+        invoiceService.recalculateTotals(invoiceId);
+
+        assertThat(invoice.getInsuranceCoverage()).isEqualByComparingTo("0.00");
+        assertThat(invoice.getPatientResponsibility()).isEqualByComparingTo(invoice.getTotal());
+        verify(invoiceRepository, times(1)).save(invoice);
     }
 
     // =========================================================
