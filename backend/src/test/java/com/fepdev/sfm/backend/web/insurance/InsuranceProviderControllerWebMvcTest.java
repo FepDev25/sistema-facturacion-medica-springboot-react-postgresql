@@ -1,12 +1,16 @@
 package com.fepdev.sfm.backend.web.insurance;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
@@ -14,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -94,5 +99,30 @@ class InsuranceProviderControllerWebMvcTest {
         mockMvc.perform(post("/api/v1/insurance/providers").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isUnprocessableContent())
                 .andExpect(jsonPath("$.status").value(422));
+    }
+
+    @Test
+    void update_deactivate_and_list_whenSuccess_coverEndpoints() throws Exception {
+        UUID id = UUID.randomUUID();
+        InsuranceProviderResponse updated = new InsuranceProviderResponse(id, "Seguro 2", "SEG2", "999", "u@x.com", null, false,
+                null, null);
+        when(insuranceService.updateProvider(any(), any())).thenReturn(updated);
+        when(insuranceService.listProviders(any(), any())).thenReturn(new PageImpl<>(List.of(updated)));
+
+        mockMvc.perform(put("/api/v1/insurance/providers/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"name":"Seguro 2","phone":"999","isActive":false}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id.toString()));
+
+        mockMvc.perform(delete("/api/v1/insurance/providers/{id}", id))
+                .andExpect(status().isNoContent());
+        verify(insuranceService).deactivateProvider(id);
+
+        mockMvc.perform(get("/api/v1/insurance/providers").param("active", "true"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].code").value("SEG2"));
     }
 }

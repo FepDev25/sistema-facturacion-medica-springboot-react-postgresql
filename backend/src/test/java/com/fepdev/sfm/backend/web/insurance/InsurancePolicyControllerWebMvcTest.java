@@ -4,11 +4,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
@@ -16,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -106,5 +109,36 @@ class InsurancePolicyControllerWebMvcTest {
         mockMvc.perform(post("/api/v1/insurance/policies").contentType(MediaType.APPLICATION_JSON).content(body))
                 .andExpect(status().isUnprocessableContent())
                 .andExpect(jsonPath("$.status").value(422));
+    }
+
+    @Test
+    void getByNumber_update_and_listByPatient_coverEndpoints() throws Exception {
+        UUID id = UUID.randomUUID();
+        UUID patientId = UUID.randomUUID();
+        InsurancePolicyResponse response = new InsurancePolicyResponse(
+                id, patientId, "Ana", "Lopez", UUID.randomUUID(), "Seguro", "POL-2",
+                new BigDecimal("50.00"), BigDecimal.ZERO, LocalDate.now(), LocalDate.now().plusYears(1), true, null, null);
+
+        when(insuranceService.getPolicyByNumber("POL-2")).thenReturn(response);
+        when(insuranceService.updatePolicy(any(), any())).thenReturn(response);
+        when(insuranceService.listPoliciesByPatient(any(), any(), any())).thenReturn(new PageImpl<>(List.of(response)));
+
+        mockMvc.perform(get("/api/v1/insurance/policies/number/{policyNumber}", "POL-2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.policyNumber").value("POL-2"));
+
+        mockMvc.perform(put("/api/v1/insurance/policies/{id}", id)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"coveragePercentage":50.0,"deductible":0.0,"isActive":true}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(id.toString()));
+
+        mockMvc.perform(get("/api/v1/insurance/policies")
+                        .param("patientId", patientId.toString())
+                        .param("onlyActive", "true"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content[0].policyNumber").value("POL-2"));
     }
 }
