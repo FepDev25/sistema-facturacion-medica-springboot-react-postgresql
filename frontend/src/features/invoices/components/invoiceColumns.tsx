@@ -95,6 +95,7 @@ export function getInvoiceColumns({
               variant="ghost"
               size="icon"
               className="h-7 w-7 text-slate-500 hover:text-slate-900"
+              aria-label="Ver detalle de la factura"
               title="Ver detalle"
             >
               <Link to="/invoices/$id" params={{ id: invoice.id }}>
@@ -106,6 +107,7 @@ export function getInvoiceColumns({
               variant="ghost"
               size="icon"
               className="h-7 w-7 text-slate-500 hover:text-slate-900"
+              aria-label="Confirmar factura"
               onClick={() => onConfirm(invoice)}
               disabled={invoice.status !== 'draft'}
               title="Confirmar"
@@ -117,6 +119,7 @@ export function getInvoiceColumns({
               variant="ghost"
               size="icon"
               className="h-7 w-7 text-slate-500 hover:text-slate-900"
+              aria-label="Marcar factura vencida"
               onClick={() => onOverdue(invoice)}
               disabled={
                 invoice.status === 'paid' ||
@@ -132,6 +135,7 @@ export function getInvoiceColumns({
               variant="ghost"
               size="icon"
               className="h-7 w-7 text-slate-500 hover:text-slate-900"
+              aria-label="Cancelar factura"
               onClick={() => onCancel(invoice)}
               disabled={invoice.status === 'paid' || invoice.status === 'cancelled'}
               title="Cancelar"
