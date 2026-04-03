@@ -84,6 +84,7 @@ export function getAppointmentColumns({
               variant="ghost"
               size="icon"
               className="h-7 w-7 text-slate-500 hover:text-slate-900"
+              aria-label="Ver detalle de la cita"
               title="Ver detalle"
             >
               <Link to="/appointments/$id" params={{ id: item.id }}>
@@ -95,6 +96,7 @@ export function getAppointmentColumns({
               variant="ghost"
               size="icon"
               className="h-7 w-7 text-slate-500 hover:text-slate-900"
+              aria-label="Confirmar cita"
               onClick={() => onConfirm(item)}
               disabled={item.status !== 'scheduled'}
               title="Confirmar"
@@ -106,6 +108,7 @@ export function getAppointmentColumns({
               variant="ghost"
               size="icon"
               className="h-7 w-7 text-slate-500 hover:text-slate-900"
+              aria-label="Iniciar cita"
               onClick={() => onStart(item)}
               disabled={item.status !== 'confirmed'}
               title="Iniciar"
@@ -117,6 +120,7 @@ export function getAppointmentColumns({
               variant="ghost"
               size="icon"
               className="h-7 w-7 text-slate-500 hover:text-slate-900"
+              aria-label="Marcar cita como no show"
               onClick={() => onNoShow(item)}
               disabled={item.status !== 'scheduled' && item.status !== 'confirmed'}
               title="No show"
@@ -128,6 +132,7 @@ export function getAppointmentColumns({
               variant="ghost"
               size="icon"
               className="h-7 w-7 text-slate-500 hover:text-slate-900"
+              aria-label="Cancelar cita"
               onClick={() => onCancel(item)}
               disabled={
                 item.status === 'cancelled' ||

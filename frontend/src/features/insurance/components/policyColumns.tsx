@@ -89,6 +89,7 @@ export function getPolicyColumns({
             variant="ghost"
             size="icon"
             className="h-7 w-7 text-slate-500 hover:text-slate-900"
+            aria-label="Editar póliza"
             onClick={() => onEdit(row.original)}
             title="Editar"
           >

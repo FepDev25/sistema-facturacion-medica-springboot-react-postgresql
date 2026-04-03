@@ -57,6 +57,7 @@ export function getProviderColumns({
             variant="ghost"
             size="icon"
             className="h-7 w-7 text-slate-500 hover:text-slate-900"
+            aria-label="Editar aseguradora"
             onClick={() => onEdit(row.original)}
             title="Editar"
           >
@@ -66,6 +67,7 @@ export function getProviderColumns({
             variant="ghost"
             size="icon"
             className="h-7 w-7 text-slate-500 hover:text-slate-900"
+            aria-label="Desactivar aseguradora"
             disabled={!row.original.isActive}
             onClick={() => onDeactivate(row.original)}
             title="Desactivar"

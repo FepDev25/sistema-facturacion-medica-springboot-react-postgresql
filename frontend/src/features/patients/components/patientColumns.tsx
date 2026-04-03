@@ -60,6 +60,7 @@ export function getPatientColumns({
             variant="ghost"
             size="icon"
             className="h-7 w-7 text-slate-500 hover:text-slate-900"
+            aria-label="Ver detalle del paciente"
             title="Ver detalle"
           >
             <Link to="/patients/$id" params={{ id: row.original.id }}>
@@ -70,6 +71,7 @@ export function getPatientColumns({
             variant="ghost"
             size="icon"
             className="h-7 w-7 text-slate-500 hover:text-slate-900"
+            aria-label="Editar paciente"
             onClick={() => onEdit(row.original)}
             title="Editar"
           >

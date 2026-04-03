@@ -68,6 +68,7 @@ export function getDoctorColumns({
             variant="ghost"
             size="icon"
             className="h-7 w-7 text-slate-500 hover:text-slate-900"
+            aria-label="Ver detalle del médico"
             title="Ver detalle"
           >
             <Link to="/doctors/$id" params={{ id: row.original.id }}>
@@ -78,6 +79,7 @@ export function getDoctorColumns({
             variant="ghost"
             size="icon"
             className="h-7 w-7 text-slate-500 hover:text-slate-900"
+            aria-label="Editar médico"
             onClick={() => onEdit(row.original)}
             title="Editar"
           >
@@ -87,6 +89,7 @@ export function getDoctorColumns({
             variant="ghost"
             size="icon"
             className="h-7 w-7 text-slate-500 hover:text-slate-900"
+            aria-label="Desactivar médico"
             disabled={!row.original.isActive}
             onClick={() => onDeactivate(row.original)}
             title="Desactivar"
