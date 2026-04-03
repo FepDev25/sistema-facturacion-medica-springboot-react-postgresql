@@ -43,7 +43,7 @@ export function DashboardPage() {
       <div className="border-b bg-white px-6 py-4">
         <h1 className="text-lg font-semibold text-slate-900">Dashboard</h1>
         <p className="text-sm text-slate-500 mt-0.5">
-          Panorama operativo diario de facturacion medica
+          Panorama operativo diario de facturación médica
         </p>
       </div>
 
@@ -100,13 +100,13 @@ export function DashboardPage() {
         </section>
 
         <section className="rounded-md border border-border bg-white p-4">
-          <h2 className="text-sm font-semibold text-slate-900 mb-3">Accesos rapidos</h2>
+          <h2 className="text-sm font-semibold text-slate-900 mb-3">Accesos rápidos</h2>
           <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
             <Link to="/patients" className="text-sm text-primary underline-offset-4 hover:underline">
               Gestionar pacientes
             </Link>
             <Link to="/doctors" className="text-sm text-primary underline-offset-4 hover:underline">
-              Gestionar medicos
+              Gestionar médicos
             </Link>
             <Link to="/appointments" className="text-sm text-primary underline-offset-4 hover:underline">
               Ver agenda de citas
@@ -118,7 +118,7 @@ export function DashboardPage() {
               Administrar seguros
             </Link>
             <Link to="/catalog" className="text-sm text-primary underline-offset-4 hover:underline">
-              Abrir catalogo clinico
+              Abrir catálogo clínico
             </Link>
           </div>
         </section>
