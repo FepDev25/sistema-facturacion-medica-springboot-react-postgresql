@@ -56,13 +56,13 @@ export function InvoicesPage() {
       </div>
 
       <div className="flex-1 px-6 py-5 overflow-auto">
-        <div className="flex items-center mb-4 gap-2">
+        <div className="flex items-center mb-4 gap-2 w-full sm:w-auto">
           <span className="text-sm text-slate-600">Estado:</span>
           <Select
             value={statusFilter}
             onValueChange={(value) => setStatusFilter(value as InvoiceStatusFilter)}
           >
-            <SelectTrigger className="h-8 w-52 text-sm">
+            <SelectTrigger className="h-8 w-full sm:w-52 text-sm">
               <SelectValue placeholder="Todos" />
             </SelectTrigger>
             <SelectContent>

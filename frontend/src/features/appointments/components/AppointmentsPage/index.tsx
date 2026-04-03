@@ -63,14 +63,14 @@ export function AppointmentsPage() {
       </div>
 
       <div className="flex-1 px-6 py-5 overflow-auto">
-        <div className="flex items-center justify-between mb-4 gap-3">
-          <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <span className="text-sm text-slate-600">Estado:</span>
             <Select
               value={statusFilter}
               onValueChange={(value) => setStatusFilter(value as AppointmentStatusFilter)}
             >
-              <SelectTrigger className="h-8 w-52 text-sm">
+              <SelectTrigger className="h-8 w-full sm:w-52 text-sm">
                 <SelectValue placeholder="Todos" />
               </SelectTrigger>
               <SelectContent>
@@ -85,7 +85,11 @@ export function AppointmentsPage() {
             </Select>
           </div>
 
-          <Button size="sm" className="h-8 gap-1.5" onClick={() => setDrawerOpen(true)}>
+          <Button
+            size="sm"
+            className="h-8 gap-1.5 w-full sm:w-auto"
+            onClick={() => setDrawerOpen(true)}
+          >
             <Plus className="h-3.5 w-3.5" />
             Nueva cita
           </Button>

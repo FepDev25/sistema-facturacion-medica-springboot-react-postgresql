@@ -45,15 +45,15 @@ export function DoctorsPage() {
       </div>
 
       <div className="flex-1 px-6 py-5 overflow-auto">
-        <div className="flex items-center justify-between mb-4 gap-3">
-          <div className="flex items-center gap-3">
-            <div className="relative">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
+            <div className="relative w-full sm:w-auto">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
               <Input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Filtrar por especialidad..."
-                className="h-8 pl-8 w-64 text-sm"
+                className="h-8 pl-8 w-full sm:w-64 text-sm"
               />
             </div>
 
@@ -71,7 +71,7 @@ export function DoctorsPage() {
 
           <Button
             size="sm"
-            className="h-8 gap-1.5"
+            className="h-8 gap-1.5 w-full sm:w-auto"
             onClick={() => {
               setSelectedDoctor(null)
               setDrawerOpen(true)

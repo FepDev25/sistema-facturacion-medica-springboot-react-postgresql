@@ -94,7 +94,7 @@ export function CatalogPage() {
       {/* Content */}
       <div className="flex-1 px-6 py-5 overflow-auto">
         <Tabs value={activeTab} onValueChange={handleTabChange}>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 gap-3">
             <TabsList className="h-8">
               <TabsTrigger value="services" className="text-xs px-4">
                 Servicios
@@ -111,14 +111,14 @@ export function CatalogPage() {
             </TabsList>
 
             {/* Toolbar */}
-            <div className="flex items-center gap-3">
-              <div className="relative">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <div className="relative w-full sm:w-auto">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
                 <Input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder="Buscar por código o nombre..."
-                  className="h-8 pl-8 w-64 text-sm"
+                  className="h-8 pl-8 w-full sm:w-64 text-sm"
                 />
               </div>
 
@@ -136,7 +136,7 @@ export function CatalogPage() {
               {activeTab === 'services' && (
                 <Button
                   size="sm"
-                  className="h-8 gap-1.5"
+                  className="h-8 gap-1.5 w-full sm:w-auto"
                   onClick={() => {
                     setSelectedService(null)
                     setServiceDrawerOpen(true)
@@ -150,7 +150,7 @@ export function CatalogPage() {
               {activeTab === 'medications' && (
                 <Button
                   size="sm"
-                  className="h-8 gap-1.5"
+                  className="h-8 gap-1.5 w-full sm:w-auto"
                   onClick={() => {
                     setSelectedMedication(null)
                     setMedicationDrawerOpen(true)

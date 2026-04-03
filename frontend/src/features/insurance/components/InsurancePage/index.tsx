@@ -85,7 +85,7 @@ export function InsurancePage() {
 
       <div className="flex-1 px-6 py-5 overflow-auto">
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'providers' | 'policies')}>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 gap-3">
             <TabsList className="h-8">
               <TabsTrigger value="providers" className="text-xs px-4">
                 Aseguradoras
@@ -97,7 +97,7 @@ export function InsurancePage() {
               </TabsTrigger>
             </TabsList>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
               {activeTab === 'providers' && (
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-2">
@@ -116,7 +116,7 @@ export function InsurancePage() {
 
                   <Button
                     size="sm"
-                    className="h-8 gap-1.5"
+                    className="h-8 gap-1.5 w-full sm:w-auto"
                     onClick={() => {
                       setSelectedProvider(null)
                       setProviderDrawerOpen(true)
@@ -146,7 +146,7 @@ export function InsurancePage() {
 
                   <Button
                     size="sm"
-                    className="h-8 gap-1.5"
+                    className="h-8 gap-1.5 w-full sm:w-auto"
                     onClick={() => {
                       setSelectedPolicy(null)
                       setPolicyDrawerOpen(true)
