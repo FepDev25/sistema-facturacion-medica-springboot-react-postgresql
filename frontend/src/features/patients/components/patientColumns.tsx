@@ -7,10 +7,12 @@ import type { PatientResponse } from '@/types/patient'
 
 interface PatientColumnsOptions {
   onEdit: (patient: PatientResponse) => void
+  canEdit: boolean
 }
 
 export function getPatientColumns({
   onEdit,
+  canEdit,
 }: PatientColumnsOptions): ColumnDef<PatientResponse, unknown>[] {
   return [
     {
@@ -72,6 +74,7 @@ export function getPatientColumns({
             size="icon"
             className="h-7 w-7 text-slate-500 hover:text-slate-900"
             aria-label="Editar paciente"
+            disabled={!canEdit}
             onClick={() => onEdit(row.original)}
             title="Editar"
           >

@@ -8,11 +8,13 @@ import type { DoctorResponse } from '@/types/doctor'
 interface DoctorColumnsOptions {
   onEdit: (doctor: DoctorResponse) => void
   onDeactivate: (doctor: DoctorResponse) => void
+  canManage: boolean
 }
 
 export function getDoctorColumns({
   onEdit,
   onDeactivate,
+  canManage,
 }: DoctorColumnsOptions): ColumnDef<DoctorResponse, unknown>[] {
   return [
     {
@@ -80,6 +82,7 @@ export function getDoctorColumns({
             size="icon"
             className="h-7 w-7 text-slate-500 hover:text-slate-900"
             aria-label="Editar médico"
+            disabled={!canManage}
             onClick={() => onEdit(row.original)}
             title="Editar"
           >
@@ -90,7 +93,7 @@ export function getDoctorColumns({
             size="icon"
             className="h-7 w-7 text-slate-500 hover:text-slate-900"
             aria-label="Desactivar médico"
-            disabled={!row.original.isActive}
+            disabled={!canManage || !row.original.isActive}
             onClick={() => onDeactivate(row.original)}
             title="Desactivar"
           >

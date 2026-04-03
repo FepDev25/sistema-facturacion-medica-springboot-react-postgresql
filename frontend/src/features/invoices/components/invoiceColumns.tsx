@@ -20,12 +20,14 @@ interface InvoiceColumnsOptions {
   onConfirm: (invoice: InvoiceResponse) => void
   onOverdue: (invoice: InvoiceResponse) => void
   onCancel: (invoice: InvoiceResponse) => void
+  canManage: boolean
 }
 
 export function getInvoiceColumns({
   onConfirm,
   onOverdue,
   onCancel,
+  canManage,
 }: InvoiceColumnsOptions): ColumnDef<InvoiceResponse, unknown>[] {
   return [
     {
@@ -109,7 +111,7 @@ export function getInvoiceColumns({
               className="h-7 w-7 text-slate-500 hover:text-slate-900"
               aria-label="Confirmar factura"
               onClick={() => onConfirm(invoice)}
-              disabled={invoice.status !== 'draft'}
+              disabled={!canManage || invoice.status !== 'draft'}
               title="Confirmar"
             >
               <Check className="h-3.5 w-3.5" />
@@ -122,6 +124,7 @@ export function getInvoiceColumns({
               aria-label="Marcar factura vencida"
               onClick={() => onOverdue(invoice)}
               disabled={
+                !canManage ||
                 invoice.status === 'paid' ||
                 invoice.status === 'cancelled' ||
                 invoice.status === 'overdue'
@@ -137,7 +140,7 @@ export function getInvoiceColumns({
               className="h-7 w-7 text-slate-500 hover:text-slate-900"
               aria-label="Cancelar factura"
               onClick={() => onCancel(invoice)}
-              disabled={invoice.status === 'paid' || invoice.status === 'cancelled'}
+              disabled={!canManage || invoice.status === 'paid' || invoice.status === 'cancelled'}
               title="Cancelar"
             >
               <X className="h-3.5 w-3.5" />

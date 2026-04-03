@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Plus } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -9,6 +10,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { DataTable } from '@/components/DataTable'
+import {
+  NO_PERMISSION_MESSAGE,
+  useRolePermissions,
+} from '@/features/auth/hooks/useRolePermissions'
 import { APPOINTMENT_STATUS_LABELS } from '@/types/enums'
 import {
   useAppointments,
@@ -30,6 +35,8 @@ type AppointmentStatusFilter =
   | 'no_show'
 
 export function AppointmentsPage() {
+  const { canManagePatients } = useRolePermissions()
+
   const [statusFilter, setStatusFilter] = useState<AppointmentStatusFilter>('all')
   const [drawerOpen, setDrawerOpen] = useState(false)
 
@@ -45,12 +52,43 @@ export function AppointmentsPage() {
   const columns = useMemo(
     () =>
       getAppointmentColumns({
-        onConfirm: (item) => confirmAppointment.mutate(item.id),
-        onStart: (item) => startAppointment.mutate(item.id),
-        onCancel: (item) => cancelAppointment.mutate(item.id),
-        onNoShow: (item) => noShowAppointment.mutate(item.id),
+        onConfirm: (item) => {
+          if (!canManagePatients) {
+            toast.error(NO_PERMISSION_MESSAGE)
+            return
+          }
+          confirmAppointment.mutate(item.id)
+        },
+        onStart: (item) => {
+          if (!canManagePatients) {
+            toast.error(NO_PERMISSION_MESSAGE)
+            return
+          }
+          startAppointment.mutate(item.id)
+        },
+        onCancel: (item) => {
+          if (!canManagePatients) {
+            toast.error(NO_PERMISSION_MESSAGE)
+            return
+          }
+          cancelAppointment.mutate(item.id)
+        },
+        onNoShow: (item) => {
+          if (!canManagePatients) {
+            toast.error(NO_PERMISSION_MESSAGE)
+            return
+          }
+          noShowAppointment.mutate(item.id)
+        },
+        canOperate: canManagePatients,
       }),
-    [cancelAppointment, confirmAppointment, noShowAppointment, startAppointment],
+    [
+      cancelAppointment,
+      canManagePatients,
+      confirmAppointment,
+      noShowAppointment,
+      startAppointment,
+    ],
   )
 
   return (
@@ -88,7 +126,14 @@ export function AppointmentsPage() {
           <Button
             size="sm"
             className="h-8 gap-1.5 w-full sm:w-auto"
-            onClick={() => setDrawerOpen(true)}
+            disabled={!canManagePatients}
+            onClick={() => {
+              if (!canManagePatients) {
+                toast.error(NO_PERMISSION_MESSAGE)
+                return
+              }
+              setDrawerOpen(true)
+            }}
           >
             <Plus className="h-3.5 w-3.5" />
             Nueva cita

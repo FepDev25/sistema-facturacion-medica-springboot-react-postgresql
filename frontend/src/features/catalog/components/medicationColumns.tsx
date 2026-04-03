@@ -9,11 +9,13 @@ import type { MedicationResponse } from '@/types/catalog'
 interface MedicationColumnsOptions {
   onEdit: (medication: MedicationResponse) => void
   onToggleActive: (medication: MedicationResponse) => void
+  canManage: boolean
 }
 
 export function getMedicationColumns({
   onEdit,
   onToggleActive,
+  canManage,
 }: MedicationColumnsOptions): ColumnDef<MedicationResponse, unknown>[] {
   return [
     {
@@ -97,6 +99,7 @@ export function getMedicationColumns({
             variant="ghost"
             size="icon"
             className="h-7 w-7 text-slate-500 hover:text-slate-900"
+            disabled={!canManage}
             onClick={() => onEdit(row.original)}
             title="Editar"
           >
@@ -106,6 +109,7 @@ export function getMedicationColumns({
             variant="ghost"
             size="icon"
             className="h-7 w-7 text-slate-500 hover:text-slate-900"
+            disabled={!canManage}
             onClick={() => onToggleActive(row.original)}
             title={row.original.isActive ? 'Desactivar' : 'Activar'}
           >

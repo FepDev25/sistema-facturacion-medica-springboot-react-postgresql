@@ -21,6 +21,7 @@ interface AppointmentColumnsOptions {
   onStart: (item: AppointmentResponse) => void
   onCancel: (item: AppointmentResponse) => void
   onNoShow: (item: AppointmentResponse) => void
+  canOperate: boolean
 }
 
 export function getAppointmentColumns({
@@ -28,6 +29,7 @@ export function getAppointmentColumns({
   onStart,
   onCancel,
   onNoShow,
+  canOperate,
 }: AppointmentColumnsOptions): ColumnDef<AppointmentResponse, unknown>[] {
   return [
     {
@@ -98,7 +100,7 @@ export function getAppointmentColumns({
               className="h-7 w-7 text-slate-500 hover:text-slate-900"
               aria-label="Confirmar cita"
               onClick={() => onConfirm(item)}
-              disabled={item.status !== 'scheduled'}
+              disabled={!canOperate || item.status !== 'scheduled'}
               title="Confirmar"
             >
               <Check className="h-3.5 w-3.5" />
@@ -110,7 +112,7 @@ export function getAppointmentColumns({
               className="h-7 w-7 text-slate-500 hover:text-slate-900"
               aria-label="Iniciar cita"
               onClick={() => onStart(item)}
-              disabled={item.status !== 'confirmed'}
+              disabled={!canOperate || item.status !== 'confirmed'}
               title="Iniciar"
             >
               <Play className="h-3.5 w-3.5" />
@@ -122,7 +124,7 @@ export function getAppointmentColumns({
               className="h-7 w-7 text-slate-500 hover:text-slate-900"
               aria-label="Marcar cita como no show"
               onClick={() => onNoShow(item)}
-              disabled={item.status !== 'scheduled' && item.status !== 'confirmed'}
+              disabled={!canOperate || (item.status !== 'scheduled' && item.status !== 'confirmed')}
               title="No show"
             >
               <UserRoundX className="h-3.5 w-3.5" />
@@ -135,6 +137,7 @@ export function getAppointmentColumns({
               aria-label="Cancelar cita"
               onClick={() => onCancel(item)}
               disabled={
+                !canOperate ||
                 item.status === 'cancelled' ||
                 item.status === 'completed' ||
                 item.status === 'no_show'

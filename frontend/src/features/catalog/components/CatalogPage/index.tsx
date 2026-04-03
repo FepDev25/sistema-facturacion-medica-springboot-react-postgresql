@@ -1,11 +1,16 @@
 import { useMemo, useState } from 'react'
 import { Plus, Search } from 'lucide-react'
+import { toast } from 'sonner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { DataTable } from '@/components/DataTable'
+import {
+  NO_PERMISSION_MESSAGE,
+  useRolePermissions,
+} from '@/features/auth/hooks/useRolePermissions'
 import type { ServiceResponse, MedicationResponse } from '@/types/catalog'
 import { useServices, useMedications, useToggleServiceActive, useToggleMedicationActive } from '../../hooks/useCatalog'
 import { getServiceColumns } from '../serviceColumns'
@@ -14,6 +19,8 @@ import { ServiceDrawer } from '../ServiceDrawer'
 import { MedicationDrawer } from '../MedicationDrawer'
 
 export function CatalogPage() {
+  const { canManageCatalog } = useRolePermissions()
+
   const [activeTab, setActiveTab] = useState<'services' | 'medications'>('services')
   const [search, setSearch] = useState('')
   const [showInactive, setShowInactive] = useState(false)
@@ -56,24 +63,46 @@ export function CatalogPage() {
     () =>
       getServiceColumns({
         onEdit: (s) => {
+          if (!canManageCatalog) {
+            toast.error(NO_PERMISSION_MESSAGE)
+            return
+          }
           setSelectedService(s)
           setServiceDrawerOpen(true)
         },
-        onToggleActive: (s) => toggleServiceActive.mutate(s.id),
+        onToggleActive: (s) => {
+          if (!canManageCatalog) {
+            toast.error(NO_PERMISSION_MESSAGE)
+            return
+          }
+          toggleServiceActive.mutate(s.id)
+        },
+        canManage: canManageCatalog,
       }),
-    [toggleServiceActive],
+    [canManageCatalog, toggleServiceActive],
   )
 
   const medicationColumns = useMemo(
     () =>
       getMedicationColumns({
         onEdit: (m) => {
+          if (!canManageCatalog) {
+            toast.error(NO_PERMISSION_MESSAGE)
+            return
+          }
           setSelectedMedication(m)
           setMedicationDrawerOpen(true)
         },
-        onToggleActive: (m) => toggleMedicationActive.mutate(m.id),
+        onToggleActive: (m) => {
+          if (!canManageCatalog) {
+            toast.error(NO_PERMISSION_MESSAGE)
+            return
+          }
+          toggleMedicationActive.mutate(m.id)
+        },
+        canManage: canManageCatalog,
       }),
-    [toggleMedicationActive],
+    [canManageCatalog, toggleMedicationActive],
   )
 
   function handleTabChange(value: string) {
@@ -137,7 +166,12 @@ export function CatalogPage() {
                 <Button
                   size="sm"
                   className="h-8 gap-1.5 w-full sm:w-auto"
+                  disabled={!canManageCatalog}
                   onClick={() => {
+                    if (!canManageCatalog) {
+                      toast.error(NO_PERMISSION_MESSAGE)
+                      return
+                    }
                     setSelectedService(null)
                     setServiceDrawerOpen(true)
                   }}
@@ -151,7 +185,12 @@ export function CatalogPage() {
                 <Button
                   size="sm"
                   className="h-8 gap-1.5 w-full sm:w-auto"
+                  disabled={!canManageCatalog}
                   onClick={() => {
+                    if (!canManageCatalog) {
+                      toast.error(NO_PERMISSION_MESSAGE)
+                      return
+                    }
                     setSelectedMedication(null)
                     setMedicationDrawerOpen(true)
                   }}

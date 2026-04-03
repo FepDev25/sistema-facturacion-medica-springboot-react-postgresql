@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { toast } from 'sonner'
 import {
   Select,
   SelectContent,
@@ -7,6 +8,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { DataTable } from '@/components/DataTable'
+import {
+  NO_PERMISSION_MESSAGE,
+  useRolePermissions,
+} from '@/features/auth/hooks/useRolePermissions'
 import { INVOICE_STATUS_LABELS } from '@/types/enums'
 import {
   useCancelInvoice,
@@ -26,6 +31,8 @@ type InvoiceStatusFilter =
   | 'overdue'
 
 export function InvoicesPage() {
+  const { canManageInvoices } = useRolePermissions()
+
   const [statusFilter, setStatusFilter] = useState<InvoiceStatusFilter>('all')
 
   const { data: invoices = [], isLoading } = useInvoices({
@@ -39,11 +46,30 @@ export function InvoicesPage() {
   const columns = useMemo(
     () =>
       getInvoiceColumns({
-        onConfirm: (invoice) => confirmInvoice.mutate(invoice.id),
-        onOverdue: (invoice) => overdueInvoice.mutate(invoice.id),
-        onCancel: (invoice) => cancelInvoice.mutate(invoice.id),
+        onConfirm: (invoice) => {
+          if (!canManageInvoices) {
+            toast.error(NO_PERMISSION_MESSAGE)
+            return
+          }
+          confirmInvoice.mutate(invoice.id)
+        },
+        onOverdue: (invoice) => {
+          if (!canManageInvoices) {
+            toast.error(NO_PERMISSION_MESSAGE)
+            return
+          }
+          overdueInvoice.mutate(invoice.id)
+        },
+        onCancel: (invoice) => {
+          if (!canManageInvoices) {
+            toast.error(NO_PERMISSION_MESSAGE)
+            return
+          }
+          cancelInvoice.mutate(invoice.id)
+        },
+        canManage: canManageInvoices,
       }),
-    [cancelInvoice, confirmInvoice, overdueInvoice],
+    [cancelInvoice, canManageInvoices, confirmInvoice, overdueInvoice],
   )
 
   return (

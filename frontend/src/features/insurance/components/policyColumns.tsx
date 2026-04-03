@@ -7,10 +7,12 @@ import type { InsurancePolicyResponse } from '@/types/insurance'
 
 interface PolicyColumnsOptions {
   onEdit: (policy: InsurancePolicyResponse) => void
+  canManage: boolean
 }
 
 export function getPolicyColumns({
   onEdit,
+  canManage,
 }: PolicyColumnsOptions): ColumnDef<InsurancePolicyResponse, unknown>[] {
   return [
     {
@@ -90,6 +92,7 @@ export function getPolicyColumns({
             size="icon"
             className="h-7 w-7 text-slate-500 hover:text-slate-900"
             aria-label="Editar póliza"
+            disabled={!canManage}
             onClick={() => onEdit(row.original)}
             title="Editar"
           >

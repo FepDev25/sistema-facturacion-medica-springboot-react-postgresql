@@ -19,11 +19,13 @@ const CATEGORY_CLASS: Record<string, string> = {
 interface ServiceColumnsOptions {
   onEdit: (service: ServiceResponse) => void
   onToggleActive: (service: ServiceResponse) => void
+  canManage: boolean
 }
 
 export function getServiceColumns({
   onEdit,
   onToggleActive,
+  canManage,
 }: ServiceColumnsOptions): ColumnDef<ServiceResponse, unknown>[] {
   return [
     {
@@ -94,6 +96,7 @@ export function getServiceColumns({
             variant="ghost"
             size="icon"
             className="h-7 w-7 text-slate-500 hover:text-slate-900"
+            disabled={!canManage}
             onClick={() => onEdit(row.original)}
             title="Editar"
           >
@@ -103,6 +106,7 @@ export function getServiceColumns({
             variant="ghost"
             size="icon"
             className="h-7 w-7 text-slate-500 hover:text-slate-900"
+            disabled={!canManage}
             onClick={() => onToggleActive(row.original)}
             title={row.original.isActive ? 'Desactivar' : 'Activar'}
           >

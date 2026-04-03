@@ -4,8 +4,13 @@ import { CreditCard, FileText, Shield, UserRound } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { BackToListButton } from '@/components/BackToListButton'
+import {
+  NO_PERMISSION_MESSAGE,
+  useRolePermissions,
+} from '@/features/auth/hooks/useRolePermissions'
 import { INVOICE_STATUS_LABELS, PAYMENT_METHOD_LABELS } from '@/types/enums'
 import { formatCurrency, formatDate, formatDateTime } from '@/lib/utils'
+import { toast } from 'sonner'
 import { useInvoice, useInvoicePayments } from '../../hooks/useInvoices'
 import { PaymentDrawer } from '../PaymentDrawer'
 
@@ -19,6 +24,8 @@ const STATUS_CLASS: Record<string, string> = {
 }
 
 export function InvoiceDetailPage() {
+  const { canRegisterPayments } = useRolePermissions()
+
   const { id } = useParams({ from: '/invoices/$id' })
   const [paymentDrawerOpen, setPaymentDrawerOpen] = useState(false)
 
@@ -50,7 +57,17 @@ export function InvoiceDetailPage() {
             <p className="text-sm text-slate-500 mt-0.5">Detalle de factura y cobranza</p>
           </div>
           <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-            <Button size="sm" onClick={() => setPaymentDrawerOpen(true)}>
+            <Button
+              size="sm"
+              disabled={!canRegisterPayments}
+              onClick={() => {
+                if (!canRegisterPayments) {
+                  toast.error(NO_PERMISSION_MESSAGE)
+                  return
+                }
+                setPaymentDrawerOpen(true)
+              }}
+            >
               Registrar pago
             </Button>
             <BackToListButton fallbackTo="/invoices" label="Volver a facturas" />

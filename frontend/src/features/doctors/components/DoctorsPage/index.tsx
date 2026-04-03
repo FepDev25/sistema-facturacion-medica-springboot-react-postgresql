@@ -1,16 +1,23 @@
 import { useMemo, useState } from 'react'
 import { Plus, Search } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { DataTable } from '@/components/DataTable'
+import {
+  NO_PERMISSION_MESSAGE,
+  useRolePermissions,
+} from '@/features/auth/hooks/useRolePermissions'
 import type { DoctorResponse } from '@/types/doctor'
 import { useDeactivateDoctor, useDoctors } from '../../hooks/useDoctors'
 import { getDoctorColumns } from '../doctorColumns'
 import { DoctorDrawer } from '../DoctorDrawer'
 
 export function DoctorsPage() {
+  const { canManageDoctors } = useRolePermissions()
+
   const [search, setSearch] = useState('')
   const [showInactive, setShowInactive] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -27,12 +34,23 @@ export function DoctorsPage() {
     () =>
       getDoctorColumns({
         onEdit: (doctor) => {
+          if (!canManageDoctors) {
+            toast.error(NO_PERMISSION_MESSAGE)
+            return
+          }
           setSelectedDoctor(doctor)
           setDrawerOpen(true)
         },
-        onDeactivate: (doctor) => deactivateDoctor.mutate(doctor.id),
+        onDeactivate: (doctor) => {
+          if (!canManageDoctors) {
+            toast.error(NO_PERMISSION_MESSAGE)
+            return
+          }
+          deactivateDoctor.mutate(doctor.id)
+        },
+        canManage: canManageDoctors,
       }),
-    [deactivateDoctor],
+    [canManageDoctors, deactivateDoctor],
   )
 
   return (
@@ -72,7 +90,12 @@ export function DoctorsPage() {
           <Button
             size="sm"
             className="h-8 gap-1.5 w-full sm:w-auto"
+            disabled={!canManageDoctors}
             onClick={() => {
+              if (!canManageDoctors) {
+                toast.error(NO_PERMISSION_MESSAGE)
+                return
+              }
               setSelectedDoctor(null)
               setDrawerOpen(true)
             }}

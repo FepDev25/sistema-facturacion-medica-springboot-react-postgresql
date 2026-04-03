@@ -1,14 +1,21 @@
 import { useMemo, useState } from 'react'
 import { Plus, Search } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { DataTable } from '@/components/DataTable'
+import {
+  NO_PERMISSION_MESSAGE,
+  useRolePermissions,
+} from '@/features/auth/hooks/useRolePermissions'
 import type { PatientResponse } from '@/types/patient'
 import { usePatients } from '../../hooks/usePatients'
 import { getPatientColumns } from '../patientColumns'
 import { PatientDrawer } from '../PatientDrawer'
 
 export function PatientsPage() {
+  const { canManagePatients } = useRolePermissions()
+
   const [search, setSearch] = useState('')
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [selectedPatient, setSelectedPatient] = useState<PatientResponse | null>(null)
@@ -21,11 +28,16 @@ export function PatientsPage() {
     () =>
       getPatientColumns({
         onEdit: (patient) => {
+          if (!canManagePatients) {
+            toast.error(NO_PERMISSION_MESSAGE)
+            return
+          }
           setSelectedPatient(patient)
           setDrawerOpen(true)
         },
+        canEdit: canManagePatients,
       }),
-    [],
+    [canManagePatients],
   )
 
   return (
@@ -52,7 +64,12 @@ export function PatientsPage() {
           <Button
             size="sm"
             className="h-8 gap-1.5 w-full sm:w-auto"
+            disabled={!canManagePatients}
             onClick={() => {
+              if (!canManagePatients) {
+                toast.error(NO_PERMISSION_MESSAGE)
+                return
+              }
               setSelectedPatient(null)
               setDrawerOpen(true)
             }}

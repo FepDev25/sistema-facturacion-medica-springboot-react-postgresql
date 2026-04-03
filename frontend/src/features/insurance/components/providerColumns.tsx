@@ -7,11 +7,13 @@ import type { InsuranceProviderResponse } from '@/types/insurance'
 interface ProviderColumnsOptions {
   onEdit: (provider: InsuranceProviderResponse) => void
   onDeactivate: (provider: InsuranceProviderResponse) => void
+  canManage: boolean
 }
 
 export function getProviderColumns({
   onEdit,
   onDeactivate,
+  canManage,
 }: ProviderColumnsOptions): ColumnDef<InsuranceProviderResponse, unknown>[] {
   return [
     {
@@ -58,6 +60,7 @@ export function getProviderColumns({
             size="icon"
             className="h-7 w-7 text-slate-500 hover:text-slate-900"
             aria-label="Editar aseguradora"
+            disabled={!canManage}
             onClick={() => onEdit(row.original)}
             title="Editar"
           >
@@ -68,7 +71,7 @@ export function getProviderColumns({
             size="icon"
             className="h-7 w-7 text-slate-500 hover:text-slate-900"
             aria-label="Desactivar aseguradora"
-            disabled={!row.original.isActive}
+            disabled={!canManage || !row.original.isActive}
             onClick={() => onDeactivate(row.original)}
             title="Desactivar"
           >

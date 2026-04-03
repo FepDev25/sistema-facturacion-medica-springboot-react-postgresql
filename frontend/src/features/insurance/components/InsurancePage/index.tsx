@@ -1,10 +1,15 @@
 import { useMemo, useState } from 'react'
 import { Plus } from 'lucide-react'
+import { toast } from 'sonner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { DataTable } from '@/components/DataTable'
+import {
+  NO_PERMISSION_MESSAGE,
+  useRolePermissions,
+} from '@/features/auth/hooks/useRolePermissions'
 import type {
   InsurancePolicyResponse,
   InsuranceProviderResponse,
@@ -20,6 +25,8 @@ import { ProviderDrawer } from '../ProviderDrawer'
 import { PolicyDrawer } from '../PolicyDrawer'
 
 export function InsurancePage() {
+  const { canManageInsurance } = useRolePermissions()
+
   const [activeTab, setActiveTab] = useState<'providers' | 'policies'>('providers')
   const [showInactiveProviders, setShowInactiveProviders] = useState(false)
   const [showInactivePolicies, setShowInactivePolicies] = useState(false)
@@ -55,23 +62,39 @@ export function InsurancePage() {
     () =>
       getProviderColumns({
         onEdit: (provider) => {
+          if (!canManageInsurance) {
+            toast.error(NO_PERMISSION_MESSAGE)
+            return
+          }
           setSelectedProvider(provider)
           setProviderDrawerOpen(true)
         },
-        onDeactivate: (provider) => deactivateProvider.mutate(provider.id),
+        onDeactivate: (provider) => {
+          if (!canManageInsurance) {
+            toast.error(NO_PERMISSION_MESSAGE)
+            return
+          }
+          deactivateProvider.mutate(provider.id)
+        },
+        canManage: canManageInsurance,
       }),
-    [deactivateProvider],
+    [canManageInsurance, deactivateProvider],
   )
 
   const policyColumns = useMemo(
     () =>
       getPolicyColumns({
         onEdit: (policy) => {
+          if (!canManageInsurance) {
+            toast.error(NO_PERMISSION_MESSAGE)
+            return
+          }
           setSelectedPolicy(policy)
           setPolicyDrawerOpen(true)
         },
+        canManage: canManageInsurance,
       }),
-    [],
+    [canManageInsurance],
   )
 
   return (
@@ -117,7 +140,12 @@ export function InsurancePage() {
                   <Button
                     size="sm"
                     className="h-8 gap-1.5 w-full sm:w-auto"
+                    disabled={!canManageInsurance}
                     onClick={() => {
+                      if (!canManageInsurance) {
+                        toast.error(NO_PERMISSION_MESSAGE)
+                        return
+                      }
                       setSelectedProvider(null)
                       setProviderDrawerOpen(true)
                     }}
@@ -147,7 +175,12 @@ export function InsurancePage() {
                   <Button
                     size="sm"
                     className="h-8 gap-1.5 w-full sm:w-auto"
+                    disabled={!canManageInsurance}
                     onClick={() => {
+                      if (!canManageInsurance) {
+                        toast.error(NO_PERMISSION_MESSAGE)
+                        return
+                      }
                       setSelectedPolicy(null)
                       setPolicyDrawerOpen(true)
                     }}
