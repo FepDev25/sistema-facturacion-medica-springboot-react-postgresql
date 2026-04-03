@@ -42,11 +42,11 @@ export function useLogout() {
     },
     onSuccess: () => {
       clearAuthSession()
-      toast.success('Sesion cerrada')
+      toast.success('Sesión cerrada')
     },
     onError: () => {
       clearAuthSession()
-      toast.error('Sesion finalizada')
+      toast.error('Sesión finalizada')
     },
   })
 }
