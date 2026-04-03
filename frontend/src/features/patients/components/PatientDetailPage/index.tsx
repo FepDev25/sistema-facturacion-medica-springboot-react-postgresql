@@ -1,8 +1,8 @@
-import { Link, useParams } from '@tanstack/react-router'
-import { ArrowLeft, CalendarClock, FileHeart, Shield } from 'lucide-react'
+import { useParams } from '@tanstack/react-router'
+import { CalendarClock, FileHeart, Shield } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { DataTable } from '@/components/DataTable'
+import { BackToListButton } from '@/components/BackToListButton'
 import { GENDER_LABELS } from '@/types/enums'
 import { formatDate, formatDateTime } from '@/lib/utils'
 import {
@@ -32,12 +32,7 @@ export function PatientDetailPage() {
     return (
       <div className="px-6 py-8">
         <p className="text-sm text-slate-500 mb-4">No se encontró el paciente.</p>
-        <Button asChild variant="outline" size="sm">
-          <Link to="/patients">
-            <ArrowLeft className="h-4 w-4" />
-            Volver a pacientes
-          </Link>
-        </Button>
+        <BackToListButton fallbackTo="/patients" label="Volver a pacientes" />
       </div>
     )
   }
@@ -52,12 +47,7 @@ export function PatientDetailPage() {
             </h1>
             <p className="text-sm text-slate-500 mt-0.5">Ficha clínica del paciente</p>
           </div>
-          <Button asChild variant="outline" size="sm" aria-label="Volver a pacientes">
-            <Link to="/patients">
-              <ArrowLeft className="h-4 w-4" />
-              Volver a pacientes
-            </Link>
-          </Button>
+          <BackToListButton fallbackTo="/patients" label="Volver a pacientes" />
         </div>
       </div>
 

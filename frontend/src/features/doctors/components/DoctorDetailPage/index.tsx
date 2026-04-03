@@ -1,7 +1,7 @@
-import { Link, useParams } from '@tanstack/react-router'
-import { ArrowLeft, CalendarClock, Mail, Phone, Stethoscope } from 'lucide-react'
+import { useParams } from '@tanstack/react-router'
+import { CalendarClock, Mail, Phone, Stethoscope } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { BackToListButton } from '@/components/BackToListButton'
 import { APPOINTMENTS_MOCK } from '@/mocks'
 import { formatDateTime } from '@/lib/utils'
 import { useDoctors } from '../../hooks/useDoctors'
@@ -19,12 +19,7 @@ export function DoctorDetailPage() {
     return (
       <div className="px-6 py-8">
         <p className="text-sm text-slate-500 mb-4">No se encontró el médico.</p>
-        <Button asChild variant="outline" size="sm">
-          <Link to="/doctors">
-            <ArrowLeft className="h-4 w-4" />
-            Volver a médicos
-          </Link>
-        </Button>
+        <BackToListButton fallbackTo="/doctors" label="Volver a médicos" />
       </div>
     )
   }
@@ -48,12 +43,7 @@ export function DoctorDetailPage() {
             </h1>
             <p className="text-sm text-slate-500 mt-0.5">Ficha profesional</p>
           </div>
-          <Button asChild variant="outline" size="sm" aria-label="Volver a médicos">
-            <Link to="/doctors">
-              <ArrowLeft className="h-4 w-4" />
-              Volver a médicos
-            </Link>
-          </Button>
+          <BackToListButton fallbackTo="/doctors" label="Volver a médicos" />
         </div>
       </div>
 

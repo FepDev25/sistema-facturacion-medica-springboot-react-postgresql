@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { Link, useParams } from '@tanstack/react-router'
-import { ArrowLeft, CreditCard, FileText, Shield, UserRound } from 'lucide-react'
+import { useParams } from '@tanstack/react-router'
+import { CreditCard, FileText, Shield, UserRound } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { BackToListButton } from '@/components/BackToListButton'
 import { INVOICE_STATUS_LABELS, PAYMENT_METHOD_LABELS } from '@/types/enums'
 import { formatCurrency, formatDate, formatDateTime } from '@/lib/utils'
 import { useInvoice, useInvoicePayments } from '../../hooks/useInvoices'
@@ -33,12 +34,7 @@ export function InvoiceDetailPage() {
     return (
       <div className="px-6 py-8">
         <p className="text-sm text-slate-500 mb-4">No se encontro la factura.</p>
-        <Button asChild variant="outline" size="sm">
-          <Link to="/invoices">
-            <ArrowLeft className="h-4 w-4" />
-            Volver a facturas
-          </Link>
-        </Button>
+        <BackToListButton fallbackTo="/invoices" label="Volver a facturas" />
       </div>
     )
   }
@@ -57,12 +53,7 @@ export function InvoiceDetailPage() {
             <Button size="sm" onClick={() => setPaymentDrawerOpen(true)}>
               Registrar pago
             </Button>
-            <Button asChild variant="outline" size="sm" aria-label="Volver a facturas">
-              <Link to="/invoices">
-                <ArrowLeft className="h-4 w-4" />
-                Volver a facturas
-              </Link>
-            </Button>
+            <BackToListButton fallbackTo="/invoices" label="Volver a facturas" />
           </div>
         </div>
       </div>

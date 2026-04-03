@@ -1,7 +1,7 @@
-import { Link, useParams } from '@tanstack/react-router'
-import { ArrowLeft, ClipboardCheck, Stethoscope, UserRound } from 'lucide-react'
+import { useParams } from '@tanstack/react-router'
+import { ClipboardCheck, Stethoscope, UserRound } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { BackToListButton } from '@/components/BackToListButton'
 import { APPOINTMENT_STATUS_LABELS } from '@/types/enums'
 import { formatDateTime } from '@/lib/utils'
 import { useAppointment, useAppointmentMedicalRecord } from '../../hooks/useAppointments'
@@ -30,12 +30,7 @@ export function AppointmentDetailPage() {
     return (
       <div className="px-6 py-8">
         <p className="text-sm text-slate-500 mb-4">No se encontró la cita.</p>
-        <Button asChild variant="outline" size="sm">
-          <Link to="/appointments">
-            <ArrowLeft className="h-4 w-4" />
-            Volver a citas
-          </Link>
-        </Button>
+        <BackToListButton fallbackTo="/appointments" label="Volver a citas" />
       </div>
     )
   }
@@ -50,12 +45,7 @@ export function AppointmentDetailPage() {
             <h1 className="text-lg font-semibold text-slate-900">Detalle de cita</h1>
             <p className="text-sm text-slate-500 mt-0.5">{formatDateTime(appointment.scheduledAt)}</p>
           </div>
-          <Button asChild variant="outline" size="sm" aria-label="Volver a citas">
-            <Link to="/appointments">
-              <ArrowLeft className="h-4 w-4" />
-              Volver a citas
-            </Link>
-          </Button>
+          <BackToListButton fallbackTo="/appointments" label="Volver a citas" />
         </div>
       </div>
 
