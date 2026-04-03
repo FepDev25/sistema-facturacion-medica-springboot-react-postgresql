@@ -1,0 +1,42 @@
+import type { ColumnDef } from '@tanstack/react-table'
+import { Badge } from '@/components/ui/badge'
+import { APPOINTMENT_STATUS_LABELS } from '@/types/enums'
+import type { AppointmentSummaryResponse } from '@/types/appointment'
+import { formatDateTime } from '@/lib/utils'
+
+const STATUS_CLASS: Record<string, string> = {
+  scheduled: 'border-blue-200 text-blue-700 bg-blue-50',
+  confirmed: 'border-cyan-200 text-cyan-700 bg-cyan-50',
+  in_progress: 'border-indigo-200 text-indigo-700 bg-indigo-50',
+  completed: 'border-green-200 text-green-700 bg-green-50',
+  cancelled: 'border-slate-200 text-slate-600 bg-slate-50',
+  no_show: 'border-amber-200 text-amber-700 bg-amber-50',
+}
+
+export function getPatientAppointmentColumns(): ColumnDef<AppointmentSummaryResponse, unknown>[] {
+  return [
+    {
+      accessorKey: 'scheduledAt',
+      header: 'Fecha y hora',
+      size: 180,
+      cell: ({ row }) => (
+        <span className="text-sm text-slate-700">{formatDateTime(row.original.scheduledAt)}</span>
+      ),
+    },
+    {
+      accessorKey: 'status',
+      header: 'Estado',
+      size: 130,
+      cell: ({ row }) => (
+        <Badge variant="outline" className={STATUS_CLASS[row.original.status]}>
+          {APPOINTMENT_STATUS_LABELS[row.original.status]}
+        </Badge>
+      ),
+    },
+    {
+      accessorKey: 'chiefComplaint',
+      header: 'Motivo',
+      cell: ({ row }) => <span className="text-sm text-slate-700">{row.original.chiefComplaint}</span>,
+    },
+  ]
+}
