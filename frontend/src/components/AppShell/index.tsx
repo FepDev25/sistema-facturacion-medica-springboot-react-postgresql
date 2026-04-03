@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Link } from '@tanstack/react-router'
+import { Link, useRouterState } from '@tanstack/react-router'
 import {
   CalendarDays,
   ClipboardList,
@@ -53,6 +53,14 @@ const NAV_ITEMS = [
 ] as const
 
 export function AppShell({ children }: AppShellProps) {
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  })
+
+  if (pathname === '/login') {
+    return <div className="min-h-screen bg-slate-50">{children}</div>
+  }
+
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="flex min-h-screen">
