@@ -1,14 +1,19 @@
 import type { ReactNode } from 'react'
-import { Link, useRouterState } from '@tanstack/react-router'
+import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
 import {
   CalendarDays,
   ClipboardList,
   CreditCard,
+  LogOut,
   LayoutDashboard,
   Shield,
   Stethoscope,
   Users,
 } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { useLogout } from '@/features/auth/hooks/useAuth'
+import { useAuthSession } from '@/features/auth/store/authSessionStore'
 
 interface AppShellProps {
   children: ReactNode
@@ -53,12 +58,33 @@ const NAV_ITEMS = [
 ] as const
 
 export function AppShell({ children }: AppShellProps) {
+  const navigate = useNavigate()
+  const session = useAuthSession()
+  const logout = useLogout()
+
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   })
 
   if (pathname === '/login') {
     return <div className="min-h-screen bg-slate-50">{children}</div>
+  }
+
+  const roleLabel =
+    session.role === 'ADMIN'
+      ? 'Administrador'
+      : session.role === 'DOCTOR'
+        ? 'Doctor'
+        : session.role === 'RECEPTIONIST'
+          ? 'Recepción'
+          : 'Sin rol'
+
+  function handleLogout() {
+    logout.mutate(undefined, {
+      onSettled: () => {
+        void navigate({ to: '/login', search: { redirect: undefined } })
+      },
+    })
   }
 
   return (
@@ -69,6 +95,9 @@ export function AppShell({ children }: AppShellProps) {
             <div className="px-5 py-4 border-b border-border">
               <p className="text-xs uppercase tracking-wider text-slate-500">Sistema</p>
               <h1 className="text-sm font-semibold text-slate-900 mt-1">Facturación Médica</h1>
+              <Badge variant="outline" className="mt-2 text-[11px]">
+                {roleLabel}
+              </Badge>
             </div>
 
             <nav className="p-3 space-y-1">
@@ -91,12 +120,39 @@ export function AppShell({ children }: AppShellProps) {
                 )
               })}
             </nav>
+
+            <div className="mt-auto p-3 border-t border-border">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full justify-start"
+                onClick={handleLogout}
+                disabled={logout.isPending}
+              >
+                <LogOut className="h-4 w-4" />
+                Cerrar sesión
+              </Button>
+            </div>
           </div>
         </aside>
 
         <main className="flex-1 min-w-0">
           <div className="md:hidden border-b border-border bg-white px-4 py-3">
-            <p className="text-sm font-semibold text-slate-900">Facturación Médica</p>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-slate-900">Facturación Médica</p>
+                <p className="text-xs text-slate-500 mt-0.5">{roleLabel}</p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLogout}
+                disabled={logout.isPending}
+              >
+                <LogOut className="h-4 w-4" />
+                Salir
+              </Button>
+            </div>
             <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
               {NAV_ITEMS.map((item) => (
                 <Link
