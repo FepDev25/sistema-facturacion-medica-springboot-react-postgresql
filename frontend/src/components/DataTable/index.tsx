@@ -47,8 +47,9 @@ export function DataTable<T>({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="rounded-md border border-border bg-white overflow-hidden">
-        <Table>
+      <div className="rounded-md border border-border bg-white overflow-hidden" aria-busy={isLoading}>
+        <div className="overflow-x-auto">
+          <Table className="min-w-[720px]">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="bg-slate-50 hover:bg-slate-50">
@@ -100,7 +101,8 @@ export function DataTable<T>({
               </TableRow>
             )}
           </TableBody>
-        </Table>
+          </Table>
+        </div>
       </div>
 
       {!isLoading && pageCount > 1 && (
@@ -115,6 +117,7 @@ export function DataTable<T>({
               variant="outline"
               size="icon"
               className="h-7 w-7"
+              aria-label="Página anterior"
               onClick={() => table.previousPage()}
               disabled={!table.getCanPreviousPage()}
             >
@@ -127,6 +130,7 @@ export function DataTable<T>({
               variant="outline"
               size="icon"
               className="h-7 w-7"
+              aria-label="Página siguiente"
               onClick={() => table.nextPage()}
               disabled={!table.getCanNextPage()}
             >
