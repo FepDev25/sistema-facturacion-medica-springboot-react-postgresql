@@ -53,7 +53,7 @@ export function DoctorsPage() {
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Filtrar por especialidad..."
-                className="h-8 pl-8 w-72 text-sm"
+                className="h-8 pl-8 w-64 text-sm"
               />
             </div>
 
