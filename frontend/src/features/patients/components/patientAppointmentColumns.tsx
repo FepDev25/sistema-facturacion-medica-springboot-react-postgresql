@@ -1,5 +1,8 @@
 import type { ColumnDef } from '@tanstack/react-table'
+import { Link } from '@tanstack/react-router'
+import { Eye } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { APPOINTMENT_STATUS_LABELS } from '@/types/enums'
 import type { AppointmentSummaryResponse } from '@/types/appointment'
 import { formatDateTime } from '@/lib/utils'
@@ -37,6 +40,26 @@ export function getPatientAppointmentColumns(): ColumnDef<AppointmentSummaryResp
       accessorKey: 'chiefComplaint',
       header: 'Motivo',
       cell: ({ row }) => <span className="text-sm text-slate-700">{row.original.chiefComplaint}</span>,
+    },
+    {
+      id: 'actions',
+      size: 60,
+      cell: ({ row }) => (
+        <div className="flex items-center justify-end">
+          <Button
+            asChild
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7 text-slate-500 hover:text-slate-900"
+            aria-label="Ver detalle de la cita"
+            title="Ver detalle"
+          >
+            <Link to="/appointments/$id" params={{ id: row.original.id }}>
+              <Eye className="h-3.5 w-3.5" />
+            </Link>
+          </Button>
+        </div>
+      ),
     },
   ]
 }
