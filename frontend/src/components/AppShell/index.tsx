@@ -27,7 +27,7 @@ const NAV_ITEMS = [
   },
   {
     to: '/doctors',
-    label: 'Medicos',
+    label: 'Médicos',
     icon: Stethoscope,
   },
   {
@@ -47,7 +47,7 @@ const NAV_ITEMS = [
   },
   {
     to: '/catalog',
-    label: 'Catalogo',
+    label: 'Catálogo',
     icon: ClipboardList,
   },
 ] as const
@@ -60,7 +60,7 @@ export function AppShell({ children }: AppShellProps) {
           <div className="flex h-full w-full flex-col">
             <div className="px-5 py-4 border-b border-border">
               <p className="text-xs uppercase tracking-wider text-slate-500">Sistema</p>
-              <h1 className="text-sm font-semibold text-slate-900 mt-1">Facturacion Medica</h1>
+              <h1 className="text-sm font-semibold text-slate-900 mt-1">Facturación Médica</h1>
             </div>
 
             <nav className="p-3 space-y-1">
@@ -88,7 +88,7 @@ export function AppShell({ children }: AppShellProps) {
 
         <main className="flex-1 min-w-0">
           <div className="md:hidden border-b border-border bg-white px-4 py-3">
-            <p className="text-sm font-semibold text-slate-900">Facturacion Medica</p>
+            <p className="text-sm font-semibold text-slate-900">Facturación Médica</p>
             <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
               {NAV_ITEMS.map((item) => (
                 <Link
