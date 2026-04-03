@@ -40,7 +40,7 @@ export function PatientDetailPage() {
   return (
     <div className="flex flex-col h-full">
       <div className="border-b bg-white px-6 py-4">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h1 className="text-lg font-semibold text-slate-900">
               {patient.firstName} {patient.lastName}
