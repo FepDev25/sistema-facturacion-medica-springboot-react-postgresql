@@ -12,10 +12,10 @@ export function useLogin() {
     mutationFn: authApi.login,
     onSuccess: (tokens) => {
       setAuthSession(tokens)
-      toast.success('Sesion iniciada')
+      toast.success('Sesión iniciada')
     },
     onError: () => {
-      toast.error('Credenciales invalidas')
+      toast.error('Credenciales inválidas')
     },
   })
 }
