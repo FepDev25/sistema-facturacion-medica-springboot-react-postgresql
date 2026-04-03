@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios'
+import { toast } from 'sonner'
 import {
   clearAuthSession,
   getAccessToken,
@@ -19,6 +20,8 @@ const API_BASE_URL =
 const AUTH_ENDPOINTS = ['/auth/login', '/auth/refresh', '/auth/logout']
 
 let refreshInFlight: Promise<string | null> | null = null
+let redirectingToLogin = false
+let lastForbiddenToastAt = 0
 
 function isAuthEndpoint(url?: string): boolean {
   if (!url) {
@@ -28,10 +31,37 @@ function isAuthEndpoint(url?: string): boolean {
   return AUTH_ENDPOINTS.some((endpoint) => url.includes(endpoint))
 }
 
+function redirectToLogin() {
+  if (redirectingToLogin) {
+    return
+  }
+
+  const { pathname, search } = window.location
+  if (pathname === '/login') {
+    return
+  }
+
+  redirectingToLogin = true
+  const redirectTarget = `${pathname}${search}`
+  const loginUrl = `/login?redirect=${encodeURIComponent(redirectTarget)}`
+  window.location.assign(loginUrl)
+}
+
+function notifyForbiddenOnce() {
+  const now = Date.now()
+  if (now - lastForbiddenToastAt < 1500) {
+    return
+  }
+
+  lastForbiddenToastAt = now
+  toast.error('No tienes permisos para esta acción.')
+}
+
 async function refreshAccessToken(): Promise<string | null> {
   const refreshToken = getAuthSessionState().refreshToken
   if (!refreshToken) {
     clearAuthSession()
+    redirectToLogin()
     return null
   }
 
@@ -55,6 +85,7 @@ async function refreshAccessToken(): Promise<string | null> {
       return response.data.accessToken
     } catch {
       clearAuthSession()
+      redirectToLogin()
       return null
     } finally {
       refreshInFlight = null
@@ -98,6 +129,12 @@ apiClient.interceptors.response.use(
     }
 
     const status = axiosError.response?.status
+
+    if (status === 403 && !isAuthEndpoint(originalRequest.url)) {
+      notifyForbiddenOnce()
+      return Promise.reject(error)
+    }
+
     if (status !== 401 || originalRequest._retry || isAuthEndpoint(originalRequest.url)) {
       return Promise.reject(error)
     }
@@ -106,6 +143,7 @@ apiClient.interceptors.response.use(
 
     const refreshedAccessToken = await refreshAccessToken()
     if (!refreshedAccessToken) {
+      redirectToLogin()
       return Promise.reject(error)
     }
 
