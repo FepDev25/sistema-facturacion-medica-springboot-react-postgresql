@@ -52,10 +52,10 @@ export function PatientDetailPage() {
             </h1>
             <p className="text-sm text-slate-500 mt-0.5">Ficha clínica del paciente</p>
           </div>
-          <Button asChild variant="outline" size="sm">
+          <Button asChild variant="outline" size="sm" aria-label="Volver a pacientes">
             <Link to="/patients">
               <ArrowLeft className="h-4 w-4" />
-              Volver
+              Volver a pacientes
             </Link>
           </Button>
         </div>

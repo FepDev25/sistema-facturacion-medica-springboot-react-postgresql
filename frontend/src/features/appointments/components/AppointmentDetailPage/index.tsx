@@ -50,10 +50,10 @@ export function AppointmentDetailPage() {
             <h1 className="text-lg font-semibold text-slate-900">Detalle de cita</h1>
             <p className="text-sm text-slate-500 mt-0.5">{formatDateTime(appointment.scheduledAt)}</p>
           </div>
-          <Button asChild variant="outline" size="sm">
+          <Button asChild variant="outline" size="sm" aria-label="Volver a citas">
             <Link to="/appointments">
               <ArrowLeft className="h-4 w-4" />
-              Volver
+              Volver a citas
             </Link>
           </Button>
         </div>

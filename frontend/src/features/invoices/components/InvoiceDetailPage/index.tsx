@@ -57,10 +57,10 @@ export function InvoiceDetailPage() {
             <Button size="sm" onClick={() => setPaymentDrawerOpen(true)}>
               Registrar pago
             </Button>
-            <Button asChild variant="outline" size="sm">
+            <Button asChild variant="outline" size="sm" aria-label="Volver a facturas">
               <Link to="/invoices">
                 <ArrowLeft className="h-4 w-4" />
-                Volver
+                Volver a facturas
               </Link>
             </Button>
           </div>

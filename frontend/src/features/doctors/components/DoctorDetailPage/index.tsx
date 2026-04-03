@@ -48,10 +48,10 @@ export function DoctorDetailPage() {
             </h1>
             <p className="text-sm text-slate-500 mt-0.5">Ficha profesional</p>
           </div>
-          <Button asChild variant="outline" size="sm">
+          <Button asChild variant="outline" size="sm" aria-label="Volver a médicos">
             <Link to="/doctors">
               <ArrowLeft className="h-4 w-4" />
-              Volver
+              Volver a médicos
             </Link>
           </Button>
         </div>
