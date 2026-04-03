@@ -20,6 +20,7 @@ import { ProviderDrawer } from '../ProviderDrawer'
 import { PolicyDrawer } from '../PolicyDrawer'
 
 export function InsurancePage() {
+  const [activeTab, setActiveTab] = useState<'providers' | 'policies'>('providers')
   const [showInactiveProviders, setShowInactiveProviders] = useState(false)
   const [showInactivePolicies, setShowInactivePolicies] = useState(false)
 
@@ -83,7 +84,7 @@ export function InsurancePage() {
       </div>
 
       <div className="flex-1 px-6 py-5 overflow-auto">
-        <Tabs defaultValue="providers">
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'providers' | 'policies')}>
           <div className="flex items-center justify-between mb-4">
             <TabsList className="h-8">
               <TabsTrigger value="providers" className="text-xs px-4">
@@ -97,7 +98,7 @@ export function InsurancePage() {
             </TabsList>
 
             <div className="flex items-center gap-3">
-              <TabsContent value="providers" asChild>
+              {activeTab === 'providers' && (
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-2">
                     <Checkbox
@@ -125,9 +126,9 @@ export function InsurancePage() {
                     Nueva aseguradora
                   </Button>
                 </div>
-              </TabsContent>
+              )}
 
-              <TabsContent value="policies" asChild>
+              {activeTab === 'policies' && (
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-2">
                     <Checkbox
@@ -155,7 +156,7 @@ export function InsurancePage() {
                     Nueva poliza
                   </Button>
                 </div>
-              </TabsContent>
+              )}
             </div>
           </div>
 

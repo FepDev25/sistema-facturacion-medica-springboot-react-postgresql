@@ -14,6 +14,7 @@ import { ServiceDrawer } from '../ServiceDrawer'
 import { MedicationDrawer } from '../MedicationDrawer'
 
 export function CatalogPage() {
+  const [activeTab, setActiveTab] = useState<'services' | 'medications'>('services')
   const [search, setSearch] = useState('')
   const [showInactive, setShowInactive] = useState(false)
 
@@ -75,7 +76,8 @@ export function CatalogPage() {
     [toggleMedicationActive],
   )
 
-  function handleTabChange() {
+  function handleTabChange(value: string) {
+    setActiveTab(value as 'services' | 'medications')
     setSearch('')
   }
 
@@ -91,7 +93,7 @@ export function CatalogPage() {
 
       {/* Content */}
       <div className="flex-1 px-6 py-5 overflow-auto">
-        <Tabs defaultValue="services" onValueChange={handleTabChange}>
+        <Tabs value={activeTab} onValueChange={handleTabChange}>
           <div className="flex items-center justify-between mb-4">
             <TabsList className="h-8">
               <TabsTrigger value="services" className="text-xs px-4">
@@ -131,7 +133,7 @@ export function CatalogPage() {
                 </Label>
               </div>
 
-              <TabsContent value="services" asChild>
+              {activeTab === 'services' && (
                 <Button
                   size="sm"
                   className="h-8 gap-1.5"
@@ -143,9 +145,9 @@ export function CatalogPage() {
                   <Plus className="h-3.5 w-3.5" />
                   Nuevo servicio
                 </Button>
-              </TabsContent>
+              )}
 
-              <TabsContent value="medications" asChild>
+              {activeTab === 'medications' && (
                 <Button
                   size="sm"
                   className="h-8 gap-1.5"
@@ -157,7 +159,7 @@ export function CatalogPage() {
                   <Plus className="h-3.5 w-3.5" />
                   Nuevo medicamento
                 </Button>
-              </TabsContent>
+              )}
             </div>
           </div>
 
