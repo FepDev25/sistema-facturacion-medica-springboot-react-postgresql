@@ -238,7 +238,7 @@ export function AppointmentDrawer({ open, onOpenChange }: AppointmentDrawerProps
                         <Input
                           type="number"
                           min={1}
-                          step={5}
+                          step={1}
                           value={field.value}
                           onChange={(event) => field.onChange(event.target.valueAsNumber)}
                           onBlur={field.onBlur}
