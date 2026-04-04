@@ -64,11 +64,6 @@ export function LoginPage() {
           <p className="mt-1 text-sm text-slate-500">
             Inicia sesión para continuar en Facturación Médica.
           </p>
-          <div className="mt-3 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
-            Roles disponibles en contrato: <span className="font-medium">ADMIN</span>,{' '}
-            <span className="font-medium">DOCTOR</span>,{' '}
-            <span className="font-medium">RECEPTIONIST</span>
-          </div>
         </div>
 
         <Form {...form}>
