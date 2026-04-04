@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -17,12 +17,8 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  FormDescription,
+} from '@/components/ui/form'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -49,6 +45,9 @@ interface AppointmentDrawerProps {
 }
 
 export function AppointmentDrawer({ open, onOpenChange }: AppointmentDrawerProps) {
+  const [patientQuery, setPatientQuery] = useState('')
+  const [doctorQuery, setDoctorQuery] = useState('')
+
   const form = useForm<AppointmentFormValues>({
     resolver: zodResolver(AppointmentFormSchema),
     defaultValues: DEFAULT_VALUES,
@@ -57,15 +56,35 @@ export function AppointmentDrawer({ open, onOpenChange }: AppointmentDrawerProps
   const createAppointment = useCreateAppointment()
   const isPending = createAppointment.isPending
 
-  const activeDoctors = useMemo(
-    () => DOCTORS_MOCK.filter((doctor) => doctor.isActive),
-    [],
-  )
+  const matchedPatients = useMemo(() => {
+    const q = patientQuery.trim().toLowerCase()
+    if (q.length < 2) {
+      return []
+    }
+
+    return PATIENTS_MOCK
+      .filter((patient) => patient.dni.toLowerCase().includes(q))
+      .slice(0, 8)
+  }, [patientQuery])
+
+  const matchedDoctors = useMemo(() => {
+    const q = doctorQuery.trim().toLowerCase()
+    if (q.length < 2) {
+      return []
+    }
+
+    return DOCTORS_MOCK
+      .filter((doctor) => doctor.isActive)
+      .filter((doctor) => doctor.licenseNumber.toLowerCase().includes(q))
+      .slice(0, 8)
+  }, [doctorQuery])
 
   function onSubmit(values: AppointmentFormValues) {
     createAppointment.mutate(toAppointmentCreateRequest(values), {
       onSuccess: () => {
         form.reset(DEFAULT_VALUES)
+        setPatientQuery('')
+        setDoctorQuery('')
         onOpenChange(false)
       },
     })
@@ -78,6 +97,8 @@ export function AppointmentDrawer({ open, onOpenChange }: AppointmentDrawerProps
         onOpenChange(nextOpen)
         if (nextOpen) {
           form.reset(DEFAULT_VALUES)
+          setPatientQuery('')
+          setDoctorQuery('')
         }
       }}
     >
@@ -97,21 +118,50 @@ export function AppointmentDrawer({ open, onOpenChange }: AppointmentDrawerProps
                 name="patientId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Paciente</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Seleccionar paciente" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {PATIENTS_MOCK.map((patient) => (
-                          <SelectItem key={patient.id} value={patient.id}>
+                    <FormLabel>Buscar paciente por DNI</FormLabel>
+                    <FormControl>
+                      <Input
+                        value={patientQuery}
+                        onChange={(event) => {
+                          setPatientQuery(event.target.value)
+                          field.onChange('')
+                        }}
+                        placeholder="Ej. 12345678"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Escribe al menos 2 caracteres del DNI para buscar.
+                    </FormDescription>
+                    {field.value ? (
+                      <p className="text-xs text-green-700 bg-green-50 border border-green-200 rounded px-2 py-1">
+                        Paciente seleccionado:{' '}
+                        {
+                          PATIENTS_MOCK.find((patient) => patient.id === field.value)
+                            ?.firstName
+                        }{' '}
+                        {
+                          PATIENTS_MOCK.find((patient) => patient.id === field.value)
+                            ?.lastName
+                        }
+                      </p>
+                    ) : null}
+                    {matchedPatients.length > 0 ? (
+                      <div className="rounded-md border border-slate-200 overflow-hidden">
+                        {matchedPatients.map((patient) => (
+                          <button
+                            key={patient.id}
+                            type="button"
+                            className="w-full text-left px-3 py-2 text-sm hover:bg-slate-50 border-b border-slate-100 last:border-b-0"
+                            onClick={() => {
+                              field.onChange(patient.id)
+                              setPatientQuery(patient.dni)
+                            }}
+                          >
                             {patient.firstName} {patient.lastName} ({patient.dni})
-                          </SelectItem>
+                          </button>
                         ))}
-                      </SelectContent>
-                    </Select>
+                      </div>
+                    ) : null}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -122,21 +172,50 @@ export function AppointmentDrawer({ open, onOpenChange }: AppointmentDrawerProps
                 name="doctorId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Médico</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Seleccionar médico" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {activeDoctors.map((doctor) => (
-                          <SelectItem key={doctor.id} value={doctor.id}>
-                            Dr. {doctor.firstName} {doctor.lastName} ({doctor.specialty})
-                          </SelectItem>
+                    <FormLabel>Buscar médico por matrícula</FormLabel>
+                    <FormControl>
+                      <Input
+                        value={doctorQuery}
+                        onChange={(event) => {
+                          setDoctorQuery(event.target.value)
+                          field.onChange('')
+                        }}
+                        placeholder="Ej. MED-001-2015"
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Escribe al menos 2 caracteres de la matrícula.
+                    </FormDescription>
+                    {field.value ? (
+                      <p className="text-xs text-green-700 bg-green-50 border border-green-200 rounded px-2 py-1">
+                        Médico seleccionado:{' '}
+                        {
+                          DOCTORS_MOCK.find((doctor) => doctor.id === field.value)
+                            ?.firstName
+                        }{' '}
+                        {
+                          DOCTORS_MOCK.find((doctor) => doctor.id === field.value)
+                            ?.lastName
+                        }
+                      </p>
+                    ) : null}
+                    {matchedDoctors.length > 0 ? (
+                      <div className="rounded-md border border-slate-200 overflow-hidden">
+                        {matchedDoctors.map((doctor) => (
+                          <button
+                            key={doctor.id}
+                            type="button"
+                            className="w-full text-left px-3 py-2 text-sm hover:bg-slate-50 border-b border-slate-100 last:border-b-0"
+                            onClick={() => {
+                              field.onChange(doctor.id)
+                              setDoctorQuery(doctor.licenseNumber)
+                            }}
+                          >
+                            Dr. {doctor.firstName} {doctor.lastName} ({doctor.licenseNumber})
+                          </button>
                         ))}
-                      </SelectContent>
-                    </Select>
+                      </div>
+                    ) : null}
                     <FormMessage />
                   </FormItem>
                 )}
