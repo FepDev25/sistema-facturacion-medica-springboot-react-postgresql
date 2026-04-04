@@ -112,8 +112,6 @@ public class ServiceCatalogService {
     }
 
     // metodo para obtener la lista de servicios con filtros de categoria y estado, paginada
-    @Cacheable(value = "services-list",
-               key = "#category + '-' + #isActive + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort")
     @Transactional(readOnly = true)
     public Page<ServiceSummaryResponse> getServiceCatalogs(Category category, Boolean isActive, Pageable pageable) {
         // obtener la pagina de entidades de la base de datos

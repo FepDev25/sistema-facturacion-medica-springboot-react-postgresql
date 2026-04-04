@@ -20,7 +20,7 @@ public interface PatientRepository extends JpaRepository<Patient, UUID> {
    @Query("""
         SELECT p
         FROM Patient p
-        WHERE (:lastName IS NULL OR LOWER(p.lastName) LIKE LOWER(CONCAT('%', :lastName, '%')))""")
+        WHERE (:lastName = '' OR LOWER(p.lastName) LIKE LOWER(CONCAT('%', :lastName, '%')))""")
     Page<Patient> findWithFilters(@Param("lastName") String lastName, Pageable pageable);
 
     // busqueda rapida por nombre, apellido o dni

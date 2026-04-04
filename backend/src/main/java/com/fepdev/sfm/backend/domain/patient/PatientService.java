@@ -93,7 +93,8 @@ public class PatientService {
     // listar pacientes con filtro por apellido y paginacion
     @Transactional(readOnly = true)
     public Page<PatientSummaryResponse> listPatients(String lastName, Pageable pageable){
-        Page<Patient> patients = patientRepository.findWithFilters(lastName, pageable);
+        String normalizedLastName = lastName == null ? "" : lastName.trim();
+        Page<Patient> patients = patientRepository.findWithFilters(normalizedLastName, pageable);
         return patients.map(patientMapper::toSummaryResponse);
     }
 

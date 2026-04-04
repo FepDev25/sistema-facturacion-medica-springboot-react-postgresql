@@ -101,15 +101,15 @@ public class MedicationsCatalogService {
     }
 
     // método de búsqueda con filtros y paginación, si el nombre tiene menos de 2 caracteres y no está vacío, lanzar excepción
-    @Cacheable(value = "medications-list",
-               key = "#isActive + '-' + #unit + '-' + #requiresPrescription + '-' + #name + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort")
     @Transactional(readOnly = true)
     public Page<MedicationSummaryResponse> searchMedications(Boolean isActive, Unit unit, Boolean requiresPrescription, String name, Pageable pageable) {
         if (name != null && name.trim().length() < 2 && !name.trim().isEmpty()) {
             throw new BusinessRuleException("El término de búsqueda debe tener al menos 2 caracteres.");
         }
+
+        String normalizedName = name == null ? "" : name.trim();
         
-        Page<MedicationsCatalog> page = repository.search(isActive, unit, requiresPrescription, name, pageable);
+        Page<MedicationsCatalog> page = repository.search(isActive, unit, requiresPrescription, normalizedName, pageable);
         return page.map(mapper::toSummaryResponse);
     }
 

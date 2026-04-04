@@ -37,7 +37,7 @@ public interface DoctorRepository extends JpaRepository<Doctor, UUID> {
         SELECT d
         FROM Doctor d
         WHERE (:isActive IS NULL OR d.isActive = :isActive) AND 
-              (:specialty IS NULL OR LOWER(d.specialty) LIKE LOWER(CONCAT('%', :specialty, '%')))""")
+              (:specialty = '' OR LOWER(d.specialty) LIKE LOWER(CONCAT('%', :specialty, '%')))""")
     Page<Doctor> findWithFilters(@Param("isActive") Boolean isActive, 
                                     @Param("specialty") String specialty,
                                     Pageable pageable);

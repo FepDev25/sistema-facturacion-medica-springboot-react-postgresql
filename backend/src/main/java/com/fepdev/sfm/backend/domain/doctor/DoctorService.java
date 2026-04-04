@@ -90,7 +90,8 @@ public class DoctorService {
     // listar doctores con filtro por especialidad y estado, y paginacion
     @Transactional(readOnly = true)
     public Page<DoctorSummaryResponse> getDoctors(Boolean isActive, String specialty, Pageable pageable) {
-        Page<Doctor> doctorsPage = doctorRepository.findWithFilters(isActive, specialty, pageable);
+        String normalizedSpecialty = specialty == null ? "" : specialty.trim();
+        Page<Doctor> doctorsPage = doctorRepository.findWithFilters(isActive, normalizedSpecialty, pageable);
         return doctorsPage.map(doctorMapper::toSummaryResponse);
     }
 

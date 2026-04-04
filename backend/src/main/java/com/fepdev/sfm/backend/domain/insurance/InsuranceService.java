@@ -86,8 +86,6 @@ public class InsuranceService {
     }
 
     // listar proveedores de seguro con filtros opcionales
-    @Cacheable(value = "insurance-providers",
-               key = "'list-' + #isActive + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + #pageable.sort")
     @Transactional(readOnly = true)
     public Page<InsuranceProviderResponse> listProviders(Boolean isActive, Pageable pageable) {
         return providerRepo.findWithFilters(isActive, pageable)

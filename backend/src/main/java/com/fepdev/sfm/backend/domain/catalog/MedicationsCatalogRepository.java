@@ -21,7 +21,7 @@ public interface MedicationsCatalogRepository extends JpaRepository<MedicationsC
         WHERE (:isActive IS NULL OR m.isActive = :isActive)
           AND (:unit IS NULL OR m.unit = :unit)
           AND (:requiresPrescription IS NULL OR m.requiresPrescription = :requiresPrescription)
-          AND (:name IS NULL OR LOWER(m.name) LIKE LOWER(CONCAT('%', :name, '%')))""")
+          AND (:name = '' OR LOWER(m.name) LIKE LOWER(CONCAT('%', :name, '%')))""")
     Page<MedicationsCatalog> search(Boolean isActive,
                                     Unit unit,
                                     Boolean requiresPrescription,
