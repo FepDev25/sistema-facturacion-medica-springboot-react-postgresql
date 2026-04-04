@@ -23,6 +23,13 @@ let refreshInFlight: Promise<string | null> | null = null
 let redirectingToLogin = false
 let lastForbiddenToastAt = 0
 
+interface ApiErrorPayload {
+  status?: number
+  error?: string
+  message?: string
+  path?: string
+}
+
 function isAuthEndpoint(url?: string): boolean {
   if (!url) {
     return false
@@ -47,14 +54,41 @@ function redirectToLogin() {
   window.location.assign(loginUrl)
 }
 
-function notifyForbiddenOnce() {
+function notifyForbiddenOnce(message?: string) {
   const now = Date.now()
   if (now - lastForbiddenToastAt < 1500) {
     return
   }
 
   lastForbiddenToastAt = now
-  toast.error('No tienes permisos para esta acción.')
+  toast.error(message ?? 'No tienes permisos para esta acción.')
+}
+
+function getApiErrorPayload(data: unknown): ApiErrorPayload | null {
+  if (!data || typeof data !== 'object') {
+    return null
+  }
+
+  const payload = data as Record<string, unknown>
+  return {
+    status: typeof payload.status === 'number' ? payload.status : undefined,
+    error: typeof payload.error === 'string' ? payload.error : undefined,
+    message: typeof payload.message === 'string' ? payload.message : undefined,
+    path: typeof payload.path === 'string' ? payload.path : undefined,
+  }
+}
+
+function hasPermissionMessage(message?: string): boolean {
+  if (!message) {
+    return false
+  }
+
+  const normalized = message.toLowerCase()
+  return (
+    normalized.includes('permiso') ||
+    normalized.includes('acceso denegado') ||
+    normalized.includes('forbidden')
+  )
 }
 
 async function refreshAccessToken(): Promise<string | null> {
@@ -129,9 +163,16 @@ apiClient.interceptors.response.use(
     }
 
     const status = axiosError.response?.status
+    const apiError = getApiErrorPayload(axiosError.response?.data)
 
     if (status === 403 && !isAuthEndpoint(originalRequest.url)) {
-      notifyForbiddenOnce()
+      if (apiError?.path === '/error') {
+        toast.error('Error interno del servidor. Intenta nuevamente en unos segundos.')
+      } else if (hasPermissionMessage(apiError?.message)) {
+        notifyForbiddenOnce(apiError?.message)
+      } else {
+        toast.error(apiError?.message ?? 'No se pudo completar la solicitud (403).')
+      }
       return Promise.reject(error)
     }
 

@@ -1,4 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
+import type { AxiosError } from 'axios'
 import { toast } from 'sonner'
 import * as authApi from '../api/authApi'
 import {
@@ -14,8 +15,22 @@ export function useLogin() {
       setAuthSession(tokens)
       toast.success('Sesión iniciada')
     },
-    onError: () => {
-      toast.error('Credenciales inválidas')
+    onError: (error) => {
+      const axiosError = error as AxiosError<{ message?: string }>
+      const status = axiosError.response?.status
+      const message = axiosError.response?.data?.message
+
+      if (status === 401) {
+        toast.error(message ?? 'Credenciales inválidas')
+        return
+      }
+
+      if (status && status >= 500) {
+        toast.error('Error interno del servidor. Intenta nuevamente.')
+        return
+      }
+
+      toast.error(message ?? 'No se pudo iniciar sesión')
     },
   })
 }
