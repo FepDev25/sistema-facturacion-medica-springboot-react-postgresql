@@ -66,7 +66,7 @@ export function PaymentDrawer({ invoiceId, open, onOpenChange }: PaymentDrawerPr
   const registerPayment = useRegisterPayment(invoiceId)
 
   function onSubmit(values: PaymentFormValues) {
-    registerPayment.mutate(toPaymentCreateRequest(values), {
+    registerPayment.mutate(toPaymentCreateRequest(invoiceId, values), {
       onSuccess: () => onOpenChange(false),
     })
   }

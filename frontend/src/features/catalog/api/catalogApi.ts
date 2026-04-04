@@ -1,6 +1,5 @@
 import { z } from 'zod'
-import { mockDelay, paginateArray } from '@/lib/mock-utils'
-import { SERVICES_MOCK, MEDICATIONS_MOCK } from '@/mocks'
+import { apiClient } from '@/lib/axios'
 import type {
   ServiceResponse,
   ServiceCreateRequest,
@@ -10,8 +9,6 @@ import type {
   MedicationUpdateRequest,
 } from '@/types/catalog'
 import type { PageResponse } from '@/types/common'
-
-// Zod Schemas
 
 const SERVICE_CATEGORIES = [
   'consultation',
@@ -56,125 +53,170 @@ export const MedicationFormSchema = z.object({
 
 export type MedicationFormValues = z.infer<typeof MedicationFormSchema>
 
-// en memoria
-
-let servicesStore: ServiceResponse[] = [...SERVICES_MOCK]
-let medicationsStore: MedicationResponse[] = [...MEDICATIONS_MOCK]
-
-// api services
-
 export interface CatalogListParams {
   page?: number
   size?: number
   includeInactive?: boolean
 }
 
+interface ApiServiceSummary {
+  id: string
+  code: string
+  name: string
+  price: number
+  category: ServiceResponse['category']
+  isActive: boolean
+}
+
+interface ApiMedicationSummary {
+  id: string
+  code: string
+  name: string
+  price: number
+  unit: MedicationResponse['unit']
+}
+
+function toServiceCategoryParam(category?: ServiceResponse['category']) {
+  return category ? category.toUpperCase() : undefined
+}
+
 export async function getServices(
   params: CatalogListParams = {},
 ): Promise<PageResponse<ServiceResponse>> {
-  await mockDelay()
-  const { page = 0, size = 100, includeInactive = true } = params
-  const items = includeInactive ? servicesStore : servicesStore.filter((s) => s.isActive)
-  return paginateArray(items, page, size)
+  const response = await apiClient.get<PageResponse<ApiServiceSummary>>('/catalog/services', {
+    params: {
+      active: params.includeInactive ? undefined : true,
+      page: params.page ?? 0,
+      size: params.size ?? 100,
+    },
+  })
+
+  const details = await Promise.all(response.data.content.map((item) => getServiceById(item.id)))
+
+  return {
+    ...response.data,
+    content: details,
+  }
+}
+
+export async function getServiceById(id: string): Promise<ServiceResponse> {
+  const response = await apiClient.get<ServiceResponse>(`/catalog/services/${id}`)
+  return response.data
 }
 
 export async function createService(data: ServiceCreateRequest): Promise<ServiceResponse> {
-  await mockDelay()
-  const newItem: ServiceResponse = {
-    id: crypto.randomUUID(),
-    code: data.code,
-    name: data.name,
-    description: data.description ?? null,
-    price: data.price,
-    category: data.category,
-    isActive: true,
-  }
-  servicesStore = [newItem, ...servicesStore]
-  return newItem
+  const response = await apiClient.post<ServiceResponse>('/catalog/services', data)
+  return response.data
 }
 
 export async function updateService(
   id: string,
   data: ServiceUpdateRequest,
 ): Promise<ServiceResponse> {
-  await mockDelay()
-  const existing = servicesStore.find((s) => s.id === id)
-  if (!existing) throw new Error(`Servicio ${id} no encontrado`)
-  const updated: ServiceResponse = {
-    ...existing,
-    name: data.name,
-    description: data.description ?? null,
-    price: data.price,
-    category: data.category,
-  }
-  servicesStore = servicesStore.map((s) => (s.id === id ? updated : s))
-  return updated
+  const existing = await getServiceById(id)
+  const response = await apiClient.put<ServiceResponse>(`/catalog/services/${id}`, {
+    ...data,
+    isActive: existing.isActive,
+  })
+  return response.data
 }
 
 export async function toggleServiceActive(id: string): Promise<ServiceResponse> {
-  await mockDelay()
-  const existing = servicesStore.find((s) => s.id === id)
-  if (!existing) throw new Error(`Servicio ${id} no encontrado`)
-  const updated = { ...existing, isActive: !existing.isActive }
-  servicesStore = servicesStore.map((s) => (s.id === id ? updated : s))
-  return updated
+  await apiClient.delete(`/catalog/services/${id}`)
+  return getServiceById(id)
 }
-
-// api medications
 
 export async function getMedications(
   params: CatalogListParams = {},
 ): Promise<PageResponse<MedicationResponse>> {
-  await mockDelay()
-  const { page = 0, size = 100, includeInactive = true } = params
-  const items = includeInactive
-    ? medicationsStore
-    : medicationsStore.filter((m) => m.isActive)
-  return paginateArray(items, page, size)
+  const response = await apiClient.get<PageResponse<ApiMedicationSummary>>('/catalog/medications', {
+    params: {
+      active: params.includeInactive ? undefined : true,
+      page: params.page ?? 0,
+      size: params.size ?? 100,
+    },
+  })
+
+  const details = await Promise.all(
+    response.data.content.map((item) => getMedicationById(item.id)),
+  )
+
+  return {
+    ...response.data,
+    content: details,
+  }
+}
+
+export async function getMedicationById(id: string): Promise<MedicationResponse> {
+  const response = await apiClient.get<MedicationResponse>(`/catalog/medications/${id}`)
+  return response.data
 }
 
 export async function createMedication(
   data: MedicationCreateRequest,
 ): Promise<MedicationResponse> {
-  await mockDelay()
-  const newItem: MedicationResponse = {
-    id: crypto.randomUUID(),
-    code: data.code,
-    name: data.name,
-    description: data.description ?? null,
-    price: data.price,
-    unit: data.unit,
-    requiresPrescription: data.requiresPrescription,
-    isActive: true,
-  }
-  medicationsStore = [newItem, ...medicationsStore]
-  return newItem
+  const response = await apiClient.post<MedicationResponse>('/catalog/medications', data)
+  return response.data
 }
 
 export async function updateMedication(
   id: string,
   data: MedicationUpdateRequest,
 ): Promise<MedicationResponse> {
-  await mockDelay()
-  const existing = medicationsStore.find((m) => m.id === id)
-  if (!existing) throw new Error(`Medicamento ${id} no encontrado`)
-  const updated: MedicationResponse = {
-    ...existing,
-    name: data.name,
-    description: data.description ?? null,
-    price: data.price,
-    unit: data.unit,
-    requiresPrescription: data.requiresPrescription,
-  }
-  medicationsStore = medicationsStore.map((m) => (m.id === id ? updated : m))
-  return updated
+  const existing = await getMedicationById(id)
+  const response = await apiClient.put<MedicationResponse>(`/catalog/medications/${id}`, {
+    ...data,
+    isActive: existing.isActive,
+  })
+  return response.data
 }
 
 export async function toggleMedicationActive(id: string): Promise<MedicationResponse> {
-  await mockDelay()
-  const existing = medicationsStore.find((m) => m.id === id)
-  if (!existing) throw new Error(`Medicamento ${id} no encontrado`)
-  const updated = { ...existing, isActive: !existing.isActive }
-  medicationsStore = medicationsStore.map((m) => (m.id === id ? updated : m))
-  return updated
+  await apiClient.delete(`/catalog/medications/${id}`)
+  return getMedicationById(id)
+}
+
+export async function searchServicesByName(q: string) {
+  const response = await apiClient.get<ApiServiceSummary[]>('/catalog/services/search', {
+    params: { q },
+  })
+  return response.data
+}
+
+export async function listFilteredServices(params: {
+  category?: ServiceResponse['category']
+  active?: boolean
+  page?: number
+  size?: number
+}) {
+  const response = await apiClient.get<PageResponse<ApiServiceSummary>>('/catalog/services', {
+    params: {
+      category: toServiceCategoryParam(params.category),
+      active: params.active,
+      page: params.page ?? 0,
+      size: params.size ?? 20,
+    },
+  })
+  return response.data
+}
+
+export async function listFilteredMedications(params: {
+  active?: boolean
+  unit?: MedicationResponse['unit']
+  requiresPrescription?: boolean
+  q?: string
+  page?: number
+  size?: number
+}) {
+  const response = await apiClient.get<PageResponse<ApiMedicationSummary>>('/catalog/medications', {
+    params: {
+      active: params.active,
+      unit: params.unit,
+      requiresPrescription: params.requiresPrescription,
+      q: params.q,
+      page: params.page ?? 0,
+      size: params.size ?? 20,
+    },
+  })
+  return response.data
 }

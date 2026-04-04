@@ -1,10 +1,5 @@
 import { z } from 'zod'
-import { mockDelay, paginateArray } from '@/lib/mock-utils'
-import {
-  INSURANCE_POLICIES_MOCK,
-  INSURANCE_PROVIDERS_MOCK,
-  PATIENTS_MOCK,
-} from '@/mocks'
+import { apiClient } from '@/lib/axios'
 import type { PageResponse } from '@/types/common'
 import type {
   InsurancePolicyCreateRequest,
@@ -33,7 +28,7 @@ export type ProviderFormValues = z.infer<typeof ProviderFormSchema>
 export const PolicyFormSchema = z.object({
   patientId: z.string().min(1, 'Requerido'),
   providerId: z.string().min(1, 'Requerido'),
-  policyNumber: z.string().min(1, 'Requerido').max(50, 'Maximo 50 caracteres'),
+  policyNumber: z.string().min(1, 'Requerido').max(100, 'Maximo 100 caracteres'),
   coveragePercentage: z
     .number({ message: 'Debe ser un numero' })
     .min(0, 'Minimo 0%')
@@ -51,13 +46,11 @@ export const PolicyFormSchema = z.object({
 
 export type PolicyFormValues = z.infer<typeof PolicyFormSchema>
 
-let providersStore: InsuranceProviderResponse[] = [...INSURANCE_PROVIDERS_MOCK]
-let policiesStore: InsurancePolicyResponse[] = [...INSURANCE_POLICIES_MOCK]
-
 export interface ProvidersListParams {
   active?: boolean
   page?: number
   size?: number
+  sort?: string
 }
 
 export interface PoliciesListParams {
@@ -65,206 +58,170 @@ export interface PoliciesListParams {
   onlyActive?: boolean
   page?: number
   size?: number
+  sort?: string
 }
 
 function toNullable(value?: string): string | null {
   return value && value.trim().length > 0 ? value.trim() : null
 }
 
+interface ApiInsurancePolicyResponse {
+  id: string
+  patientId: string
+  patientFirstName: string
+  patientLastName: string
+  providerId: string
+  providerName: string
+  policyNumber: string
+  coveragePercentage: number
+  deductible: number
+  startDate: string
+  endDate: string
+  isActive: boolean
+}
+
+interface ApiPatientDetail {
+  id: string
+  dni: string
+  firstName: string
+  lastName: string
+  allergies: string | null
+}
+
+interface ApiInsuranceProviderDetail {
+  id: string
+  name: string
+  code: string
+}
+
+function mapPolicy(
+  item: ApiInsurancePolicyResponse,
+  patient: ApiPatientDetail,
+  provider: ApiInsuranceProviderDetail,
+): InsurancePolicyResponse {
+  return {
+    id: item.id,
+    patient: {
+      id: patient.id,
+      dni: patient.dni,
+      firstName: patient.firstName,
+      lastName: patient.lastName,
+      allergies: patient.allergies,
+    },
+    provider: {
+      id: provider.id,
+      name: provider.name,
+      code: provider.code,
+    },
+    policyNumber: item.policyNumber,
+    coveragePercentage: item.coveragePercentage,
+    deductible: item.deductible,
+    startDate: item.startDate,
+    endDate: item.endDate,
+    isActive: item.isActive,
+  }
+}
+
+async function enrichPolicy(item: ApiInsurancePolicyResponse): Promise<InsurancePolicyResponse> {
+  const [patientResponse, providerResponse] = await Promise.all([
+    apiClient.get<ApiPatientDetail>(`/patients/${item.patientId}`),
+    apiClient.get<ApiInsuranceProviderDetail>(`/insurance/providers/${item.providerId}`),
+  ])
+
+  return mapPolicy(item, patientResponse.data, providerResponse.data)
+}
+
 export async function getProviders(
   params: ProvidersListParams = {},
 ): Promise<PageResponse<InsuranceProviderResponse>> {
-  await mockDelay()
+  const response = await apiClient.get<PageResponse<InsuranceProviderResponse>>('/insurance/providers', {
+    params: {
+      active: params.active,
+      page: params.page ?? 0,
+      size: params.size ?? 20,
+      sort: params.sort,
+    },
+  })
 
-  const { active, page = 0, size = 20 } = params
-  let items = [...providersStore]
-
-  if (typeof active === 'boolean') {
-    items = items.filter((provider) => provider.isActive === active)
-  }
-
-  items.sort((a, b) => a.name.localeCompare(b.name, 'es', { sensitivity: 'base' }))
-  return paginateArray(items, page, size)
+  return response.data
 }
 
 export async function createProvider(
   data: InsuranceProviderCreateRequest,
 ): Promise<InsuranceProviderResponse> {
-  await mockDelay()
-
-  const codeExists = providersStore.some((provider) => provider.code === data.code)
-  if (codeExists) {
-    throw new Error('Ya existe una aseguradora con ese codigo')
-  }
-
-  const newItem: InsuranceProviderResponse = {
-    id: crypto.randomUUID(),
-    name: data.name.trim(),
-    code: data.code.trim(),
-    phone: data.phone.trim(),
-    email: data.email ?? null,
-    address: data.address ?? null,
-    isActive: true,
-  }
-
-  providersStore = [newItem, ...providersStore]
-  return newItem
+  const response = await apiClient.post<InsuranceProviderResponse>('/insurance/providers', data)
+  return response.data
 }
 
 export async function updateProvider(
   id: string,
   data: InsuranceProviderUpdateRequest,
 ): Promise<InsuranceProviderResponse> {
-  await mockDelay()
-
-  const existing = providersStore.find((provider) => provider.id === id)
-  if (!existing) {
-    throw new Error('Aseguradora no encontrada')
-  }
-
-  const updated: InsuranceProviderResponse = {
-    ...existing,
-    name: data.name.trim(),
-    phone: data.phone.trim(),
-    email: data.email ?? null,
-    address: data.address ?? null,
-  }
-
-  providersStore = providersStore.map((provider) => (provider.id === id ? updated : provider))
-  policiesStore = policiesStore.map((policy) =>
-    policy.provider.id === id
-      ? {
-          ...policy,
-          provider: {
-            ...policy.provider,
-            name: updated.name,
-            code: updated.code,
-          },
-        }
-      : policy,
-  )
-
-  return updated
+  const current = await apiClient.get<InsuranceProviderResponse>(`/insurance/providers/${id}`)
+  const response = await apiClient.put<InsuranceProviderResponse>(`/insurance/providers/${id}`, {
+    ...data,
+    isActive: current.data.isActive,
+  })
+  return response.data
 }
 
 export async function deactivateProvider(id: string): Promise<InsuranceProviderResponse> {
-  await mockDelay()
-
-  const existing = providersStore.find((provider) => provider.id === id)
-  if (!existing) {
-    throw new Error('Aseguradora no encontrada')
-  }
-
-  const updated: InsuranceProviderResponse = {
-    ...existing,
-    isActive: false,
-  }
-
-  providersStore = providersStore.map((provider) => (provider.id === id ? updated : provider))
-  return updated
+  await apiClient.delete(`/insurance/providers/${id}`)
+  const response = await apiClient.get<InsuranceProviderResponse>(`/insurance/providers/${id}`)
+  return response.data
 }
 
 export async function getPolicies(
   params: PoliciesListParams = {},
 ): Promise<PageResponse<InsurancePolicyResponse>> {
-  await mockDelay()
-
-  const { patientId, onlyActive = false, page = 0, size = 20 } = params
-
-  let items = [...policiesStore]
-  if (patientId) {
-    items = items.filter((policy) => policy.patient.id === patientId)
+  if (!params.patientId) {
+    return {
+      content: [],
+      totalElements: 0,
+      totalPages: 0,
+      size: params.size ?? 20,
+      number: params.page ?? 0,
+      first: true,
+      last: true,
+      empty: true,
+    }
   }
-  if (onlyActive) {
-    items = items.filter((policy) => policy.isActive)
-  }
 
-  items.sort((a, b) => b.startDate.localeCompare(a.startDate))
-  return paginateArray(items, page, size)
+  const response = await apiClient.get<PageResponse<ApiInsurancePolicyResponse>>('/insurance/policies', {
+    params: {
+      patientId: params.patientId,
+      onlyActive: params.onlyActive,
+      page: params.page ?? 0,
+      size: params.size ?? 20,
+      sort: params.sort,
+    },
+  })
+
+  return {
+    ...response.data,
+    content: await Promise.all(response.data.content.map((item) => enrichPolicy(item))),
+  }
 }
 
 export async function createPolicy(
   data: InsurancePolicyCreateRequest,
 ): Promise<InsurancePolicyResponse> {
-  await mockDelay()
-
-  const patient = PATIENTS_MOCK.find((item) => item.id === data.patientId)
-  const provider = providersStore.find((item) => item.id === data.providerId)
-  if (!patient || !provider) {
-    throw new Error('Paciente o aseguradora invalida')
-  }
-
-  const numberExists = policiesStore.some((policy) => policy.policyNumber === data.policyNumber)
-  if (numberExists) {
-    throw new Error('Ya existe una poliza con ese numero')
-  }
-
-  const newItem: InsurancePolicyResponse = {
-    id: crypto.randomUUID(),
-    patient: {
-      id: patient.id,
-      dni: patient.dni,
-      firstName: patient.firstName,
-      lastName: patient.lastName,
-      allergies: patient.allergies,
-    },
-    provider: {
-      id: provider.id,
-      name: provider.name,
-      code: provider.code,
-    },
-    policyNumber: data.policyNumber.trim(),
-    coveragePercentage: data.coveragePercentage,
-    deductible: data.deductible,
-    startDate: data.startDate,
-    endDate: data.endDate,
-    isActive: true,
-  }
-
-  policiesStore = [newItem, ...policiesStore]
-  return newItem
+  const response = await apiClient.post<ApiInsurancePolicyResponse>('/insurance/policies', data)
+  return enrichPolicy(response.data)
 }
 
 export async function updatePolicy(
   id: string,
   data: InsurancePolicyCreateRequest,
 ): Promise<InsurancePolicyResponse> {
-  await mockDelay()
-
-  const existing = policiesStore.find((policy) => policy.id === id)
-  if (!existing) {
-    throw new Error('Poliza no encontrada')
-  }
-
-  const patient = PATIENTS_MOCK.find((item) => item.id === data.patientId)
-  const provider = providersStore.find((item) => item.id === data.providerId)
-  if (!patient || !provider) {
-    throw new Error('Paciente o aseguradora invalida')
-  }
-
-  const updated: InsurancePolicyResponse = {
-    ...existing,
-    patient: {
-      id: patient.id,
-      dni: patient.dni,
-      firstName: patient.firstName,
-      lastName: patient.lastName,
-      allergies: patient.allergies,
-    },
-    provider: {
-      id: provider.id,
-      name: provider.name,
-      code: provider.code,
-    },
-    policyNumber: data.policyNumber.trim(),
+  const response = await apiClient.put<ApiInsurancePolicyResponse>(`/insurance/policies/${id}`, {
     coveragePercentage: data.coveragePercentage,
     deductible: data.deductible,
     startDate: data.startDate,
     endDate: data.endDate,
-  }
-
-  policiesStore = policiesStore.map((policy) => (policy.id === id ? updated : policy))
-  return updated
+    isActive: true,
+  })
+  return enrichPolicy(response.data)
 }
 
 export function toProviderCreateRequest(

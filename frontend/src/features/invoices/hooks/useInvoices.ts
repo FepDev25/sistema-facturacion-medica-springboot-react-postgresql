@@ -93,9 +93,10 @@ export function useRegisterPayment(invoiceId: string) {
   const qc = useQueryClient()
 
   return useMutation({
-    mutationFn: (data: PaymentCreateRequest) => invoicesApi.registerPayment(invoiceId, data),
+    mutationFn: (data: PaymentCreateRequest) => invoicesApi.registerPayment(data),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: invoiceKeys.all })
+      void qc.invalidateQueries({ queryKey: invoiceKeys.payments(invoiceId) })
       toast.success('Pago registrado')
     },
     onError: () => {

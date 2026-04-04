@@ -1,6 +1,5 @@
 import { z } from 'zod'
-import { mockDelay, paginateArray } from '@/lib/mock-utils'
-import { APPOINTMENTS_MOCK, DOCTORS_MOCK, MEDICAL_RECORDS_MOCK, PATIENTS_MOCK } from '@/mocks'
+import { apiClient } from '@/lib/axios'
 import type { PageResponse } from '@/types/common'
 import type {
   AppointmentCreateRequest,
@@ -33,9 +32,6 @@ export const AppointmentFormSchema = z.object({
 
 export type AppointmentFormValues = z.infer<typeof AppointmentFormSchema>
 
-let appointmentsStore: AppointmentResponse[] = [...APPOINTMENTS_MOCK]
-let medicalRecordsStore: MedicalRecordResponse[] = [...MEDICAL_RECORDS_MOCK]
-
 export interface AppointmentsListParams {
   doctorId?: string
   patientId?: string
@@ -47,67 +43,56 @@ export interface AppointmentsListParams {
   sort?: string
 }
 
-export async function getAppointments(
-  params: AppointmentsListParams = {},
-): Promise<PageResponse<AppointmentResponse>> {
-  await mockDelay()
-
-  const { doctorId, patientId, status, from, to, page = 0, size = 20 } = params
-
-  let items = [...appointmentsStore]
-  if (doctorId) {
-    items = items.filter((appointment) => appointment.doctor.id === doctorId)
-  }
-  if (patientId) {
-    items = items.filter((appointment) => appointment.patient.id === patientId)
-  }
-  if (status) {
-    items = items.filter((appointment) => appointment.status === status)
-  }
-  if (from) {
-    const fromDate = new Date(from).getTime()
-    items = items.filter((appointment) => new Date(appointment.scheduledAt).getTime() >= fromDate)
-  }
-  if (to) {
-    const toDate = new Date(to).getTime()
-    items = items.filter((appointment) => new Date(appointment.scheduledAt).getTime() <= toDate)
-  }
-
-  items.sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime())
-
-  return paginateArray(items, page, size)
+interface ApiAppointmentSummaryResponse {
+  id: string
+  patientFirstName: string
+  patientLastName: string
+  doctorFirstName: string
+  doctorLastName: string
+  scheduledAt: string
+  status: AppointmentSummaryResponse['status']
 }
 
-export async function getAppointmentById(id: string): Promise<AppointmentResponse> {
-  await mockDelay()
-
-  const appointment = appointmentsStore.find((item) => item.id === id)
-  if (!appointment) {
-    throw new Error('Cita no encontrada')
-  }
-
-  return appointment
+interface ApiPatientDetail {
+  id: string
+  dni: string
+  firstName: string
+  lastName: string
+  allergies: string | null
 }
 
-function buildScheduledEndAt(scheduledAt: string, durationMinutes: number): string {
-  const start = new Date(scheduledAt)
-  start.setMinutes(start.getMinutes() + durationMinutes)
-  return start.toISOString()
+interface ApiDoctorDetail {
+  id: string
+  licenseNumber: string
+  firstName: string
+  lastName: string
+  specialty: string
 }
 
-export async function createAppointment(
-  data: AppointmentCreateRequest,
-): Promise<AppointmentResponse> {
-  await mockDelay()
+interface ApiAppointmentResponse {
+  id: string
+  patientId: string
+  patientFirstName: string
+  patientLastName: string
+  doctorId: string
+  doctorFirstName: string
+  doctorLastName: string
+  scheduledAt: string
+  scheduledEndAt: string
+  durationMinutes: number
+  status: AppointmentResponse['status']
+  chiefComplaint: string | null
+  notes: string | null
+  createdAt: string | null
+}
 
-  const patient = PATIENTS_MOCK.find((item) => item.id === data.patientId)
-  const doctor = DOCTORS_MOCK.find((item) => item.id === data.doctorId)
-  if (!patient || !doctor) {
-    throw new Error('Paciente o médico inválido')
-  }
-
-  const newItem: AppointmentResponse = {
-    id: crypto.randomUUID(),
+function mapAppointmentResponse(
+  item: ApiAppointmentResponse,
+  patient: ApiPatientDetail,
+  doctor: ApiDoctorDetail,
+): AppointmentResponse {
+  return {
+    id: item.id,
     patient: {
       id: patient.id,
       dni: patient.dni,
@@ -122,90 +107,93 @@ export async function createAppointment(
       lastName: doctor.lastName,
       specialty: doctor.specialty,
     },
-    scheduledAt: data.scheduledAt,
-    scheduledEndAt: buildScheduledEndAt(data.scheduledAt, data.durationMinutes),
-    durationMinutes: data.durationMinutes,
-    status: 'scheduled',
-    chiefComplaint: data.chiefComplaint,
-    notes: data.notes ?? null,
-    createdAt: new Date().toISOString(),
+    scheduledAt: item.scheduledAt,
+    scheduledEndAt: item.scheduledEndAt,
+    durationMinutes: item.durationMinutes,
+    status: item.status,
+    chiefComplaint: item.chiefComplaint ?? '',
+    notes: item.notes,
+    createdAt: item.createdAt ?? item.scheduledAt,
   }
-
-  appointmentsStore = [newItem, ...appointmentsStore]
-  return newItem
 }
 
-function transitionStatus(id: string, nextStatus: AppointmentResponse['status']): AppointmentResponse {
-  const existing = appointmentsStore.find((item) => item.id === id)
-  if (!existing) {
-    throw new Error('Cita no encontrada')
-  }
+async function enrichAppointment(item: ApiAppointmentResponse): Promise<AppointmentResponse> {
+  const [patientResponse, doctorResponse] = await Promise.all([
+    apiClient.get<ApiPatientDetail>(`/patients/${item.patientId}`),
+    apiClient.get<ApiDoctorDetail>(`/doctors/${item.doctorId}`),
+  ])
 
-  const updated: AppointmentResponse = {
-    ...existing,
-    status: nextStatus,
-  }
+  return mapAppointmentResponse(item, patientResponse.data, doctorResponse.data)
+}
 
-  appointmentsStore = appointmentsStore.map((item) => (item.id === id ? updated : item))
-  return updated
+export async function getAppointments(
+  params: AppointmentsListParams = {},
+): Promise<PageResponse<AppointmentResponse>> {
+  const response = await apiClient.get<PageResponse<ApiAppointmentSummaryResponse>>('/appointments', {
+    params: {
+      doctorId: params.doctorId,
+      patientId: params.patientId,
+      status: params.status?.toUpperCase(),
+      from: params.from,
+      to: params.to,
+      page: params.page ?? 0,
+      size: params.size ?? 20,
+      sort: params.sort,
+    },
+  })
+
+  return {
+    ...response.data,
+    content: await Promise.all(
+      response.data.content.map(async (item) => getAppointmentById(item.id)),
+    ),
+  }
+}
+
+export async function getAppointmentById(id: string): Promise<AppointmentResponse> {
+  const response = await apiClient.get<ApiAppointmentResponse>(`/appointments/${id}`)
+  return enrichAppointment(response.data)
+}
+
+export async function createAppointment(
+  data: AppointmentCreateRequest,
+): Promise<AppointmentResponse> {
+  const response = await apiClient.post<ApiAppointmentResponse>('/appointments', data)
+  return enrichAppointment(response.data)
+}
+
+async function transitionStatus(
+  id: string,
+  endpoint: 'confirm' | 'start' | 'cancel' | 'no-show',
+): Promise<AppointmentResponse> {
+  const response = await apiClient.patch<ApiAppointmentResponse>(
+    `/appointments/${id}/${endpoint}`,
+  )
+  return enrichAppointment(response.data)
 }
 
 export async function confirmAppointment(id: string): Promise<AppointmentResponse> {
-  await mockDelay()
-  return transitionStatus(id, 'confirmed')
+  return transitionStatus(id, 'confirm')
 }
 
 export async function startAppointment(id: string): Promise<AppointmentResponse> {
-  await mockDelay()
-  return transitionStatus(id, 'in_progress')
+  return transitionStatus(id, 'start')
 }
 
 export async function completeAppointment(
   id: string,
   data: MedicalRecordCreateRequest,
 ): Promise<AppointmentResponse> {
-  await mockDelay()
-
-  const updated = transitionStatus(id, 'completed')
-
-  const existsRecord = medicalRecordsStore.some(
-    (record) => record.appointment.id === updated.id,
-  )
-  if (!existsRecord) {
-    medicalRecordsStore = [
-      {
-        id: crypto.randomUUID(),
-        patient: updated.patient,
-        appointment: {
-          id: updated.id,
-          scheduledAt: updated.scheduledAt,
-          status: 'completed',
-          chiefComplaint: updated.chiefComplaint,
-        },
-        vitalSigns: data.vitalSigns ?? null,
-        physicalExam: data.physicalExam ?? null,
-        clinicalNotes: data.clinicalNotes,
-        recordDate: data.recordDate,
-        diagnoses: [],
-        prescriptions: [],
-        procedures: [],
-        createdAt: new Date().toISOString(),
-      },
-      ...medicalRecordsStore,
-    ]
-  }
-
-  return updated
+  const response = await apiClient.patch<ApiAppointmentResponse>(`/appointments/${id}/complete`, data)
+  return enrichAppointment(response.data)
 }
 
 export async function cancelAppointment(id: string): Promise<AppointmentResponse> {
-  await mockDelay()
-  return transitionStatus(id, 'cancelled')
+  return transitionStatus(id, 'cancel')
 }
 
 export async function noShowAppointment(id: string): Promise<AppointmentResponse> {
-  await mockDelay()
-  return transitionStatus(id, 'no_show')
+  return transitionStatus(id, 'no-show')
 }
 
 export async function getAvailability(
@@ -213,33 +201,28 @@ export async function getAvailability(
   from: string,
   to: string,
 ): Promise<AppointmentSummaryResponse[]> {
-  await mockDelay()
+  const response = await apiClient.get<AppointmentSummaryResponse[]>('/appointments/availability', {
+    params: {
+      doctorId,
+      from,
+      to,
+    },
+  })
 
-  const fromDate = new Date(from).getTime()
-  const toDate = new Date(to).getTime()
-
-  return appointmentsStore
-    .filter((appointment) => appointment.doctor.id === doctorId)
-    .filter((appointment) => {
-      const appointmentDate = new Date(appointment.scheduledAt).getTime()
-      return appointmentDate >= fromDate && appointmentDate <= toDate
-    })
-    .map((appointment) => ({
-      id: appointment.id,
-      scheduledAt: appointment.scheduledAt,
-      status: appointment.status,
-      chiefComplaint: appointment.chiefComplaint,
-    }))
+  return response.data
 }
 
 export async function getMedicalRecordByAppointment(
   appointmentId: string,
 ): Promise<MedicalRecordResponse | null> {
-  await mockDelay()
-
-  return (
-    medicalRecordsStore.find((record) => record.appointment.id === appointmentId) ?? null
-  )
+  try {
+    const response = await apiClient.get<MedicalRecordResponse>(
+      `/medical-records/appointment/${appointmentId}`,
+    )
+    return response.data
+  } catch {
+    return null
+  }
 }
 
 export function toAppointmentCreateRequest(

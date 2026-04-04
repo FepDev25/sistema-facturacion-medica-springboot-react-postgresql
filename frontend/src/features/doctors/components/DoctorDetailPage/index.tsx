@@ -2,13 +2,14 @@ import { useParams } from '@tanstack/react-router'
 import { CalendarClock, Mail, Phone, Stethoscope } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { BackToListButton } from '@/components/BackToListButton'
-import { APPOINTMENTS_MOCK } from '@/mocks'
 import { formatDateTime } from '@/lib/utils'
+import { useAppointments } from '@/features/appointments/hooks/useAppointments'
 import { useDoctors } from '../../hooks/useDoctors'
 
 export function DoctorDetailPage() {
   const { id } = useParams({ from: '/doctors/$id' })
   const { data: doctors = [], isLoading } = useDoctors({ includeInactive: true })
+  const { data: doctorAppointments = [] } = useAppointments({ doctorId: id })
 
   if (isLoading) {
     return <div className="px-6 py-8 text-sm text-slate-500">Cargando médico...</div>
@@ -24,12 +25,9 @@ export function DoctorDetailPage() {
     )
   }
 
-  const upcomingAppointments = APPOINTMENTS_MOCK.filter(
-    (appointment) => appointment.doctor.id === doctor.id,
-  )
+  const upcomingAppointments = doctorAppointments
     .sort(
-      (a, b) =>
-        new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime(),
+      (a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime(),
     )
     .slice(0, 8)
 

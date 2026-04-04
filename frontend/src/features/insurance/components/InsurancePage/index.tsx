@@ -5,6 +5,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { DataTable } from '@/components/DataTable'
 import {
   NO_PERMISSION_MESSAGE,
@@ -14,6 +21,7 @@ import type {
   InsurancePolicyResponse,
   InsuranceProviderResponse,
 } from '@/types/insurance'
+import { usePatients } from '@/features/patients/hooks/usePatients'
 import {
   useDeactivateProvider,
   usePolicies,
@@ -30,6 +38,7 @@ export function InsurancePage() {
   const [activeTab, setActiveTab] = useState<'providers' | 'policies'>('providers')
   const [showInactiveProviders, setShowInactiveProviders] = useState(false)
   const [showInactivePolicies, setShowInactivePolicies] = useState(false)
+  const [policyPatientId, setPolicyPatientId] = useState('')
 
   const [providerDrawerOpen, setProviderDrawerOpen] = useState(false)
   const [selectedProvider, setSelectedProvider] =
@@ -41,7 +50,9 @@ export function InsurancePage() {
   const { data: providers = [], isLoading: providersLoading } = useProviders({
     includeInactive: true,
   })
+  const { data: patients = [] } = usePatients()
   const { data: policies = [], isLoading: policiesLoading } = usePolicies({
+    patientId: policyPatientId || undefined,
     onlyActive: false,
   })
 
@@ -158,6 +169,21 @@ export function InsurancePage() {
 
               {activeTab === 'policies' && (
                 <div className="flex items-center gap-3">
+                  <div className="w-full sm:w-72">
+                    <Select value={policyPatientId} onValueChange={setPolicyPatientId}>
+                      <SelectTrigger className="h-8">
+                        <SelectValue placeholder="Seleccionar paciente" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {patients.map((patient) => (
+                          <SelectItem key={patient.id} value={patient.id}>
+                            {patient.firstName} {patient.lastName} ({patient.dni})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   <div className="flex items-center gap-2">
                     <Checkbox
                       id="show-inactive-policies"
@@ -204,12 +230,21 @@ export function InsurancePage() {
           </TabsContent>
 
           <TabsContent value="policies">
+            {!policyPatientId ? (
+              <div className="rounded-md border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600">
+                Selecciona un paciente para ver sus polizas.
+              </div>
+            ) : null}
             <DataTable
               columns={policyColumns}
-              data={filteredPolicies}
+              data={policyPatientId ? filteredPolicies : []}
               isLoading={policiesLoading}
               pageSize={20}
-              emptyMessage="No hay polizas registradas."
+              emptyMessage={
+                policyPatientId
+                  ? 'No hay polizas registradas para este paciente.'
+                  : 'Selecciona un paciente para listar polizas.'
+              }
             />
           </TabsContent>
         </Tabs>

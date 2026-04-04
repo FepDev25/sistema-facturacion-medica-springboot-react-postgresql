@@ -1,6 +1,5 @@
 import { z } from 'zod'
-import { mockDelay, paginateArray } from '@/lib/mock-utils'
-import { DOCTORS_MOCK } from '@/mocks'
+import { apiClient } from '@/lib/axios'
 import type { PageResponse } from '@/types/common'
 import type {
   DoctorCreateRequest,
@@ -19,8 +18,6 @@ export const DoctorFormSchema = z.object({
 
 export type DoctorFormValues = z.infer<typeof DoctorFormSchema>
 
-let doctorsStore: DoctorResponse[] = [...DOCTORS_MOCK]
-
 export interface DoctorsListParams {
   active?: boolean
   specialty?: string
@@ -29,117 +26,88 @@ export interface DoctorsListParams {
   sort?: string
 }
 
+interface ApiDoctorSummaryResponse {
+  id: string
+  firstName: string
+  lastName: string
+  specialty: string
+}
+
 export async function getDoctors(
   params: DoctorsListParams = {},
 ): Promise<PageResponse<DoctorResponse>> {
-  await mockDelay()
+  const response = await apiClient.get<PageResponse<ApiDoctorSummaryResponse>>('/doctors', {
+    params: {
+      active: params.active,
+      specialty: params.specialty,
+      page: params.page ?? 0,
+      size: params.size ?? 20,
+      sort: params.sort,
+    },
+  })
 
-  const { active, specialty, page = 0, size = 20 } = params
-  const specialtyQuery = specialty?.trim().toLowerCase()
+  const details = await Promise.all(response.data.content.map((item) => getDoctorById(item.id)))
 
-  let items = [...doctorsStore]
-  if (typeof active === 'boolean') {
-    items = items.filter((doctor) => doctor.isActive === active)
+  return {
+    ...response.data,
+    content: details,
   }
-  if (specialtyQuery) {
-    items = items.filter((doctor) => doctor.specialty.toLowerCase().includes(specialtyQuery))
+}
+
+export async function getDoctorById(id: string): Promise<DoctorResponse> {
+  const response = await apiClient.get<DoctorResponse>(`/doctors/${id}`)
+  return response.data
+}
+
+export async function getDoctorByLicense(licenseNumber: string): Promise<DoctorResponse | null> {
+  try {
+    const response = await apiClient.get<DoctorResponse>(
+      `/doctors/license/${encodeURIComponent(licenseNumber)}`,
+    )
+    return response.data
+  } catch {
+    return null
   }
-
-  items.sort((a, b) => a.lastName.localeCompare(b.lastName, 'es', { sensitivity: 'base' }))
-
-  return paginateArray(items, page, size)
 }
 
 export async function createDoctor(data: DoctorCreateRequest): Promise<DoctorResponse> {
-  await mockDelay()
-
-  const licenseExists = doctorsStore.some((doctor) => doctor.licenseNumber === data.licenseNumber)
-  if (licenseExists) {
-    throw new Error('Ya existe un médico con ese número de licencia')
-  }
-
-  const now = new Date().toISOString()
-  const newItem: DoctorResponse = {
-    id: crypto.randomUUID(),
-    licenseNumber: data.licenseNumber.trim(),
-    firstName: data.firstName.trim(),
-    lastName: data.lastName.trim(),
-    specialty: data.specialty.trim(),
-    phone: data.phone.trim(),
-    email: data.email.trim(),
-    isActive: true,
-    createdAt: now,
-    updatedAt: now,
-  }
-
-  doctorsStore = [newItem, ...doctorsStore]
-  return newItem
+  const response = await apiClient.post<DoctorResponse>('/doctors', data)
+  return response.data
 }
 
 export async function updateDoctor(
   id: string,
   data: DoctorUpdateRequest,
 ): Promise<DoctorResponse> {
-  await mockDelay()
-
-  const existing = doctorsStore.find((doctor) => doctor.id === id)
-  if (!existing) {
-    throw new Error(`Médico ${id} no encontrado`)
-  }
-
-  const updated: DoctorResponse = {
-    ...existing,
-    firstName: data.firstName.trim(),
-    lastName: data.lastName.trim(),
-    specialty: data.specialty.trim(),
-    phone: data.phone.trim(),
-    email: data.email.trim(),
-    updatedAt: new Date().toISOString(),
-  }
-
-  doctorsStore = doctorsStore.map((doctor) => (doctor.id === id ? updated : doctor))
-  return updated
+  const response = await apiClient.put<DoctorResponse>(`/doctors/${id}`, {
+    ...data,
+    isActive: true,
+  })
+  return response.data
 }
 
 export async function deactivateDoctor(id: string): Promise<DoctorResponse> {
-  await mockDelay()
-
-  const existing = doctorsStore.find((doctor) => doctor.id === id)
-  if (!existing) {
-    throw new Error(`Médico ${id} no encontrado`)
-  }
-
-  if (!existing.isActive) {
-    return existing
-  }
-
-  const updated: DoctorResponse = {
-    ...existing,
-    isActive: false,
-    updatedAt: new Date().toISOString(),
-  }
-
-  doctorsStore = doctorsStore.map((doctor) => (doctor.id === id ? updated : doctor))
-  return updated
+  await apiClient.delete(`/doctors/${id}`)
+  return getDoctorById(id)
 }
 
 export function toDoctorCreateRequest(values: DoctorFormValues): DoctorCreateRequest {
   return {
-    licenseNumber: values.licenseNumber,
-    firstName: values.firstName,
-    lastName: values.lastName,
-    specialty: values.specialty,
-    phone: values.phone,
-    email: values.email,
+    licenseNumber: values.licenseNumber.trim(),
+    firstName: values.firstName.trim(),
+    lastName: values.lastName.trim(),
+    specialty: values.specialty.trim(),
+    phone: values.phone.trim(),
+    email: values.email.trim(),
   }
 }
 
 export function toDoctorUpdateRequest(values: DoctorFormValues): DoctorUpdateRequest {
   return {
-    firstName: values.firstName,
-    lastName: values.lastName,
-    specialty: values.specialty,
-    phone: values.phone,
-    email: values.email,
+    firstName: values.firstName.trim(),
+    lastName: values.lastName.trim(),
+    specialty: values.specialty.trim(),
+    phone: values.phone.trim(),
+    email: values.email.trim(),
   }
 }

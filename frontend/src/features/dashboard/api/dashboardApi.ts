@@ -1,11 +1,7 @@
-import { mockDelay } from '@/lib/mock-utils'
-import {
-  APPOINTMENTS_MOCK,
-  DOCTORS_MOCK,
-  INVOICES_MOCK,
-  PATIENTS_MOCK,
-  PAYMENTS_MOCK,
-} from '@/mocks'
+import * as appointmentsApi from '@/features/appointments/api/appointmentsApi'
+import * as doctorsApi from '@/features/doctors/api/doctorsApi'
+import * as invoicesApi from '@/features/invoices/api/invoicesApi'
+import * as patientsApi from '@/features/patients/api/patientsApi'
 
 export interface DashboardMetrics {
   totalPatients: number
@@ -27,29 +23,39 @@ function isSameDay(dateA: Date, dateB: Date): boolean {
 }
 
 export async function getDashboardMetrics(): Promise<DashboardMetrics> {
-  await mockDelay()
+  const [patientsPage, doctorsPage, appointmentsPage, invoicesPage] = await Promise.all([
+    patientsApi.getPatients({ page: 0, size: 1 }),
+    doctorsApi.getDoctors({ active: true, page: 0, size: 1 }),
+    appointmentsApi.getAppointments({ page: 0, size: 200 }),
+    invoicesApi.getInvoices({ page: 0, size: 200 }),
+  ])
 
+  const appointments = appointmentsPage.content
+  const invoices = invoicesPage.content
   const now = new Date()
 
-  const appointmentsToday = APPOINTMENTS_MOCK.filter((appointment) =>
+  const appointmentsToday = appointments.filter((appointment) =>
     isSameDay(new Date(appointment.scheduledAt), now),
   ).length
 
-  const upcomingAppointments = APPOINTMENTS_MOCK.filter(
+  const upcomingAppointments = appointments.filter(
     (appointment) =>
       new Date(appointment.scheduledAt).getTime() > now.getTime() &&
       (appointment.status === 'scheduled' || appointment.status === 'confirmed'),
   ).length
 
-  const pendingInvoices = INVOICES_MOCK.filter(
+  const pendingInvoices = invoices.filter(
     (invoice) => invoice.status === 'pending' || invoice.status === 'partial_paid',
   ).length
 
-  const overdueInvoices = INVOICES_MOCK.filter((invoice) => invoice.status === 'overdue').length
+  const overdueInvoices = invoices.filter((invoice) => invoice.status === 'overdue').length
 
-  const totalCollected = PAYMENTS_MOCK.reduce((acc, payment) => acc + payment.amount, 0)
+  const totalCollected = invoices.reduce(
+    (acc, invoice) => acc + invoice.payments.reduce((sum, payment) => sum + payment.amount, 0),
+    0,
+  )
 
-  const pendingCollection = INVOICES_MOCK.reduce((acc, invoice) => {
+  const pendingCollection = invoices.reduce((acc, invoice) => {
     if (invoice.status === 'cancelled' || invoice.status === 'paid') {
       return acc
     }
@@ -59,8 +65,8 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
   }, 0)
 
   return {
-    totalPatients: PATIENTS_MOCK.length,
-    activeDoctors: DOCTORS_MOCK.filter((doctor) => doctor.isActive).length,
+    totalPatients: patientsPage.totalElements,
+    activeDoctors: doctorsPage.totalElements,
     appointmentsToday,
     upcomingAppointments,
     pendingInvoices,

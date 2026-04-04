@@ -5,7 +5,7 @@ import type { InsurancePolicySummaryResponse } from './insurance'
 import type { ServiceSummaryResponse } from './catalog'
 import type { MedicationSummaryResponse } from './catalog'
 
-// ── Invoice Items ─────────────────────────────────────────────────────────────
+// Invoice Items
 
 // Nested inside InvoiceCreateRequest
 export interface InvoiceItemRequest {
@@ -17,7 +17,7 @@ export interface InvoiceItemRequest {
   unitPrice: number              // >= 0
 }
 
-// ── Invoice ───────────────────────────────────────────────────────────────────
+// Invoice
 
 // invoiceNumber, subtotal, tax, total, insuranceCoverage, patientResponsibility
 // are computed server-side — not sent by the client
@@ -75,9 +75,10 @@ export interface InvoiceSummaryResponse {
   dueDate: string
 }
 
-// ── Payment ───────────────────────────────────────────────────────────────────
+// Payment
 
 export interface PaymentCreateRequest {
+  invoiceId: string
   amount: number                 // > 0
   paymentMethod: PaymentMethod
   referenceNumber?: string | null

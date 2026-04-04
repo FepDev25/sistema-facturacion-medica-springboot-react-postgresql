@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { PATIENTS_MOCK } from '@/mocks'
+import { usePatients } from '@/features/patients/hooks/usePatients'
 import type { InsurancePolicyResponse } from '@/types/insurance'
 import {
   PolicyFormSchema,
@@ -59,17 +59,18 @@ export function PolicyDrawer({ open, onOpenChange, item }: PolicyDrawerProps) {
   })
 
   const { data: providers = [] } = useProviders({ includeInactive: false })
+  const { data: patientsData = [] } = usePatients()
   const createPolicy = useCreatePolicy()
   const updatePolicy = useUpdatePolicy()
   const isPending = createPolicy.isPending || updatePolicy.isPending
 
   const patients = useMemo(
     () =>
-      PATIENTS_MOCK.map((patient) => ({
+      patientsData.map((patient) => ({
         id: patient.id,
         label: `${patient.firstName} ${patient.lastName} (${patient.dni})`,
       })),
-    [],
+    [patientsData],
   )
 
   useEffect(() => {

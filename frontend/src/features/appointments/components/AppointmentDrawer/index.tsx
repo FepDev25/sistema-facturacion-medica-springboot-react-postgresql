@@ -22,7 +22,8 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { DOCTORS_MOCK, PATIENTS_MOCK } from '@/mocks'
+import { useSearchPatients } from '@/features/patients/hooks/usePatients'
+import { useDoctors } from '@/features/doctors/hooks/useDoctors'
 import {
   AppointmentFormSchema,
   type AppointmentFormValues,
@@ -56,28 +57,19 @@ export function AppointmentDrawer({ open, onOpenChange }: AppointmentDrawerProps
   const createAppointment = useCreateAppointment()
   const isPending = createAppointment.isPending
 
-  const matchedPatients = useMemo(() => {
-    const q = patientQuery.trim().toLowerCase()
-    if (q.length < 2) {
-      return []
-    }
+  const { data: patientResults = [] } = useSearchPatients(patientQuery)
 
-    return PATIENTS_MOCK
-      .filter((patient) => patient.dni.toLowerCase().includes(q))
-      .slice(0, 8)
-  }, [patientQuery])
-
+  const { data: doctors = [] } = useDoctors({ includeInactive: false })
   const matchedDoctors = useMemo(() => {
     const q = doctorQuery.trim().toLowerCase()
     if (q.length < 2) {
       return []
     }
 
-    return DOCTORS_MOCK
-      .filter((doctor) => doctor.isActive)
+    return doctors
       .filter((doctor) => doctor.licenseNumber.toLowerCase().includes(q))
       .slice(0, 8)
-  }, [doctorQuery])
+  }, [doctorQuery, doctors])
 
   function onSubmit(values: AppointmentFormValues) {
     createAppointment.mutate(toAppointmentCreateRequest(values), {
@@ -136,18 +128,18 @@ export function AppointmentDrawer({ open, onOpenChange }: AppointmentDrawerProps
                       <p className="text-xs text-green-700 bg-green-50 border border-green-200 rounded px-2 py-1">
                         Paciente seleccionado:{' '}
                         {
-                          PATIENTS_MOCK.find((patient) => patient.id === field.value)
+                          patientResults.find((patient) => patient.id === field.value)
                             ?.firstName
                         }{' '}
                         {
-                          PATIENTS_MOCK.find((patient) => patient.id === field.value)
+                          patientResults.find((patient) => patient.id === field.value)
                             ?.lastName
                         }
                       </p>
                     ) : null}
-                    {matchedPatients.length > 0 ? (
+                    {patientResults.length > 0 ? (
                       <div className="rounded-md border border-slate-200 overflow-hidden">
-                        {matchedPatients.map((patient) => (
+                        {patientResults.slice(0, 8).map((patient) => (
                           <button
                             key={patient.id}
                             type="button"
@@ -190,11 +182,11 @@ export function AppointmentDrawer({ open, onOpenChange }: AppointmentDrawerProps
                       <p className="text-xs text-green-700 bg-green-50 border border-green-200 rounded px-2 py-1">
                         Médico seleccionado:{' '}
                         {
-                          DOCTORS_MOCK.find((doctor) => doctor.id === field.value)
+                          doctors.find((doctor) => doctor.id === field.value)
                             ?.firstName
                         }{' '}
                         {
-                          DOCTORS_MOCK.find((doctor) => doctor.id === field.value)
+                          doctors.find((doctor) => doctor.id === field.value)
                             ?.lastName
                         }
                       </p>

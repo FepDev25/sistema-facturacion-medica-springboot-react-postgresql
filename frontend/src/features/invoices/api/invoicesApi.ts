@@ -1,6 +1,5 @@
 import { z } from 'zod'
-import { mockDelay, paginateArray } from '@/lib/mock-utils'
-import { INVOICES_MOCK, PAYMENTS_MOCK } from '@/mocks'
+import { apiClient } from '@/lib/axios'
 import type { PageResponse } from '@/types/common'
 import type {
   InvoiceResponse,
@@ -28,9 +27,6 @@ export const PaymentFormSchema = z.object({
 
 export type PaymentFormValues = z.infer<typeof PaymentFormSchema>
 
-let invoicesStore: InvoiceResponse[] = [...INVOICES_MOCK]
-let paymentsStore: PaymentResponse[] = [...PAYMENTS_MOCK]
-
 export interface InvoicesListParams {
   patientId?: string
   status?: InvoiceResponse['status']
@@ -41,177 +37,321 @@ export interface InvoicesListParams {
   sort?: string
 }
 
-function syncInvoicePayments(invoiceId: string): void {
-  const invoice = invoicesStore.find((item) => item.id === invoiceId)
-  if (!invoice) {
-    return
+interface ApiInvoiceItem {
+  id: string
+  serviceId: string | null
+  serviceName: string | null
+  medicationId: string | null
+  medicationName: string | null
+  itemType: 'service' | 'medication' | 'procedure' | 'other'
+  description: string
+  quantity: number
+  unitPrice: number
+  subtotal: number
+}
+
+interface ApiInvoiceResponse {
+  id: string
+  patientId: string
+  patientFirstName: string
+  patientLastName: string
+  appointmentId: string | null
+  insurancePolicyId: string | null
+  invoiceNumber: string
+  subtotal: number
+  tax: number
+  total: number
+  insuranceCoverage: number
+  patientResponsibility: number
+  status: InvoiceResponse['status']
+  issueDate: string
+  dueDate: string
+  notes: string | null
+  items: ApiInvoiceItem[]
+  createdAt: string | null
+}
+
+interface ApiPatientDetail {
+  id: string
+  dni: string
+  firstName: string
+  lastName: string
+  allergies: string | null
+}
+
+interface ApiAppointmentDetail {
+  id: string
+  scheduledAt: string
+  status: InvoiceResponse['appointment'] extends null
+    ? never
+    : NonNullable<InvoiceResponse['appointment']>['status']
+  chiefComplaint: string | null
+}
+
+interface ApiInsurancePolicyDetail {
+  id: string
+  policyNumber: string
+  providerName: string
+  coveragePercentage: number
+}
+
+interface ApiServiceDetail {
+  id: string
+  code: string
+  name: string
+  price: number
+}
+
+interface ApiMedicationDetail {
+  id: string
+  code: string
+  name: string
+  requiresPrescription: boolean
+}
+
+interface ApiPaymentResponse {
+  id: string
+  invoiceId: string
+  invoiceNumber: string
+  amount: number
+  paymentMethod: PaymentResponse['paymentMethod']
+  referenceNumber: string | null
+  notes: string | null
+  paymentDate: string
+  createdAt: string | null
+}
+
+function toInvoiceSummary(item: ApiInvoiceResponse): PaymentResponse['invoice'] {
+  return {
+    id: item.id,
+    invoiceNumber: item.invoiceNumber,
+    total: item.total,
+    patientResponsibility: item.patientResponsibility,
+    status: item.status,
+    dueDate: item.dueDate,
   }
+}
 
-  const invoicePayments = paymentsStore
-    .filter((payment) => payment.invoice.id === invoiceId)
-    .sort((a, b) => new Date(a.paymentDate).getTime() - new Date(b.paymentDate).getTime())
+async function enrichInvoice(item: ApiInvoiceResponse): Promise<InvoiceResponse> {
+  const [patientResponse, appointmentResponse, policyResponse] = await Promise.all([
+    apiClient.get<ApiPatientDetail>(`/patients/${item.patientId}`),
+    item.appointmentId
+      ? apiClient.get<ApiAppointmentDetail>(`/appointments/${item.appointmentId}`)
+      : Promise.resolve(null),
+    item.insurancePolicyId
+      ? apiClient.get<ApiInsurancePolicyDetail>(`/insurance/policies/${item.insurancePolicyId}`)
+      : Promise.resolve(null),
+  ])
 
-  const paid = invoicePayments.reduce((acc, item) => acc + item.amount, 0)
+  const serviceIds = Array.from(
+    new Set(item.items.map((invoiceItem) => invoiceItem.serviceId).filter(Boolean) as string[]),
+  )
+  const medicationIds = Array.from(
+    new Set(item.items.map((invoiceItem) => invoiceItem.medicationId).filter(Boolean) as string[]),
+  )
 
-  let nextStatus: InvoiceResponse['status'] = invoice.status
-  if (invoice.status !== 'cancelled' && invoice.status !== 'draft') {
-    if (paid <= 0) {
-      nextStatus = 'pending'
-    } else if (paid >= invoice.patientResponsibility) {
-      nextStatus = 'paid'
-    } else {
-      nextStatus = 'partial_paid'
-    }
+  const [services, medications] = await Promise.all([
+    Promise.all(
+      serviceIds.map(async (serviceId) => {
+        const response = await apiClient.get<ApiServiceDetail>(`/catalog/services/${serviceId}`)
+        return [serviceId, response.data] as const
+      }),
+    ),
+    Promise.all(
+      medicationIds.map(async (medicationId) => {
+        const response = await apiClient.get<ApiMedicationDetail>(
+          `/catalog/medications/${medicationId}`,
+        )
+        return [medicationId, response.data] as const
+      }),
+    ),
+  ])
+
+  const servicesById = new Map(services)
+  const medicationsById = new Map(medications)
+
+  return {
+    id: item.id,
+    invoiceNumber: item.invoiceNumber,
+    patient: {
+      id: patientResponse.data.id,
+      dni: patientResponse.data.dni,
+      firstName: patientResponse.data.firstName,
+      lastName: patientResponse.data.lastName,
+      allergies: patientResponse.data.allergies,
+    },
+    appointment: appointmentResponse
+      ? {
+          id: appointmentResponse.data.id,
+          scheduledAt: appointmentResponse.data.scheduledAt,
+          status: appointmentResponse.data.status,
+          chiefComplaint: appointmentResponse.data.chiefComplaint ?? '',
+        }
+      : null,
+    insurancePolicy: policyResponse
+      ? {
+          id: policyResponse.data.id,
+          policyNumber: policyResponse.data.policyNumber,
+          providerName: policyResponse.data.providerName,
+          coveragePercentage: policyResponse.data.coveragePercentage,
+        }
+      : null,
+    subtotal: item.subtotal,
+    tax: item.tax,
+    total: item.total,
+    insuranceCoverage: item.insuranceCoverage,
+    patientResponsibility: item.patientResponsibility,
+    status: item.status,
+    issueDate: item.issueDate,
+    dueDate: item.dueDate,
+    notes: item.notes,
+    items: item.items.map((invoiceItem) => {
+      const service = invoiceItem.serviceId ? servicesById.get(invoiceItem.serviceId) : null
+      const medication = invoiceItem.medicationId
+        ? medicationsById.get(invoiceItem.medicationId)
+        : null
+
+      return {
+        id: invoiceItem.id,
+        service: service
+          ? {
+              id: service.id,
+              code: service.code,
+              name: service.name,
+              price: service.price,
+            }
+          : null,
+        medication: medication
+          ? {
+              id: medication.id,
+              code: medication.code,
+              name: medication.name,
+              requiresPrescription: medication.requiresPrescription,
+            }
+          : null,
+        itemType: invoiceItem.itemType,
+        description: invoiceItem.description,
+        quantity: invoiceItem.quantity,
+        unitPrice: invoiceItem.unitPrice,
+        subtotal: invoiceItem.subtotal,
+      }
+    }),
+    payments: [],
+    createdAt: item.createdAt ?? item.issueDate,
   }
+}
 
-  const updated: InvoiceResponse = {
-    ...invoice,
-    status: nextStatus,
-    payments: invoicePayments,
+function mapPayment(
+  item: ApiPaymentResponse,
+  invoiceSummary: PaymentResponse['invoice'],
+): PaymentResponse {
+  return {
+    id: item.id,
+    invoice: invoiceSummary,
+    amount: item.amount,
+    paymentMethod: item.paymentMethod,
+    referenceNumber: item.referenceNumber,
+    notes: item.notes,
+    paymentDate: item.paymentDate,
+    createdAt: item.createdAt ?? item.paymentDate,
   }
+}
 
-  invoicesStore = invoicesStore.map((item) => (item.id === invoiceId ? updated : item))
+async function getInvoiceRawById(id: string): Promise<ApiInvoiceResponse> {
+  const response = await apiClient.get<ApiInvoiceResponse>(`/invoices/${id}`)
+  return response.data
 }
 
 export async function getInvoices(
   params: InvoicesListParams = {},
 ): Promise<PageResponse<InvoiceResponse>> {
-  await mockDelay()
+  const response = await apiClient.get<PageResponse<ApiInvoiceResponse>>('/invoices', {
+    params: {
+      patientId: params.patientId,
+      status: params.status?.toUpperCase(),
+      startDate: params.startDate,
+      endDate: params.endDate,
+      page: params.page ?? 0,
+      size: params.size ?? 20,
+      sort: params.sort,
+    },
+  })
 
-  const { patientId, status, startDate, endDate, page = 0, size = 20 } = params
-
-  let items = [...invoicesStore]
-  if (patientId) {
-    items = items.filter((invoice) => invoice.patient.id === patientId)
+  return {
+    ...response.data,
+    content: await Promise.all(response.data.content.map((item) => enrichInvoice(item))),
   }
-  if (status) {
-    items = items.filter((invoice) => invoice.status === status)
-  }
-  if (startDate) {
-    items = items.filter((invoice) => invoice.issueDate >= startDate)
-  }
-  if (endDate) {
-    items = items.filter((invoice) => invoice.issueDate <= endDate)
-  }
-
-  items.sort((a, b) => b.issueDate.localeCompare(a.issueDate))
-
-  return paginateArray(items, page, size)
 }
 
 export async function getInvoiceById(id: string): Promise<InvoiceResponse> {
-  await mockDelay()
-
-  const invoice = invoicesStore.find((item) => item.id === id)
-  if (!invoice) {
-    throw new Error('Factura no encontrada')
+  const rawInvoice = await getInvoiceRawById(id)
+  const mapped = await enrichInvoice(rawInvoice)
+  const payments = await getPaymentsByInvoice(
+    mapped.id,
+    { page: 0, size: 200 },
+    toInvoiceSummary(rawInvoice),
+  )
+  return {
+    ...mapped,
+    payments: payments.content,
   }
+}
 
-  return invoice
+async function transitionStatus(
+  id: string,
+  endpoint: 'confirm' | 'overdue' | 'cancel',
+): Promise<InvoiceResponse> {
+  const response = await apiClient.patch<ApiInvoiceResponse>(`/invoices/${id}/${endpoint}`)
+  return enrichInvoice(response.data)
 }
 
 export async function confirmInvoice(id: string): Promise<InvoiceResponse> {
-  await mockDelay()
-
-  const existing = invoicesStore.find((item) => item.id === id)
-  if (!existing) {
-    throw new Error('Factura no encontrada')
-  }
-
-  const updated: InvoiceResponse = {
-    ...existing,
-    status: existing.status === 'draft' ? 'pending' : existing.status,
-  }
-
-  invoicesStore = invoicesStore.map((item) => (item.id === id ? updated : item))
-  return updated
+  return transitionStatus(id, 'confirm')
 }
 
 export async function markInvoiceOverdue(id: string): Promise<InvoiceResponse> {
-  await mockDelay()
-
-  const existing = invoicesStore.find((item) => item.id === id)
-  if (!existing) {
-    throw new Error('Factura no encontrada')
-  }
-
-  const updated: InvoiceResponse = {
-    ...existing,
-    status: existing.status === 'paid' || existing.status === 'cancelled' ? existing.status : 'overdue',
-  }
-
-  invoicesStore = invoicesStore.map((item) => (item.id === id ? updated : item))
-  return updated
+  return transitionStatus(id, 'overdue')
 }
 
 export async function cancelInvoice(id: string): Promise<InvoiceResponse> {
-  await mockDelay()
-
-  const existing = invoicesStore.find((item) => item.id === id)
-  if (!existing) {
-    throw new Error('Factura no encontrada')
-  }
-
-  const updated: InvoiceResponse = {
-    ...existing,
-    status: 'cancelled',
-  }
-
-  invoicesStore = invoicesStore.map((item) => (item.id === id ? updated : item))
-  return updated
+  return transitionStatus(id, 'cancel')
 }
 
 export async function getPaymentsByInvoice(
   invoiceId: string,
   params: { page?: number; size?: number } = {},
+  invoiceSummary?: PaymentResponse['invoice'],
 ): Promise<PageResponse<PaymentResponse>> {
-  await mockDelay()
+  const summary = invoiceSummary ?? toInvoiceSummary(await getInvoiceRawById(invoiceId))
 
-  const { page = 0, size = 20 } = params
-  const items = paymentsStore
-    .filter((payment) => payment.invoice.id === invoiceId)
-    .sort((a, b) => new Date(b.paymentDate).getTime() - new Date(a.paymentDate).getTime())
-
-  return paginateArray(items, page, size)
-}
-
-export async function registerPayment(
-  invoiceId: string,
-  data: PaymentCreateRequest,
-): Promise<PaymentResponse> {
-  await mockDelay()
-
-  const invoice = invoicesStore.find((item) => item.id === invoiceId)
-  if (!invoice) {
-    throw new Error('Factura no encontrada')
-  }
-
-  const nextPayment: PaymentResponse = {
-    id: crypto.randomUUID(),
-    invoice: {
-      id: invoice.id,
-      invoiceNumber: invoice.invoiceNumber,
-      total: invoice.total,
-      patientResponsibility: invoice.patientResponsibility,
-      status: invoice.status,
-      dueDate: invoice.dueDate,
+  const response = await apiClient.get<PageResponse<ApiPaymentResponse>>(
+    `/payments/invoice/${invoiceId}`,
+    {
+      params: {
+        page: params.page ?? 0,
+        size: params.size ?? 20,
+      },
     },
-    amount: data.amount,
-    paymentMethod: data.paymentMethod,
-    referenceNumber: data.referenceNumber ?? null,
-    notes: data.notes ?? null,
-    paymentDate: data.paymentDate,
-    createdAt: new Date().toISOString(),
+  )
+
+  return {
+    ...response.data,
+    content: response.data.content.map((item) => mapPayment(item, summary)),
   }
-
-  paymentsStore = [nextPayment, ...paymentsStore]
-  syncInvoicePayments(invoiceId)
-
-  return nextPayment
 }
 
-export function toPaymentCreateRequest(values: PaymentFormValues): PaymentCreateRequest {
+export async function registerPayment(data: PaymentCreateRequest): Promise<PaymentResponse> {
+  const response = await apiClient.post<ApiPaymentResponse>('/payments', data)
+  const summary = toInvoiceSummary(await getInvoiceRawById(response.data.invoiceId))
+  return mapPayment(response.data, summary)
+}
+
+export function toPaymentCreateRequest(
+  invoiceId: string,
+  values: PaymentFormValues,
+): PaymentCreateRequest {
   return {
+    invoiceId,
     amount: values.amount,
     paymentMethod: values.paymentMethod,
     referenceNumber:

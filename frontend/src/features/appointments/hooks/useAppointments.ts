@@ -10,11 +10,15 @@ export const appointmentKeys = {
   record: (id: string) => [...appointmentKeys.all, 'record', id] as const,
 }
 
-export function useAppointments(params: { status?: string } = {}) {
+export function useAppointments(
+  params: { status?: string; doctorId?: string; patientId?: string } = {},
+) {
   return useQuery({
     queryKey: appointmentKeys.list(params),
     queryFn: () =>
       appointmentsApi.getAppointments({
+        doctorId: params.doctorId,
+        patientId: params.patientId,
         status: params.status as
           | 'scheduled'
           | 'confirmed'
