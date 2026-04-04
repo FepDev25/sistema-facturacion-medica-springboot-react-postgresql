@@ -1,7 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import type { AxiosError } from 'axios'
 import { toast } from 'sonner'
 import * as appointmentsApi from '../api/appointmentsApi'
 import type { MedicalRecordCreateRequest } from '@/types/medical-record'
+
+interface ApiErrorPayload {
+  message?: string
+}
+
+function getApiErrorMessage(error: unknown): string | null {
+  const axiosError = error as AxiosError<ApiErrorPayload>
+  return axiosError.response?.data?.message ?? null
+}
 
 export const appointmentKeys = {
   all: ['appointments'] as const,
@@ -60,7 +70,7 @@ export function useCreateAppointment() {
       toast.success('Cita creada')
     },
     onError: (error) => {
-      toast.error(error.message || 'Error al crear la cita')
+      toast.error(getApiErrorMessage(error) ?? 'Error al crear la cita')
     },
   })
 }
