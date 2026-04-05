@@ -21,6 +21,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fepdev.sfm.backend.domain.appointment.dto.AppointmentSummaryResponse;
 import com.fepdev.sfm.backend.domain.insurance.dto.InsurancePolicySummaryResponse;
+import com.fepdev.sfm.backend.domain.invoice.InvoiceStatus;
+import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceListViewResponse;
 import com.fepdev.sfm.backend.domain.patient.dto.PatientCreateRequest;
 import com.fepdev.sfm.backend.domain.patient.dto.PatientResponse;
 import com.fepdev.sfm.backend.domain.patient.dto.PatientSummaryResponse;
@@ -95,5 +97,14 @@ public class PatientController {
             @PageableDefault(size = 20, sort = "startDate", direction = Sort.Direction.DESC) Pageable pageable) {
 
         return ResponseEntity.ok(patientService.getPatientPolicies(id, onlyActive, pageable));
+    }
+
+    @GetMapping("/{id}/invoices")
+    public ResponseEntity<Page<InvoiceListViewResponse>> getInvoices(
+            @PathVariable UUID id,
+            @RequestParam(required = false) InvoiceStatus status,
+            @PageableDefault(size = 20, sort = "issueDate", direction = Sort.Direction.DESC) Pageable pageable) {
+
+        return ResponseEntity.ok(patientService.getPatientInvoices(id, status, pageable));
     }
 }

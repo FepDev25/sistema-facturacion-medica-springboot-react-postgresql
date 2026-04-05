@@ -2,6 +2,10 @@ import { z } from 'zod'
 import { apiClient } from '@/lib/axios'
 import type { PageResponse } from '@/types/common'
 import type {
+  InvoiceItemRequest,
+  InvoiceItemResponse,
+  InvoiceInsurancePolicyRequest,
+  InvoiceListViewResponse,
   InvoiceResponse,
   PaymentCreateRequest,
   PaymentResponse,
@@ -17,6 +21,8 @@ const PAYMENT_METHODS = [
   'other',
 ] as const
 
+const INVOICE_ITEM_TYPES = ['service', 'medication', 'procedure', 'other'] as const
+
 export const PaymentFormSchema = z.object({
   amount: z.number({ message: 'Debe ser un numero' }).positive('Debe ser mayor a 0'),
   paymentMethod: z.enum(PAYMENT_METHODS),
@@ -26,6 +32,35 @@ export const PaymentFormSchema = z.object({
 })
 
 export type PaymentFormValues = z.infer<typeof PaymentFormSchema>
+
+export const InvoiceItemFormSchema = z
+  .object({
+    itemType: z.enum(INVOICE_ITEM_TYPES),
+    serviceId: z.string().optional(),
+    medicationId: z.string().optional(),
+    description: z.string().min(1, 'Requerido').max(255, 'Maximo 255 caracteres'),
+    quantity: z.number({ message: 'Debe ser un numero' }).int('Debe ser un entero').min(1),
+    unitPrice: z.number({ message: 'Debe ser un numero' }).positive('Debe ser mayor a 0'),
+  })
+  .superRefine((value, ctx) => {
+    if (value.itemType === 'service' && !value.serviceId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Selecciona un servicio',
+        path: ['serviceId'],
+      })
+    }
+
+    if (value.itemType === 'medication' && !value.medicationId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Selecciona un medicamento',
+        path: ['medicationId'],
+      })
+    }
+  })
+
+export type InvoiceItemFormValues = z.infer<typeof InvoiceItemFormSchema>
 
 export interface InvoicesListParams {
   patientId?: string
@@ -37,27 +72,74 @@ export interface InvoicesListParams {
   sort?: string
 }
 
-interface ApiInvoiceItem {
-  id: string
-  serviceId: string | null
-  serviceName: string | null
-  medicationId: string | null
-  medicationName: string | null
-  itemType: 'service' | 'medication' | 'procedure' | 'other'
-  description: string
-  quantity: number
-  unitPrice: number
-  subtotal: number
-}
-
-interface ApiInvoiceResponse {
+interface ApiInvoiceListViewResponse {
   id: string
   patientId: string
   patientFirstName: string
   patientLastName: string
-  appointmentId: string | null
-  insurancePolicyId: string | null
   invoiceNumber: string
+  total: number
+  patientResponsibility: number
+  status: InvoiceListViewResponse['status']
+  issueDate: string
+  dueDate: string
+  createdAt: string | null
+}
+
+interface ApiInvoicePatient {
+  id: string
+  dni: string
+  firstName: string
+  lastName: string
+  allergies: string | null
+}
+
+interface ApiInvoiceAppointment {
+  id: string
+  scheduledAt: string
+  status: NonNullable<InvoiceResponse['appointment']>['status']
+  chiefComplaint: string | null
+}
+
+interface ApiInvoiceInsurancePolicy {
+  id: string
+  policyNumber: string
+  providerName: string
+  coveragePercentage: number
+}
+
+interface ApiInvoiceService {
+  id: string
+  code: string
+  name: string
+  price: number
+}
+
+interface ApiInvoiceMedication {
+  id: string
+  code: string
+  name: string
+  requiresPrescription: boolean
+}
+
+interface ApiInvoiceItemView {
+  id: string
+  service: ApiInvoiceService | null
+  medication: ApiInvoiceMedication | null
+  itemType: InvoiceItemResponse['itemType']
+  description: string
+  quantity: number
+  unitPrice: number
+  subtotal: number
+  createdAt: string | null
+}
+
+interface ApiInvoiceViewResponse {
+  id: string
+  invoiceNumber: string
+  patient: ApiInvoicePatient
+  appointment: ApiInvoiceAppointment | null
+  insurancePolicy: ApiInvoiceInsurancePolicy | null
   subtotal: number
   tax: number
   total: number
@@ -67,46 +149,9 @@ interface ApiInvoiceResponse {
   issueDate: string
   dueDate: string
   notes: string | null
-  items: ApiInvoiceItem[]
+  items: ApiInvoiceItemView[]
   createdAt: string | null
-}
-
-interface ApiPatientDetail {
-  id: string
-  dni: string
-  firstName: string
-  lastName: string
-  allergies: string | null
-}
-
-interface ApiAppointmentDetail {
-  id: string
-  scheduledAt: string
-  status: InvoiceResponse['appointment'] extends null
-    ? never
-    : NonNullable<InvoiceResponse['appointment']>['status']
-  chiefComplaint: string | null
-}
-
-interface ApiInsurancePolicyDetail {
-  id: string
-  policyNumber: string
-  providerName: string
-  coveragePercentage: number
-}
-
-interface ApiServiceDetail {
-  id: string
-  code: string
-  name: string
-  price: number
-}
-
-interface ApiMedicationDetail {
-  id: string
-  code: string
-  name: string
-  requiresPrescription: boolean
+  updatedAt: string | null
 }
 
 interface ApiPaymentResponse {
@@ -121,7 +166,11 @@ interface ApiPaymentResponse {
   createdAt: string | null
 }
 
-function toInvoiceSummary(item: ApiInvoiceResponse): PaymentResponse['invoice'] {
+interface ApiInvoiceInsurancePolicyRequest {
+  insurancePolicyId: string | null
+}
+
+function toInvoiceSummaryFromView(item: ApiInvoiceViewResponse): PaymentResponse['invoice'] {
   return {
     id: item.id,
     invoiceNumber: item.invoiceNumber,
@@ -132,68 +181,47 @@ function toInvoiceSummary(item: ApiInvoiceResponse): PaymentResponse['invoice'] 
   }
 }
 
-async function enrichInvoice(item: ApiInvoiceResponse): Promise<InvoiceResponse> {
-  const [patientResponse, appointmentResponse, policyResponse] = await Promise.all([
-    apiClient.get<ApiPatientDetail>(`/patients/${item.patientId}`),
-    item.appointmentId
-      ? apiClient.get<ApiAppointmentDetail>(`/appointments/${item.appointmentId}`)
-      : Promise.resolve(null),
-    item.insurancePolicyId
-      ? apiClient.get<ApiInsurancePolicyDetail>(`/insurance/policies/${item.insurancePolicyId}`)
-      : Promise.resolve(null),
-  ])
+function mapInvoiceListItem(item: ApiInvoiceListViewResponse): InvoiceListViewResponse {
+  return {
+    id: item.id,
+    patientId: item.patientId,
+    patientFirstName: item.patientFirstName,
+    patientLastName: item.patientLastName,
+    invoiceNumber: item.invoiceNumber,
+    total: item.total,
+    patientResponsibility: item.patientResponsibility,
+    status: item.status,
+    issueDate: item.issueDate,
+    dueDate: item.dueDate,
+    createdAt: item.createdAt ?? item.issueDate,
+  }
+}
 
-  const serviceIds = Array.from(
-    new Set(item.items.map((invoiceItem) => invoiceItem.serviceId).filter(Boolean) as string[]),
-  )
-  const medicationIds = Array.from(
-    new Set(item.items.map((invoiceItem) => invoiceItem.medicationId).filter(Boolean) as string[]),
-  )
-
-  const [services, medications] = await Promise.all([
-    Promise.all(
-      serviceIds.map(async (serviceId) => {
-        const response = await apiClient.get<ApiServiceDetail>(`/catalog/services/${serviceId}`)
-        return [serviceId, response.data] as const
-      }),
-    ),
-    Promise.all(
-      medicationIds.map(async (medicationId) => {
-        const response = await apiClient.get<ApiMedicationDetail>(
-          `/catalog/medications/${medicationId}`,
-        )
-        return [medicationId, response.data] as const
-      }),
-    ),
-  ])
-
-  const servicesById = new Map(services)
-  const medicationsById = new Map(medications)
-
+function mapInvoiceView(item: ApiInvoiceViewResponse): InvoiceResponse {
   return {
     id: item.id,
     invoiceNumber: item.invoiceNumber,
     patient: {
-      id: patientResponse.data.id,
-      dni: patientResponse.data.dni,
-      firstName: patientResponse.data.firstName,
-      lastName: patientResponse.data.lastName,
-      allergies: patientResponse.data.allergies,
+      id: item.patient.id,
+      dni: item.patient.dni,
+      firstName: item.patient.firstName,
+      lastName: item.patient.lastName,
+      allergies: item.patient.allergies,
     },
-    appointment: appointmentResponse
+    appointment: item.appointment
       ? {
-          id: appointmentResponse.data.id,
-          scheduledAt: appointmentResponse.data.scheduledAt,
-          status: appointmentResponse.data.status,
-          chiefComplaint: appointmentResponse.data.chiefComplaint ?? '',
+          id: item.appointment.id,
+          scheduledAt: item.appointment.scheduledAt,
+          status: item.appointment.status,
+          chiefComplaint: item.appointment.chiefComplaint ?? '',
         }
       : null,
-    insurancePolicy: policyResponse
+    insurancePolicy: item.insurancePolicy
       ? {
-          id: policyResponse.data.id,
-          policyNumber: policyResponse.data.policyNumber,
-          providerName: policyResponse.data.providerName,
-          coveragePercentage: policyResponse.data.coveragePercentage,
+          id: item.insurancePolicy.id,
+          policyNumber: item.insurancePolicy.policyNumber,
+          providerName: item.insurancePolicy.providerName,
+          coveragePercentage: item.insurancePolicy.coveragePercentage,
         }
       : null,
     subtotal: item.subtotal,
@@ -205,39 +233,33 @@ async function enrichInvoice(item: ApiInvoiceResponse): Promise<InvoiceResponse>
     issueDate: item.issueDate,
     dueDate: item.dueDate,
     notes: item.notes,
-    items: item.items.map((invoiceItem) => {
-      const service = invoiceItem.serviceId ? servicesById.get(invoiceItem.serviceId) : null
-      const medication = invoiceItem.medicationId
-        ? medicationsById.get(invoiceItem.medicationId)
-        : null
-
-      return {
-        id: invoiceItem.id,
-        service: service
-          ? {
-              id: service.id,
-              code: service.code,
-              name: service.name,
-              price: service.price,
-            }
-          : null,
-        medication: medication
-          ? {
-              id: medication.id,
-              code: medication.code,
-              name: medication.name,
-              requiresPrescription: medication.requiresPrescription,
-            }
-          : null,
-        itemType: invoiceItem.itemType,
-        description: invoiceItem.description,
-        quantity: invoiceItem.quantity,
-        unitPrice: invoiceItem.unitPrice,
-        subtotal: invoiceItem.subtotal,
-      }
-    }),
+    items: item.items.map((invoiceItem) => ({
+      id: invoiceItem.id,
+      service: invoiceItem.service
+        ? {
+            id: invoiceItem.service.id,
+            code: invoiceItem.service.code,
+            name: invoiceItem.service.name,
+            price: invoiceItem.service.price,
+          }
+        : null,
+      medication: invoiceItem.medication
+        ? {
+            id: invoiceItem.medication.id,
+            code: invoiceItem.medication.code,
+            name: invoiceItem.medication.name,
+            requiresPrescription: invoiceItem.medication.requiresPrescription,
+          }
+        : null,
+      itemType: invoiceItem.itemType,
+      description: invoiceItem.description,
+      quantity: invoiceItem.quantity,
+      unitPrice: invoiceItem.unitPrice,
+      subtotal: invoiceItem.subtotal,
+    })),
     payments: [],
     createdAt: item.createdAt ?? item.issueDate,
+    updatedAt: item.updatedAt ?? item.createdAt ?? item.issueDate,
   }
 }
 
@@ -257,15 +279,10 @@ function mapPayment(
   }
 }
 
-async function getInvoiceRawById(id: string): Promise<ApiInvoiceResponse> {
-  const response = await apiClient.get<ApiInvoiceResponse>(`/invoices/${id}`)
-  return response.data
-}
-
 export async function getInvoices(
   params: InvoicesListParams = {},
-): Promise<PageResponse<InvoiceResponse>> {
-  const response = await apiClient.get<PageResponse<ApiInvoiceResponse>>('/invoices', {
+): Promise<PageResponse<InvoiceListViewResponse>> {
+  const response = await apiClient.get<PageResponse<ApiInvoiceListViewResponse>>('/invoices/view', {
     params: {
       patientId: params.patientId,
       status: params.status?.toUpperCase(),
@@ -279,18 +296,19 @@ export async function getInvoices(
 
   return {
     ...response.data,
-    content: await Promise.all(response.data.content.map((item) => enrichInvoice(item))),
+    content: response.data.content.map(mapInvoiceListItem),
   }
 }
 
 export async function getInvoiceById(id: string): Promise<InvoiceResponse> {
-  const rawInvoice = await getInvoiceRawById(id)
-  const mapped = await enrichInvoice(rawInvoice)
+  const response = await apiClient.get<ApiInvoiceViewResponse>(`/invoices/${id}/view`)
+  const mapped = mapInvoiceView(response.data)
   const payments = await getPaymentsByInvoice(
     mapped.id,
     { page: 0, size: 200 },
-    toInvoiceSummary(rawInvoice),
+    toInvoiceSummaryFromView(response.data),
   )
+
   return {
     ...mapped,
     payments: payments.content,
@@ -301,8 +319,8 @@ async function transitionStatus(
   id: string,
   endpoint: 'confirm' | 'overdue' | 'cancel',
 ): Promise<InvoiceResponse> {
-  const response = await apiClient.patch<ApiInvoiceResponse>(`/invoices/${id}/${endpoint}`)
-  return enrichInvoice(response.data)
+  await apiClient.patch(`/invoices/${id}/${endpoint}`)
+  return getInvoiceById(id)
 }
 
 export async function confirmInvoice(id: string): Promise<InvoiceResponse> {
@@ -322,7 +340,18 @@ export async function getPaymentsByInvoice(
   params: { page?: number; size?: number } = {},
   invoiceSummary?: PaymentResponse['invoice'],
 ): Promise<PageResponse<PaymentResponse>> {
-  const summary = invoiceSummary ?? toInvoiceSummary(await getInvoiceRawById(invoiceId))
+  let summary = invoiceSummary
+  if (!summary) {
+    const invoice = await getInvoiceById(invoiceId)
+    summary = {
+      id: invoice.id,
+      invoiceNumber: invoice.invoiceNumber,
+      total: invoice.total,
+      patientResponsibility: invoice.patientResponsibility,
+      status: invoice.status,
+      dueDate: invoice.dueDate,
+    }
+  }
 
   const response = await apiClient.get<PageResponse<ApiPaymentResponse>>(
     `/payments/invoice/${invoiceId}`,
@@ -342,8 +371,41 @@ export async function getPaymentsByInvoice(
 
 export async function registerPayment(data: PaymentCreateRequest): Promise<PaymentResponse> {
   const response = await apiClient.post<ApiPaymentResponse>('/payments', data)
-  const summary = toInvoiceSummary(await getInvoiceRawById(response.data.invoiceId))
+  const invoice = await getInvoiceById(response.data.invoiceId)
+  const summary: PaymentResponse['invoice'] = {
+    id: invoice.id,
+    invoiceNumber: invoice.invoiceNumber,
+    total: invoice.total,
+    patientResponsibility: invoice.patientResponsibility,
+    status: invoice.status,
+    dueDate: invoice.dueDate,
+  }
+
   return mapPayment(response.data, summary)
+}
+
+export async function addInvoiceItem(
+  invoiceId: string,
+  data: InvoiceItemRequest,
+): Promise<InvoiceItemResponse> {
+  const response = await apiClient.post<InvoiceItemResponse>(`/invoices/${invoiceId}/items`, data)
+  return response.data
+}
+
+export async function removeInvoiceItem(invoiceId: string, itemId: string): Promise<void> {
+  await apiClient.delete(`/invoices/${invoiceId}/items/${itemId}`)
+}
+
+export async function assignInvoiceInsurancePolicy(
+  invoiceId: string,
+  data: InvoiceInsurancePolicyRequest,
+): Promise<InvoiceResponse> {
+  const payload: ApiInvoiceInsurancePolicyRequest = {
+    insurancePolicyId: data.insurancePolicyId ?? null,
+  }
+
+  await apiClient.patch(`/invoices/${invoiceId}/insurance-policy`, payload)
+  return getInvoiceById(invoiceId)
 }
 
 export function toPaymentCreateRequest(
@@ -360,5 +422,16 @@ export function toPaymentCreateRequest(
         : null,
     notes: values.notes && values.notes.trim().length > 0 ? values.notes.trim() : null,
     paymentDate: new Date(values.paymentDate).toISOString(),
+  }
+}
+
+export function toInvoiceItemRequest(values: InvoiceItemFormValues): InvoiceItemRequest {
+  return {
+    itemType: values.itemType,
+    serviceId: values.itemType === 'service' ? (values.serviceId ?? null) : null,
+    medicationId: values.itemType === 'medication' ? (values.medicationId ?? null) : null,
+    description: values.description.trim(),
+    quantity: values.quantity,
+    unitPrice: values.unitPrice,
   }
 }

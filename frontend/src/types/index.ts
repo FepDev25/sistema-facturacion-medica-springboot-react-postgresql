@@ -42,13 +42,13 @@ export type {
   InsuranceProviderResponse,
   InsuranceProviderSummaryResponse,
   InsurancePolicyCreateRequest,
+  InsurancePolicyUpdateRequest,
   InsurancePolicyResponse,
   InsurancePolicySummaryResponse,
 } from './insurance'
 
 export type {
   AppointmentCreateRequest,
-  AppointmentUpdateRequest,
   AppointmentStatusUpdateRequest,
   AppointmentResponse,
   AppointmentSummaryResponse,
@@ -57,7 +57,6 @@ export type {
 export type {
   VitalSigns,
   MedicalRecordCreateRequest,
-  MedicalRecordUpdateRequest,
   MedicalRecordResponse,
   DiagnosisCreateRequest,
   DiagnosisResponse,
@@ -81,9 +80,10 @@ export type {
 
 export type {
   InvoiceItemRequest,
-  InvoiceCreateRequest,
+  InvoiceInsurancePolicyRequest,
   InvoiceStatusUpdateRequest,
   InvoiceResponse,
+  InvoiceListViewResponse,
   InvoiceItemResponse,
   InvoiceSummaryResponse,
   PaymentCreateRequest,

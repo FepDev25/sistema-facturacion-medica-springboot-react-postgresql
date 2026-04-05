@@ -265,6 +265,33 @@ paths:
         '403': { $ref: '#/components/responses/ForbiddenError' }
         '404': { $ref: '#/components/responses/NotFoundError' }
 
+  /api/v1/patients/{id}/invoices:
+    get:
+      tags: [Patients]
+      operationId: patients_get_invoices
+      summary: Listar facturas del paciente
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [DRAFT, PENDING, PARTIAL_PAID, PAID, CANCELLED, OVERDUE]
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200':
+          description: Lista paginada de facturas del paciente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageInvoiceListViewResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+
   /api/v1/doctors:
     post:
       tags: [Doctors]
@@ -555,11 +582,11 @@ paths:
     get:
       tags: [Insurance Policies]
       operationId: insurance_policies_list_by_patient
-      summary: Listar polizas por paciente
+      summary: Listar polizas (todas o por paciente)
       parameters:
         - name: patientId
           in: query
-          required: true
+          required: false
           schema:
             type: string
             format: uuid
@@ -1095,6 +1122,24 @@ paths:
         '403': { $ref: '#/components/responses/ForbiddenError' }
         '404': { $ref: '#/components/responses/NotFoundError' }
 
+  /api/v1/invoices/{id}/view:
+    get:
+      tags: [Invoices]
+      operationId: invoices_get_view_by_id
+      summary: Obtener factura por id (vista enriquecida)
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Factura enriquecida encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceViewResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+
   /api/v1/invoices/number/{invoiceNumber}:
     get:
       tags: [Invoices]
@@ -1154,6 +1199,44 @@ paths:
         '401': { $ref: '#/components/responses/UnauthorizedError' }
         '403': { $ref: '#/components/responses/ForbiddenError' }
 
+  /api/v1/invoices/view:
+    get:
+      tags: [Invoices]
+      operationId: invoices_list_view
+      summary: Listar facturas con filtros (vista optimizada)
+      parameters:
+        - name: patientId
+          in: query
+          required: false
+          schema: { type: string, format: uuid }
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [DRAFT, PENDING, PARTIAL_PAID, PAID, CANCELLED, OVERDUE]
+        - name: startDate
+          in: query
+          required: false
+          schema: { type: string, format: date }
+        - name: endDate
+          in: query
+          required: false
+          schema: { type: string, format: date }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200':
+          description: Lista paginada de facturas optimizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageInvoiceListViewResponse'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+
   /api/v1/invoices/{id}/items:
     post:
       tags: [Invoices]
@@ -1174,6 +1257,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/InvoiceItemResponse'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/UnprocessableError' }
+
+  /api/v1/invoices/{id}/insurance-policy:
+    patch:
+      tags: [Invoices]
+      operationId: invoices_assign_insurance_policy
+      summary: Asignar o quitar poliza a factura draft
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvoiceInsurancePolicyRequest'
+      responses:
+        '200':
+          description: Factura actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceResponse'
         '400': { $ref: '#/components/responses/BadRequestError' }
         '401': { $ref: '#/components/responses/UnauthorizedError' }
         '403': { $ref: '#/components/responses/ForbiddenError' }
@@ -1876,6 +1985,11 @@ components:
         subtotal: { type: number }
         createdAt: { type: string, format: date-time, nullable: true }
 
+    InvoiceInsurancePolicyRequest:
+      type: object
+      properties:
+        insurancePolicyId: { type: string, format: uuid, nullable: true }
+
     InvoiceResponse:
       type: object
       properties:
@@ -1903,6 +2017,120 @@ components:
             $ref: '#/components/schemas/InvoiceItemResponse'
         createdAt: { type: string, format: date-time, nullable: true }
         updatedAt: { type: string, format: date-time, nullable: true }
+
+    InvoicePatientView:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        dni: { type: string }
+        firstName: { type: string }
+        lastName: { type: string }
+        allergies: { type: string, nullable: true }
+
+    InvoiceAppointmentView:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        scheduledAt: { type: string, format: date-time }
+        status:
+          type: string
+          enum: [scheduled, confirmed, in_progress, completed, cancelled, no_show]
+        chiefComplaint: { type: string, nullable: true }
+
+    InvoiceInsurancePolicyView:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        policyNumber: { type: string }
+        providerName: { type: string }
+        coveragePercentage: { type: number }
+
+    InvoiceServiceView:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        name: { type: string }
+        price: { type: number }
+
+    InvoiceMedicationView:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        name: { type: string }
+        requiresPrescription: { type: boolean }
+
+    InvoiceItemView:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        service:
+          allOf:
+            - $ref: '#/components/schemas/InvoiceServiceView'
+          nullable: true
+        medication:
+          allOf:
+            - $ref: '#/components/schemas/InvoiceMedicationView'
+          nullable: true
+        itemType:
+          type: string
+          enum: [service, medication, procedure, other]
+        description: { type: string }
+        quantity: { type: integer }
+        unitPrice: { type: number }
+        subtotal: { type: number }
+        createdAt: { type: string, format: date-time, nullable: true }
+
+    InvoiceViewResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        invoiceNumber: { type: string }
+        patient:
+          $ref: '#/components/schemas/InvoicePatientView'
+        appointment:
+          allOf:
+            - $ref: '#/components/schemas/InvoiceAppointmentView'
+          nullable: true
+        insurancePolicy:
+          allOf:
+            - $ref: '#/components/schemas/InvoiceInsurancePolicyView'
+          nullable: true
+        subtotal: { type: number }
+        tax: { type: number }
+        total: { type: number }
+        insuranceCoverage: { type: number }
+        patientResponsibility: { type: number }
+        status:
+          type: string
+          enum: [draft, pending, partial_paid, paid, cancelled, overdue]
+        issueDate: { type: string, format: date }
+        dueDate: { type: string, format: date }
+        notes: { type: string, nullable: true }
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvoiceItemView'
+        createdAt: { type: string, format: date-time, nullable: true }
+        updatedAt: { type: string, format: date-time, nullable: true }
+
+    InvoiceListViewResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        patientId: { type: string, format: uuid }
+        patientFirstName: { type: string }
+        patientLastName: { type: string }
+        invoiceNumber: { type: string }
+        total: { type: number }
+        patientResponsibility: { type: number }
+        status:
+          type: string
+          enum: [draft, pending, partial_paid, paid, cancelled, overdue]
+        issueDate: { type: string, format: date }
+        dueDate: { type: string, format: date }
+        createdAt: { type: string, format: date-time, nullable: true }
 
     PaymentCreateRequest:
       type: object
@@ -2313,6 +2541,18 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/InvoiceResponse'
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+        size: { type: integer }
+        number: { type: integer }
+
+    PageInvoiceListViewResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/InvoiceListViewResponse'
         totalElements: { type: integer }
         totalPages: { type: integer }
         size: { type: integer }

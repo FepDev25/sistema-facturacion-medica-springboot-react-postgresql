@@ -16,6 +16,9 @@ import com.fepdev.sfm.backend.domain.appointment.dto.AppointmentSummaryResponse;
 import com.fepdev.sfm.backend.domain.insurance.InsurancePolicyMapper;
 import com.fepdev.sfm.backend.domain.insurance.InsurancePolicyRepository;
 import com.fepdev.sfm.backend.domain.insurance.dto.InsurancePolicySummaryResponse;
+import com.fepdev.sfm.backend.domain.invoice.InvoiceRepository;
+import com.fepdev.sfm.backend.domain.invoice.InvoiceStatus;
+import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceListViewResponse;
 import com.fepdev.sfm.backend.domain.patient.dto.PatientCreateRequest;
 import com.fepdev.sfm.backend.domain.patient.dto.PatientResponse;
 import com.fepdev.sfm.backend.domain.patient.dto.PatientSummaryResponse;
@@ -35,10 +38,12 @@ public class PatientService {
 
     private final InsurancePolicyRepository insurancePolicyRepository;
     private final InsurancePolicyMapper insurancePolicyMapper;
+    private final InvoiceRepository invoiceRepository;
 
     public PatientService(PatientRepository patientRepository, PatientMapper patientMapper, 
         AppointmentRepository appointmentRepository, InsurancePolicyRepository insurancePolicyRepository, 
-        InsurancePolicyMapper insurancePolicyMapper, AppointmentMapper appointmentMapper) {
+        InsurancePolicyMapper insurancePolicyMapper, AppointmentMapper appointmentMapper,
+        InvoiceRepository invoiceRepository) {
 
         this.patientRepository = patientRepository;
         this.patientMapper = patientMapper;
@@ -46,6 +51,7 @@ public class PatientService {
         this.insurancePolicyRepository = insurancePolicyRepository;
         this.insurancePolicyMapper = insurancePolicyMapper;
         this.appointmentMapper = appointmentMapper;
+        this.invoiceRepository = invoiceRepository;
     }
 
     // crear un nuevo paciente, si el DNI ya existe, lanzar una excepción de regla de negocio
@@ -130,5 +136,18 @@ public class PatientService {
 
         return insurancePolicyRepository.findByPatientIdWithFilter(patientId, onlyActive, pageable)
             .map(insurancePolicyMapper::toSummaryResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<InvoiceListViewResponse> getPatientInvoices(
+            UUID patientId,
+            InvoiceStatus status,
+            Pageable pageable) {
+
+        if (!patientRepository.existsById(patientId)) {
+            throw new EntityNotFoundException("Paciente con ID " + patientId + " no encontrado.");
+        }
+
+        return invoiceRepository.findListViewWithFilters(patientId, status, null, null, pageable);
     }
 }

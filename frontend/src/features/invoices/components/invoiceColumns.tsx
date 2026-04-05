@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { INVOICE_STATUS_LABELS } from '@/types/enums'
 import { formatCurrency, formatDate } from '@/lib/utils'
-import type { InvoiceResponse } from '@/types/invoice'
+import type { InvoiceListViewResponse } from '@/types/invoice'
 
 const STATUS_CLASS: Record<string, string> = {
   draft: 'border-slate-200 text-slate-600 bg-slate-50',
@@ -17,9 +17,9 @@ const STATUS_CLASS: Record<string, string> = {
 }
 
 interface InvoiceColumnsOptions {
-  onConfirm: (invoice: InvoiceResponse) => void
-  onOverdue: (invoice: InvoiceResponse) => void
-  onCancel: (invoice: InvoiceResponse) => void
+  onConfirm: (invoice: InvoiceListViewResponse) => void
+  onOverdue: (invoice: InvoiceListViewResponse) => void
+  onCancel: (invoice: InvoiceListViewResponse) => void
   canManage: boolean
 }
 
@@ -28,7 +28,7 @@ export function getInvoiceColumns({
   onOverdue,
   onCancel,
   canManage,
-}: InvoiceColumnsOptions): ColumnDef<InvoiceResponse, unknown>[] {
+}: InvoiceColumnsOptions): ColumnDef<InvoiceListViewResponse, unknown>[] {
   return [
     {
       accessorKey: 'invoiceNumber',
@@ -41,11 +41,11 @@ export function getInvoiceColumns({
       ),
     },
     {
-      id: 'patient',
+      id: 'patientName',
       header: 'Paciente',
       cell: ({ row }) => (
         <p className="font-medium text-slate-900">
-          {row.original.patient.firstName} {row.original.patient.lastName}
+          {row.original.patientFirstName} {row.original.patientLastName}
         </p>
       ),
     },

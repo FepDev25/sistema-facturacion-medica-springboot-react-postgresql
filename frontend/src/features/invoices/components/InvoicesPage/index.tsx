@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
@@ -34,10 +36,15 @@ export function InvoicesPage() {
   const { canManageInvoices } = useRolePermissions()
 
   const [statusFilter, setStatusFilter] = useState<InvoiceStatusFilter>('all')
+  const [page, setPage] = useState(0)
+  const pageSize = 20
 
-  const { data: invoices = [], isLoading } = useInvoices({
+  const { data: invoicesPage, isLoading } = useInvoices({
     status: statusFilter === 'all' ? undefined : statusFilter,
+    page,
+    size: pageSize,
   })
+  const invoices = invoicesPage?.content ?? []
 
   const confirmInvoice = useConfirmInvoice()
   const overdueInvoice = useOverdueInvoice()
@@ -86,7 +93,10 @@ export function InvoicesPage() {
           <span className="text-sm text-slate-600">Estado:</span>
           <Select
             value={statusFilter}
-            onValueChange={(value) => setStatusFilter(value as InvoiceStatusFilter)}
+            onValueChange={(value) => {
+              setStatusFilter(value as InvoiceStatusFilter)
+              setPage(0)
+            }}
           >
             <SelectTrigger className="h-8 w-full sm:w-52 text-sm">
               <SelectValue placeholder="Todos" />
@@ -110,6 +120,41 @@ export function InvoicesPage() {
           pageSize={20}
           emptyMessage="No hay facturas para el filtro seleccionado."
         />
+
+        {!isLoading && invoicesPage && invoicesPage.totalPages > 1 ? (
+          <div className="mt-3 flex items-center justify-between px-1">
+            <p className="text-xs text-slate-500">
+              Pagina {invoicesPage.number + 1} de {invoicesPage.totalPages} -{' '}
+              {invoicesPage.totalElements} facturas
+            </p>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-7 w-7"
+                aria-label="Pagina anterior"
+                onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
+                disabled={invoicesPage.number <= 0}
+              >
+                <ChevronLeft className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-7 w-7"
+                aria-label="Pagina siguiente"
+                onClick={() =>
+                  setPage((prev) =>
+                    invoicesPage.number + 1 >= invoicesPage.totalPages ? prev : prev + 1,
+                  )
+                }
+                disabled={invoicesPage.number + 1 >= invoicesPage.totalPages}
+              >
+                <ChevronRight className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   )

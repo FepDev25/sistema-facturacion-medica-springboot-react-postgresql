@@ -1,17 +1,33 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams } from '@tanstack/react-router'
-import { CreditCard, FileText, Shield, UserRound } from 'lucide-react'
+import { CreditCard, FileText, Plus, Shield, Trash2, UserRound } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { BackToListButton } from '@/components/BackToListButton'
 import {
   NO_PERMISSION_MESSAGE,
   useRolePermissions,
 } from '@/features/auth/hooks/useRolePermissions'
+import { usePolicies } from '@/features/insurance/hooks/useInsurance'
 import { INVOICE_STATUS_LABELS, PAYMENT_METHOD_LABELS } from '@/types/enums'
 import { formatCurrency, formatDate, formatDateTime } from '@/lib/utils'
 import { toast } from 'sonner'
-import { useInvoice, useInvoicePayments } from '../../hooks/useInvoices'
+import {
+  useAddInvoiceItem,
+  useAssignInvoiceInsurancePolicy,
+  useInvoice,
+  useInvoicePayments,
+  useRemoveInvoiceItem,
+} from '../../hooks/useInvoices'
+import { InvoiceCoverageBar } from '../InvoiceCoverageBar'
+import { InvoiceItemDrawer } from '../InvoiceItemDrawer'
 import { PaymentDrawer } from '../PaymentDrawer'
 
 const STATUS_CLASS: Record<string, string> = {
@@ -24,10 +40,12 @@ const STATUS_CLASS: Record<string, string> = {
 }
 
 export function InvoiceDetailPage() {
-  const { canRegisterPayments } = useRolePermissions()
+  const { canManageInvoices, canRegisterPayments } = useRolePermissions()
 
   const { id } = useParams({ from: '/invoices/$id' })
   const [paymentDrawerOpen, setPaymentDrawerOpen] = useState(false)
+  const [itemDrawerOpen, setItemDrawerOpen] = useState(false)
+  const [selectedPolicyId, setSelectedPolicyId] = useState('')
 
   const invoiceQuery = useInvoice(id)
   const paymentsQuery = useInvoicePayments(id)
@@ -47,6 +65,20 @@ export function InvoiceDetailPage() {
   }
 
   const payments = paymentsQuery.data ?? []
+  const isDraft = invoice.status === 'draft'
+
+  const { data: patientPolicies = [] } = usePolicies({
+    patientId: invoice.patient.id,
+    onlyActive: true,
+  })
+
+  const assignInsurancePolicy = useAssignInvoiceInsurancePolicy(invoice.id)
+  const removeInvoiceItem = useRemoveInvoiceItem(invoice.id)
+  const addInvoiceItem = useAddInvoiceItem(invoice.id)
+
+  useEffect(() => {
+    setSelectedPolicyId(invoice.insurancePolicy?.id ?? '')
+  }, [invoice.insurancePolicy?.id])
 
   return (
     <div className="flex flex-col h-full">
@@ -128,6 +160,12 @@ export function InvoiceDetailPage() {
           </div>
         </section>
 
+        <InvoiceCoverageBar
+          total={invoice.total}
+          insuranceCoverage={invoice.insuranceCoverage}
+          patientResponsibility={invoice.patientResponsibility}
+        />
+
         <section className="rounded-md border border-border bg-white p-4">
           <div className="flex items-center gap-2 mb-3">
             <UserRound className="h-4 w-4 text-slate-500" />
@@ -145,12 +183,84 @@ export function InvoiceDetailPage() {
           ) : (
             <p className="text-xs text-slate-500 mt-1">Sin seguro aplicado</p>
           )}
+
+          {isDraft ? (
+            <div className="mt-4 flex flex-col sm:flex-row sm:items-end gap-2">
+              <div className="w-full sm:w-80">
+                <p className="text-xs text-slate-500 mb-1">Poliza para esta factura</p>
+                <Select value={selectedPolicyId} onValueChange={setSelectedPolicyId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sin poliza" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {patientPolicies.map((policy) => (
+                      <SelectItem key={policy.id} value={policy.id}>
+                        {policy.policyNumber} - {policy.provider.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Button
+                size="sm"
+                disabled={!canManageInvoices || assignInsurancePolicy.isPending}
+                onClick={() => {
+                  if (!canManageInvoices) {
+                    toast.error(NO_PERMISSION_MESSAGE)
+                    return
+                  }
+
+                  assignInsurancePolicy.mutate({
+                    insurancePolicyId: selectedPolicyId || null,
+                  })
+                }}
+              >
+                Aplicar poliza
+              </Button>
+
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={!canManageInvoices || assignInsurancePolicy.isPending}
+                onClick={() => {
+                  if (!canManageInvoices) {
+                    toast.error(NO_PERMISSION_MESSAGE)
+                    return
+                  }
+
+                  setSelectedPolicyId('')
+                  assignInsurancePolicy.mutate({ insurancePolicyId: null })
+                }}
+              >
+                Quitar poliza
+              </Button>
+            </div>
+          ) : null}
         </section>
 
         <section className="rounded-md border border-border bg-white p-4">
           <div className="flex items-center gap-2 mb-3">
             <FileText className="h-4 w-4 text-slate-500" />
             <h2 className="text-sm font-semibold text-slate-900">Items facturados</h2>
+            {isDraft ? (
+              <Button
+                size="sm"
+                variant="outline"
+                className="ml-auto"
+                disabled={!canManageInvoices || addInvoiceItem.isPending}
+                onClick={() => {
+                  if (!canManageInvoices) {
+                    toast.error(NO_PERMISSION_MESSAGE)
+                    return
+                  }
+                  setItemDrawerOpen(true)
+                }}
+              >
+                <Plus className="h-3.5 w-3.5 mr-1" />
+                Agregar item
+              </Button>
+            ) : null}
           </div>
           <div className="space-y-2">
             {invoice.items.map((item) => (
@@ -164,7 +274,27 @@ export function InvoiceDetailPage() {
                     {item.quantity} x {formatCurrency(item.unitPrice)}
                   </p>
                 </div>
-                <p className="text-sm font-medium text-slate-900">{formatCurrency(item.subtotal)}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm font-medium text-slate-900">{formatCurrency(item.subtotal)}</p>
+                  {isDraft ? (
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-7 w-7"
+                      disabled={!canManageInvoices || removeInvoiceItem.isPending}
+                      onClick={() => {
+                        if (!canManageInvoices) {
+                          toast.error(NO_PERMISSION_MESSAGE)
+                          return
+                        }
+
+                        removeInvoiceItem.mutate(item.id)
+                      }}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  ) : null}
+                </div>
               </div>
             ))}
           </div>
@@ -217,6 +347,11 @@ export function InvoiceDetailPage() {
         invoiceId={invoice.id}
         open={paymentDrawerOpen}
         onOpenChange={setPaymentDrawerOpen}
+      />
+      <InvoiceItemDrawer
+        invoiceId={invoice.id}
+        open={itemDrawerOpen}
+        onOpenChange={setItemDrawerOpen}
       />
     </div>
   )

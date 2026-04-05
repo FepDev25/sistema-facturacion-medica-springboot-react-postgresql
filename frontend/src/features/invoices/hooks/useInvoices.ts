@@ -1,7 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import * as invoicesApi from '../api/invoicesApi'
-import type { PaymentCreateRequest } from '@/types/invoice'
+import type {
+  InvoiceInsurancePolicyRequest,
+  InvoiceItemRequest,
+  PaymentCreateRequest,
+} from '@/types/invoice'
 
 export const invoiceKeys = {
   all: ['invoices'] as const,
@@ -10,7 +14,9 @@ export const invoiceKeys = {
   payments: (id: string) => [...invoiceKeys.all, 'payments', id] as const,
 }
 
-export function useInvoices(params: { status?: string } = {}) {
+export function useInvoices(
+  params: { status?: string; page?: number; size?: number } = {},
+) {
   return useQuery({
     queryKey: invoiceKeys.list(params),
     queryFn: () =>
@@ -23,10 +29,9 @@ export function useInvoices(params: { status?: string } = {}) {
           | 'cancelled'
           | 'overdue'
           | undefined,
-        page: 0,
-        size: 100,
+        page: params.page ?? 0,
+        size: params.size ?? 20,
       }),
-    select: (data) => data.content,
   })
 }
 
@@ -101,6 +106,55 @@ export function useRegisterPayment(invoiceId: string) {
     },
     onError: () => {
       toast.error('Error al registrar el pago')
+    },
+  })
+}
+
+export function useAddInvoiceItem(invoiceId: string) {
+  const qc = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: InvoiceItemRequest) => invoicesApi.addInvoiceItem(invoiceId, data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: invoiceKeys.detail(invoiceId) })
+      void qc.invalidateQueries({ queryKey: invoiceKeys.all })
+      toast.success('Item agregado')
+    },
+    onError: () => {
+      toast.error('Error al agregar el item')
+    },
+  })
+}
+
+export function useRemoveInvoiceItem(invoiceId: string) {
+  const qc = useQueryClient()
+
+  return useMutation({
+    mutationFn: (itemId: string) => invoicesApi.removeInvoiceItem(invoiceId, itemId),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: invoiceKeys.detail(invoiceId) })
+      void qc.invalidateQueries({ queryKey: invoiceKeys.all })
+      toast.success('Item eliminado')
+    },
+    onError: () => {
+      toast.error('Error al eliminar el item')
+    },
+  })
+}
+
+export function useAssignInvoiceInsurancePolicy(invoiceId: string) {
+  const qc = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: InvoiceInsurancePolicyRequest) =>
+      invoicesApi.assignInvoiceInsurancePolicy(invoiceId, data),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: invoiceKeys.detail(invoiceId) })
+      void qc.invalidateQueries({ queryKey: invoiceKeys.all })
+      toast.success('Cobertura actualizada')
+    },
+    onError: () => {
+      toast.error('Error al actualizar la cobertura')
     },
   })
 }

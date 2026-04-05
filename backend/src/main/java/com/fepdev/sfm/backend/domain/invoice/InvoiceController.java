@@ -23,7 +23,10 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceItemRequest;
 import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceItemResponse;
+import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceInsurancePolicyRequest;
+import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceListViewResponse;
 import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceResponse;
+import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceViewResponse;
 
 import jakarta.validation.Valid;
 
@@ -61,6 +64,23 @@ public class InvoiceController {
                 invoiceService.getInvoicesWithFilters(patientId, status, startDate, endDate, pageable));
     }
 
+    @GetMapping("/view")
+    public ResponseEntity<Page<InvoiceListViewResponse>> listView(
+            @RequestParam(required = false) UUID patientId,
+            @RequestParam(required = false) InvoiceStatus status,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @PageableDefault(size = 20, sort = "issueDate", direction = Sort.Direction.DESC) Pageable pageable) {
+
+        return ResponseEntity.ok(
+                invoiceService.getInvoiceListViewWithFilters(patientId, status, startDate, endDate, pageable));
+    }
+
+    @GetMapping("/{id}/view")
+    public ResponseEntity<InvoiceViewResponse> getViewById(@PathVariable UUID id) {
+        return ResponseEntity.ok(invoiceService.getInvoiceViewById(id));
+    }
+
     // Items (solo en estado DRAFT) 
 
     @PostMapping("/{id}/items")
@@ -82,6 +102,15 @@ public class InvoiceController {
 
         invoiceService.removeItem(invoiceId, itemId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{id}/insurance-policy")
+    public ResponseEntity<InvoiceResponse> assignInsurancePolicy(
+            @PathVariable UUID id,
+            @RequestBody InvoiceInsurancePolicyRequest request) {
+
+        invoiceService.assignInsurancePolicy(id, request.insurancePolicyId());
+        return ResponseEntity.ok(invoiceService.getInvoiceById(id));
     }
 
     // Máquina de estados 

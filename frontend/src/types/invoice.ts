@@ -7,7 +7,6 @@ import type { MedicationSummaryResponse } from './catalog'
 
 // Invoice Items
 
-// Nested inside InvoiceCreateRequest
 export interface InvoiceItemRequest {
   serviceId?: string | null
   medicationId?: string | null
@@ -19,19 +18,12 @@ export interface InvoiceItemRequest {
 
 // Invoice
 
-// invoiceNumber, subtotal, tax, total, insuranceCoverage, patientResponsibility
-// are computed server-side — not sent by the client
-export interface InvoiceCreateRequest {
-  patientId: string
-  appointmentId?: string | null  // required if notes is null (RN)
-  insurancePolicyId?: string | null
-  items: InvoiceItemRequest[]
-  dueDate: string                // LocalDate → "YYYY-MM-DD"
-  notes?: string | null          // required if appointmentId is null (RN)
-}
-
 export interface InvoiceStatusUpdateRequest {
   status: InvoiceStatus
+}
+
+export interface InvoiceInsurancePolicyRequest {
+  insurancePolicyId?: string | null
 }
 
 export interface InvoiceResponse {
@@ -51,6 +43,21 @@ export interface InvoiceResponse {
   notes: string | null
   items: InvoiceItemResponse[]
   payments: PaymentResponse[]
+  createdAt: string
+  updatedAt?: string
+}
+
+export interface InvoiceListViewResponse {
+  id: string
+  patientId: string
+  patientFirstName: string
+  patientLastName: string
+  invoiceNumber: string
+  total: number
+  patientResponsibility: number
+  status: InvoiceStatus
+  issueDate: string
+  dueDate: string
   createdAt: string
 }
 
@@ -95,4 +102,11 @@ export interface PaymentResponse {
   notes: string | null
   paymentDate: string
   createdAt: string
+}
+
+export const ITEM_TYPE_LABELS: Record<ItemType, string> = {
+  service: 'Servicio',
+  medication: 'Medicamento',
+  procedure: 'Procedimiento',
+  other: 'Otro',
 }

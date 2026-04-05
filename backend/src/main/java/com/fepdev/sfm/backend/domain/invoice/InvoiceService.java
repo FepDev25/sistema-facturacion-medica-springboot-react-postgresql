@@ -18,9 +18,12 @@ import com.fepdev.sfm.backend.domain.catalog.MedicationsCatalogRepository;
 import com.fepdev.sfm.backend.domain.catalog.ServicesCatalog;
 import com.fepdev.sfm.backend.domain.catalog.ServicesCatalogRepository;
 import com.fepdev.sfm.backend.domain.insurance.InsurancePolicy;
+import com.fepdev.sfm.backend.domain.insurance.InsurancePolicyRepository;
 import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceItemRequest;
 import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceItemResponse;
+import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceListViewResponse;
 import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceResponse;
+import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceViewResponse;
 import com.fepdev.sfm.backend.domain.medicalrecord.PrescriptionRepository;
 import com.fepdev.sfm.backend.domain.patient.PatientRepository;
 import com.fepdev.sfm.backend.domain.payment.PaymentRepository;
@@ -41,6 +44,7 @@ public class InvoiceService {
 
     private final InvoiceRepository invoiceRepository;
     private final InvoiceMapper invoiceMapper;
+    private final InvoiceViewMapper invoiceViewMapper;
 
     private final InvoiceItemMapper invoiceItemMapper;
     private final InvoiceItemRepository invoiceItemRepository;
@@ -53,12 +57,14 @@ public class InvoiceService {
     private final MedicationsCatalogRepository medicationsCatalogRepository;
     private final PrescriptionRepository prescriptionRepository;
     private final PaymentRepository paymentRepository;
+    private final InsurancePolicyRepository insurancePolicyRepository;
 
     public InvoiceService(InvoiceRepository invoiceRepository, InvoiceItemRepository invoiceItemRepository,
             InvoiceSequenceRepository invoiceSequenceRepository, InvoiceMapper invoiceMapper, InvoiceItemMapper invoiceItemMapper,
             PatientRepository patientRepository, ServicesCatalogRepository servicesCatalogRepository,
             MedicationsCatalogRepository medicationsCatalogRepository, PrescriptionRepository prescriptionRepository,
-            PaymentRepository paymentRepository) {
+            PaymentRepository paymentRepository, InsurancePolicyRepository insurancePolicyRepository,
+            InvoiceViewMapper invoiceViewMapper) {
         this.invoiceRepository = invoiceRepository;
         this.invoiceItemRepository = invoiceItemRepository;
         this.invoiceSequenceRepository = invoiceSequenceRepository;
@@ -69,6 +75,8 @@ public class InvoiceService {
         this.medicationsCatalogRepository = medicationsCatalogRepository;
         this.prescriptionRepository = prescriptionRepository;
         this.paymentRepository = paymentRepository;
+        this.insurancePolicyRepository = insurancePolicyRepository;
+        this.invoiceViewMapper = invoiceViewMapper;
     }
 
     // crear factura draft al completar una cita
@@ -102,6 +110,15 @@ public class InvoiceService {
         return buildFullResponse(invoice);
     }
 
+    @Transactional(readOnly = true)
+    public InvoiceViewResponse getInvoiceViewById(UUID invoiceId) {
+        Invoice invoice = invoiceRepository.findViewById(invoiceId)
+                .orElseThrow(() -> new EntityNotFoundException("Factura con ID: " + invoiceId + " no encontrada"));
+
+        List<InvoiceItem> items = invoiceItemRepository.findByInvoiceIdOrderByCreatedAtAsc(invoiceId);
+        return invoiceViewMapper.toView(invoice, items);
+    }
+
     // consulta de factura por número
     @Transactional(readOnly = true)
     public InvoiceResponse getInvoiceByNumber(String invoiceNumber) {
@@ -119,6 +136,16 @@ public class InvoiceService {
         }
         Page<Invoice> invoices = invoiceRepository.findWithFilters(patientId, status, startDate, endDate, pageable);
         return invoices.map(invoiceMapper::toResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<InvoiceListViewResponse> getInvoiceListViewWithFilters(UUID patientId, InvoiceStatus status,
+            LocalDate startDate, LocalDate endDate, Pageable pageable) {
+        if (patientId != null && !patientRepository.existsById(patientId)) {
+            throw new EntityNotFoundException("Paciente con ID: " + patientId + " no encontrado");
+        }
+
+        return invoiceRepository.findListViewWithFilters(patientId, status, startDate, endDate, pageable);
     }
 
     // *** metodos de items ***
@@ -218,6 +245,39 @@ public class InvoiceService {
         invoiceItemRepository.delete(item);
 
         // recalcular totales de la factura con el ítem eliminado
+        recalculateTotals(invoiceId);
+    }
+
+    @Transactional
+    public void assignInsurancePolicy(UUID invoiceId, UUID insurancePolicyId) {
+        Invoice invoice = invoiceRepository.findById(invoiceId)
+                .orElseThrow(() -> new EntityNotFoundException("Factura con ID: " + invoiceId + " no encontrada"));
+
+        if (invoice.getStatus() != InvoiceStatus.DRAFT) {
+            throw new BusinessRuleException(
+                    "Solo se puede asignar póliza a facturas en estado DRAFT. Estado actual: " + invoice.getStatus());
+        }
+
+        if (insurancePolicyId == null) {
+            invoice.setInsurancePolicy(null);
+            recalculateTotals(invoiceId);
+            return;
+        }
+
+        InsurancePolicy policy = insurancePolicyRepository.findById(insurancePolicyId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Póliza con ID: " + insurancePolicyId + " no encontrada"));
+
+        if (!policy.getPatient().getId().equals(invoice.getPatient().getId())) {
+            throw new BusinessRuleException("La póliza no pertenece al paciente de la factura");
+        }
+
+        LocalDate referenceDate = invoice.getIssueDate() != null ? invoice.getIssueDate() : LocalDate.now();
+        if (!isPolicyActiveAndValid(policy, referenceDate)) {
+            throw new BusinessRuleException("La póliza no está activa o no está vigente para la fecha de la factura");
+        }
+
+        invoice.setInsurancePolicy(policy);
         recalculateTotals(invoiceId);
     }
 
