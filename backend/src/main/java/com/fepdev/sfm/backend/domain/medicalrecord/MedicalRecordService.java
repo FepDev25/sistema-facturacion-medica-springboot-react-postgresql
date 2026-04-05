@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fepdev.sfm.backend.domain.medicalrecord.dto.MedicalRecordResponse;
+import com.fepdev.sfm.backend.domain.patient.PatientRepository;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -16,10 +17,14 @@ public class MedicalRecordService {
     
     private final MedicalRecordRepository medicalRecordRepository;
     private final MedicalRecordMapper medicalRecordMapper;
+    private final PatientRepository patientRepository;
 
-    public MedicalRecordService(MedicalRecordRepository medicalRecordRepository, MedicalRecordMapper medicalRecordMapper) {
+    public MedicalRecordService(MedicalRecordRepository medicalRecordRepository,
+            MedicalRecordMapper medicalRecordMapper,
+            PatientRepository patientRepository) {
         this.medicalRecordRepository = medicalRecordRepository;
         this.medicalRecordMapper = medicalRecordMapper;
+        this.patientRepository = patientRepository;
     }
 
     // obtener un registro médico por su id
@@ -41,7 +46,7 @@ public class MedicalRecordService {
     // obtener todos los registros médicos de un paciente, con paginación
     @Transactional(readOnly = true)
     public Page<MedicalRecordResponse> getMedicalRecordsByPatientId(UUID patientId, Pageable pageable) {
-        if (!medicalRecordRepository.existsById(patientId)){
+        if (!patientRepository.existsById(patientId)) {
             throw new EntityNotFoundException("No se encontró el paciente con id: " + patientId);
         }
 

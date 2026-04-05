@@ -1,6 +1,6 @@
 import { useParams } from '@tanstack/react-router'
 import { CalendarClock, FileHeart, Shield } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { AllergyAlert } from '@/components/AllergyAlert'
 import { DataTable } from '@/components/DataTable'
 import { BackToListButton } from '@/components/BackToListButton'
 import { GENDER_LABELS } from '@/types/enums'
@@ -8,9 +8,13 @@ import { formatDate, formatDateTime } from '@/lib/utils'
 import {
   usePatient,
   usePatientAppointments,
+  usePatientInvoices,
   usePatientPolicies,
 } from '../../hooks/usePatients'
+import { usePatientMedicalRecords } from '@/features/medical-records/hooks/useMedicalRecords'
 import { getPatientAppointmentColumns } from '../patientAppointmentColumns'
+import { getPatientInvoiceColumns } from '../patientInvoiceColumns'
+import { getPatientMedicalRecordColumns } from '../patientMedicalRecordColumns'
 import { getPatientPolicyColumns } from '../patientPolicyColumns'
 
 export function PatientDetailPage() {
@@ -19,6 +23,8 @@ export function PatientDetailPage() {
   const patientQuery = usePatient(id)
   const appointmentsQuery = usePatientAppointments(id)
   const policiesQuery = usePatientPolicies(id, false)
+  const invoicesQuery = usePatientInvoices(id)
+  const medicalRecordsQuery = usePatientMedicalRecords(id)
 
   const patient = patientQuery.data
 
@@ -52,6 +58,11 @@ export function PatientDetailPage() {
       </div>
 
       <div className="flex-1 px-6 py-5 overflow-auto space-y-6">
+        <AllergyAlert
+          allergies={patient.allergies}
+          patientName={`${patient.firstName} ${patient.lastName}`}
+        />
+
         <section className="rounded-md border border-border bg-white p-4">
           <h2 className="text-sm font-semibold text-slate-900 mb-3">Información general</h2>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
@@ -85,16 +96,9 @@ export function PatientDetailPage() {
             </div>
             <div className="md:col-span-2 lg:col-span-4">
               <p className="text-xs text-slate-500">Alergias</p>
-              {patient.allergies ? (
-                <Badge
-                  variant="outline"
-                  className="mt-1 border-amber-200 text-amber-700 bg-amber-50"
-                >
-                  {patient.allergies}
-                </Badge>
-              ) : (
+              {!patient.allergies ? (
                 <p className="text-sm text-slate-800">—</p>
-              )}
+              ) : null}
             </div>
             <div>
               <p className="text-xs text-slate-500">Creado</p>
@@ -136,13 +140,31 @@ export function PatientDetailPage() {
         </section>
 
         <section className="rounded-md border border-border bg-white p-4">
-          <div className="flex items-center gap-2">
-            <FileHeart className="h-4 w-4 text-slate-500" />
-            <h2 className="text-sm font-semibold text-slate-900">Próximamente</h2>
+          <div className="flex items-center gap-2 mb-3">
+            <Shield className="h-4 w-4 text-slate-500" />
+            <h2 className="text-sm font-semibold text-slate-900">Facturas del paciente</h2>
           </div>
-          <p className="text-sm text-slate-500 mt-2">
-            Aquí se integrarán expediente clínico, diagnósticos y facturación vinculada.
-          </p>
+          <DataTable
+            columns={getPatientInvoiceColumns()}
+            data={invoicesQuery.data ?? []}
+            isLoading={invoicesQuery.isLoading}
+            pageSize={5}
+            emptyMessage="Sin facturas registradas para este paciente."
+          />
+        </section>
+
+        <section className="rounded-md border border-border bg-white p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <FileHeart className="h-4 w-4 text-slate-500" />
+            <h2 className="text-sm font-semibold text-slate-900">Expedientes clinicos</h2>
+          </div>
+          <DataTable
+            columns={getPatientMedicalRecordColumns()}
+            data={medicalRecordsQuery.data ?? []}
+            isLoading={medicalRecordsQuery.isLoading}
+            pageSize={5}
+            emptyMessage="Sin expedientes registrados para este paciente."
+          />
         </section>
       </div>
     </div>

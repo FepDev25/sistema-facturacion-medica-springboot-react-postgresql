@@ -18,6 +18,7 @@ import { DoctorsPage } from '@/features/doctors/components/DoctorsPage'
 import { InvoiceDetailPage } from '@/features/invoices/components/InvoiceDetailPage'
 import { InvoicesPage } from '@/features/invoices/components/InvoicesPage'
 import { InsurancePage } from '@/features/insurance/components/InsurancePage'
+import { MedicalRecordDetailPage } from '@/features/medical-records/components/MedicalRecordDetailPage'
 import { PatientsPage } from '@/features/patients/components/PatientsPage'
 import { PatientDetailPage } from '@/features/patients/components/PatientDetailPage'
 
@@ -121,6 +122,13 @@ const invoiceDetailRoute = createRoute({
   component: InvoiceDetailPage,
 })
 
+const medicalRecordDetailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/medical-records/$id',
+  beforeLoad: () => requireAuth('/patients'),
+  component: MedicalRecordDetailPage,
+})
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
   indexRoute,
@@ -134,6 +142,7 @@ const routeTree = rootRoute.addChildren([
   doctorDetailRoute,
   appointmentDetailRoute,
   invoiceDetailRoute,
+  medicalRecordDetailRoute,
 ])
 
 export const router = createRouter({ routeTree })
