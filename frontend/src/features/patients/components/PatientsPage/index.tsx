@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Plus, Search } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, Search } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -9,7 +9,7 @@ import {
   useRolePermissions,
 } from '@/features/auth/hooks/useRolePermissions'
 import type { PatientResponse } from '@/types/patient'
-import { usePatients } from '../../hooks/usePatients'
+import { usePatientsPage } from '../../hooks/usePatients'
 import { getPatientColumns } from '../patientColumns'
 import { PatientDrawer } from '../PatientDrawer'
 
@@ -19,10 +19,15 @@ export function PatientsPage() {
   const [search, setSearch] = useState('')
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [selectedPatient, setSelectedPatient] = useState<PatientResponse | null>(null)
+  const [page, setPage] = useState(0)
+  const pageSize = 20
 
-  const { data: patients = [], isLoading } = usePatients({
+  const { data: patientsPage, isLoading } = usePatientsPage({
     lastName: search.trim() || undefined,
+    page,
+    size: pageSize,
   })
+  const patients = patientsPage?.content ?? []
 
   const columns = useMemo(
     () =>
@@ -55,7 +60,10 @@ export function PatientsPage() {
             <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
             <Input
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
+              onChange={(event) => {
+                setSearch(event.target.value)
+                setPage(0)
+              }}
               placeholder="Filtrar por apellido..."
               className="h-8 pl-8 w-full sm:w-64 text-sm"
             />
@@ -86,6 +94,41 @@ export function PatientsPage() {
           pageSize={20}
           emptyMessage={search ? 'Sin resultados para la búsqueda.' : 'No hay pacientes registrados.'}
         />
+
+        {!isLoading && patientsPage && patientsPage.totalPages > 1 ? (
+          <div className="mt-3 flex items-center justify-between px-1">
+            <p className="text-xs text-slate-500">
+              Pagina {patientsPage.number + 1} de {patientsPage.totalPages} -{' '}
+              {patientsPage.totalElements} pacientes
+            </p>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-7 w-7"
+                aria-label="Pagina anterior"
+                onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
+                disabled={patientsPage.number <= 0}
+              >
+                <ChevronLeft className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-7 w-7"
+                aria-label="Pagina siguiente"
+                onClick={() =>
+                  setPage((prev) =>
+                    patientsPage.number + 1 >= patientsPage.totalPages ? prev : prev + 1,
+                  )
+                }
+                disabled={patientsPage.number + 1 >= patientsPage.totalPages}
+              >
+                <ChevronRight className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <PatientDrawer open={drawerOpen} onOpenChange={setDrawerOpen} item={selectedPatient} />
