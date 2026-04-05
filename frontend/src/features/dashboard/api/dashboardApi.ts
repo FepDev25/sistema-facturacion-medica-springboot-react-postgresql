@@ -50,18 +50,20 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
 
   const overdueInvoices = invoices.filter((invoice) => invoice.status === 'overdue').length
 
-  const totalCollected = invoices.reduce(
-    (acc, invoice) => acc + invoice.payments.reduce((sum, payment) => sum + payment.amount, 0),
-    0,
-  )
+  const totalCollected = invoices.reduce((acc, invoice) => {
+    if (invoice.status === 'paid') {
+      return acc + invoice.patientResponsibility
+    }
+
+    return acc
+  }, 0)
 
   const pendingCollection = invoices.reduce((acc, invoice) => {
     if (invoice.status === 'cancelled' || invoice.status === 'paid') {
       return acc
     }
 
-    const paidAmount = invoice.payments.reduce((sum, payment) => sum + payment.amount, 0)
-    return acc + Math.max(invoice.patientResponsibility - paidAmount, 0)
+    return acc + invoice.patientResponsibility
   }, 0)
 
   return {
