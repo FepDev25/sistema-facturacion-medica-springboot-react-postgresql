@@ -1,61 +1,43 @@
 import type { Severity } from './enums'
-import type { PatientSummaryResponse } from './patient'
-import type { AppointmentSummaryResponse } from './appointment'
-import type { MedicationSummaryResponse } from './catalog'
 
-// ── Vital Signs ───────────────────────────────────────────────────────────────
-
-// Known fields rendered with explicit labels in the UI.
-// Unknown backend fields surface in the `other` bucket as key/value pairs.
 export interface VitalSigns {
-  bloodPressure?: string         // e.g. "120/80 mmHg"
-  heartRate?: number             // bpm
-  temperature?: number           // °C
-  oxygenSaturation?: number      // %
-  weight?: number                // kg
-  height?: number                // cm
-  glucose?: number               // mg/dL
+  bloodPressure?: string
+  heartRate?: number
+  temperature?: number
+  oxygenSaturation?: number
+  weight?: number
+  height?: number
+  glucose?: number
   [key: string]: string | number | undefined
 }
-
-// ── Medical Record ────────────────────────────────────────────────────────────
 
 export interface MedicalRecordCreateRequest {
   appointmentId: string
   patientId: string
-  vitalSigns?: VitalSigns | null
+  vitalSigns?: Record<string, unknown> | null
   physicalExam?: string | null
   clinicalNotes: string
-  recordDate: string             // OffsetDateTime → ISO string
-}
-
-// Admin-only corrections (RN-08: records are immutable in production)
-export interface MedicalRecordUpdateRequest {
-  vitalSigns?: VitalSigns | null
-  physicalExam?: string | null
-  clinicalNotes: string
+  recordDate: string
 }
 
 export interface MedicalRecordResponse {
   id: string
-  patient: PatientSummaryResponse
-  appointment: AppointmentSummaryResponse
-  vitalSigns: VitalSigns | null
+  patientId: string
+  patientFirstName: string
+  patientLastName: string
+  appointmentId: string
+  vitalSigns: Record<string, unknown> | null
   physicalExam: string | null
   clinicalNotes: string
   recordDate: string
-  diagnoses: DiagnosisResponse[]
-  prescriptions: PrescriptionResponse[]
-  procedures: ProcedureResponse[]
   createdAt: string
+  updatedAt: string
 }
-
-// ── Diagnosis ─────────────────────────────────────────────────────────────────
 
 export interface DiagnosisCreateRequest {
   appointmentId: string
   medicalRecordId: string
-  icd10Code: string              // max 10 chars
+  icd10Code: string
   description: string
   severity?: Severity | null
   diagnosedAt: string
@@ -63,13 +45,14 @@ export interface DiagnosisCreateRequest {
 
 export interface DiagnosisResponse {
   id: string
+  appointmentId: string
+  medicalRecordId: string
   icd10Code: string
   description: string
   severity: Severity | null
   diagnosedAt: string
+  createdAt: string
 }
-
-// ── Prescription ──────────────────────────────────────────────────────────────
 
 export interface PrescriptionCreateRequest {
   appointmentId: string
@@ -77,13 +60,16 @@ export interface PrescriptionCreateRequest {
   medicationId: string
   dosage: string
   frequency: string
-  durationDays: number           // 1–365
+  durationDays: number
   instructions?: string | null
 }
 
 export interface PrescriptionResponse {
   id: string
-  medication: MedicationSummaryResponse
+  appointmentId: string
+  medicalRecordId: string
+  medicationId: string
+  medicationName: string
   dosage: string
   frequency: string
   durationDays: number
@@ -91,12 +77,10 @@ export interface PrescriptionResponse {
   createdAt: string
 }
 
-// ── Procedure ─────────────────────────────────────────────────────────────────
-
 export interface ProcedureCreateRequest {
   appointmentId: string
   medicalRecordId: string
-  procedureCode: string          // max 50 chars
+  procedureCode: string
   description: string
   notes?: string | null
   performedAt: string
@@ -104,8 +88,11 @@ export interface ProcedureCreateRequest {
 
 export interface ProcedureResponse {
   id: string
+  appointmentId: string
+  medicalRecordId: string
   procedureCode: string
   description: string
   notes: string | null
   performedAt: string
+  createdAt: string
 }

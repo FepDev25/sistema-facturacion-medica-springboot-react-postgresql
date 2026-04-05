@@ -13,13 +13,6 @@ export interface AppointmentCreateRequest {
   notes?: string | null
 }
 
-export interface AppointmentUpdateRequest {
-  scheduledAt: string
-  durationMinutes: number
-  chiefComplaint: string
-  notes?: string | null
-}
-
 export interface AppointmentStatusUpdateRequest {
   status: AppointmentStatus
   notes?: string | null
