@@ -16,6 +16,7 @@ export interface InsuranceProviderUpdateRequest {
   phone: string
   email?: string | null
   address?: string | null
+  isActive: boolean
 }
 
 export interface InsuranceProviderResponse {
@@ -45,6 +46,14 @@ export interface InsurancePolicyCreateRequest {
   deductible: number           // >= 0
   startDate: string            // LocalDate → "YYYY-MM-DD"
   endDate: string              // LocalDate → "YYYY-MM-DD"
+}
+
+export interface InsurancePolicyUpdateRequest {
+  coveragePercentage: number   // 0–100
+  deductible?: number | null   // >= 0
+  startDate?: string | null    // LocalDate → "YYYY-MM-DD"
+  endDate?: string | null      // LocalDate → "YYYY-MM-DD"
+  isActive?: boolean | null
 }
 
 export interface InsurancePolicyResponse {

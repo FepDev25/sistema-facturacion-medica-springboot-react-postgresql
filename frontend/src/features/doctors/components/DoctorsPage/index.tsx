@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Plus, Search } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, Search } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -11,7 +11,7 @@ import {
   useRolePermissions,
 } from '@/features/auth/hooks/useRolePermissions'
 import type { DoctorResponse } from '@/types/doctor'
-import { useDeactivateDoctor, useDoctors } from '../../hooks/useDoctors'
+import { useDeactivateDoctor, useDoctorsPage } from '../../hooks/useDoctors'
 import { getDoctorColumns } from '../doctorColumns'
 import { DoctorDrawer } from '../DoctorDrawer'
 
@@ -22,11 +22,16 @@ export function DoctorsPage() {
   const [showInactive, setShowInactive] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [selectedDoctor, setSelectedDoctor] = useState<DoctorResponse | null>(null)
+  const [page, setPage] = useState(0)
+  const pageSize = 20
 
-  const { data: doctors = [], isLoading } = useDoctors({
+  const { data: doctorsPage, isLoading } = useDoctorsPage({
     specialty: search.trim() || undefined,
     includeInactive: showInactive,
+    page,
+    size: pageSize,
   })
+  const doctors = doctorsPage?.content ?? []
 
   const deactivateDoctor = useDeactivateDoctor()
 
@@ -69,7 +74,10 @@ export function DoctorsPage() {
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
               <Input
                 value={search}
-                onChange={(event) => setSearch(event.target.value)}
+                onChange={(event) => {
+                  setSearch(event.target.value)
+                  setPage(0)
+                }}
                 placeholder="Filtrar por especialidad..."
                 className="h-8 pl-8 w-full sm:w-64 text-sm"
               />
@@ -79,7 +87,10 @@ export function DoctorsPage() {
               <Checkbox
                 id="show-inactive-doctors"
                 checked={showInactive}
-                onCheckedChange={(checked) => setShowInactive(!!checked)}
+                onCheckedChange={(checked) => {
+                  setShowInactive(!!checked)
+                  setPage(0)
+                }}
               />
               <Label htmlFor="show-inactive-doctors" className="text-sm text-slate-600 cursor-pointer">
                 Mostrar inactivos
@@ -112,6 +123,41 @@ export function DoctorsPage() {
           pageSize={20}
           emptyMessage={search ? 'Sin resultados para la búsqueda.' : 'No hay médicos registrados.'}
         />
+
+        {!isLoading && doctorsPage && doctorsPage.totalPages > 1 ? (
+          <div className="mt-3 flex items-center justify-between px-1">
+            <p className="text-xs text-slate-500">
+              Pagina {doctorsPage.number + 1} de {doctorsPage.totalPages} -{' '}
+              {doctorsPage.totalElements} medicos
+            </p>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-7 w-7"
+                aria-label="Pagina anterior"
+                onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
+                disabled={doctorsPage.number <= 0}
+              >
+                <ChevronLeft className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-7 w-7"
+                aria-label="Pagina siguiente"
+                onClick={() =>
+                  setPage((prev) =>
+                    doctorsPage.number + 1 >= doctorsPage.totalPages ? prev : prev + 1,
+                  )
+                }
+                disabled={doctorsPage.number + 1 >= doctorsPage.totalPages}
+              >
+                <ChevronRight className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <DoctorDrawer open={drawerOpen} onOpenChange={setDrawerOpen} item={selectedDoctor} />

@@ -16,6 +16,7 @@ export interface DoctorUpdateRequest {
   specialty: string
   phone: string
   email: string
+  isActive: boolean
 }
 
 // ── Responses ─────────────────────────────────────────────────────────────────

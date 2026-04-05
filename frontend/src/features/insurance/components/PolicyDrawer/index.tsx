@@ -25,12 +25,14 @@ import {
 } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Checkbox } from '@/components/ui/checkbox'
 import { usePatients } from '@/features/patients/hooks/usePatients'
 import type { InsurancePolicyResponse } from '@/types/insurance'
 import {
   PolicyFormSchema,
   type PolicyFormValues,
   toPolicyRequest,
+  toPolicyUpdateRequest,
 } from '../../api/insuranceApi'
 import { useCreatePolicy, useProviders, useUpdatePolicy } from '../../hooks/useInsurance'
 
@@ -42,6 +44,7 @@ const DEFAULT_VALUES: PolicyFormValues = {
   deductible: 0,
   startDate: '',
   endDate: '',
+  isActive: true,
 }
 
 interface PolicyDrawerProps {
@@ -85,6 +88,7 @@ export function PolicyDrawer({ open, onOpenChange, item }: PolicyDrawerProps) {
               deductible: item.deductible,
               startDate: item.startDate,
               endDate: item.endDate,
+              isActive: item.isActive,
             }
           : DEFAULT_VALUES,
       )
@@ -94,7 +98,7 @@ export function PolicyDrawer({ open, onOpenChange, item }: PolicyDrawerProps) {
   function onSubmit(values: PolicyFormValues) {
     if (isEditing && item) {
       updatePolicy.mutate(
-        { id: item.id, data: toPolicyRequest(values) },
+        { id: item.id, data: toPolicyUpdateRequest(values, values.isActive) },
         { onSuccess: () => onOpenChange(false) },
       )
       return
@@ -259,6 +263,23 @@ export function PolicyDrawer({ open, onOpenChange, item }: PolicyDrawerProps) {
                   )}
                 />
               </div>
+
+              {isEditing ? (
+                <FormField
+                  control={form.control}
+                  name="isActive"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center gap-3">
+                      <FormControl>
+                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                      </FormControl>
+                      <div>
+                        <FormLabel className="cursor-pointer">Poliza activa</FormLabel>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+              ) : null}
             </div>
 
             <SheetFooter className="px-6 py-4 border-t flex flex-row justify-end gap-2">

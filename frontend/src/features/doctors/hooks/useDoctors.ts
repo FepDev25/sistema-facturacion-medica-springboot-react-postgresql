@@ -22,6 +22,26 @@ export function useDoctors(params: { includeInactive?: boolean; specialty?: stri
   })
 }
 
+export function useDoctorsPage(
+  params: {
+    includeInactive?: boolean
+    specialty?: string
+    page?: number
+    size?: number
+  } = {},
+) {
+  return useQuery({
+    queryKey: doctorKeys.list(params),
+    queryFn: () =>
+      doctorsApi.getDoctors({
+        specialty: params.specialty,
+        active: params.includeInactive ? undefined : true,
+        page: params.page ?? 0,
+        size: params.size ?? 20,
+      }),
+  })
+}
+
 export function useCreateDoctor() {
   const qc = useQueryClient()
 

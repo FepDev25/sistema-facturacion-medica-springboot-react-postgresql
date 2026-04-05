@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import * as insuranceApi from '../api/insuranceApi'
 import type {
-  InsurancePolicyCreateRequest,
+  InsurancePolicyUpdateRequest,
   InsuranceProviderUpdateRequest,
 } from '@/types/insurance'
 
@@ -26,6 +26,20 @@ export function useProviders(params: { includeInactive?: boolean } = {}) {
         active: params.includeInactive ? undefined : true,
       }),
     select: (data) => data.content,
+  })
+}
+
+export function useProvidersPage(
+  params: { includeInactive?: boolean; page?: number; size?: number } = {},
+) {
+  return useQuery({
+    queryKey: providerKeys.list(params),
+    queryFn: () =>
+      insuranceApi.getProviders({
+        page: params.page ?? 0,
+        size: params.size ?? 20,
+        active: params.includeInactive ? undefined : true,
+      }),
   })
 }
 
@@ -75,6 +89,21 @@ export function usePolicies(params: { patientId?: string; onlyActive?: boolean }
   })
 }
 
+export function usePoliciesPage(
+  params: { patientId?: string; onlyActive?: boolean; page?: number; size?: number } = {},
+) {
+  return useQuery({
+    queryKey: policyKeys.list(params),
+    queryFn: () =>
+      insuranceApi.getPolicies({
+        patientId: params.patientId,
+        onlyActive: params.onlyActive,
+        page: params.page ?? 0,
+        size: params.size ?? 20,
+      }),
+  })
+}
+
 export function useCreatePolicy() {
   const qc = useQueryClient()
   return useMutation({
@@ -90,7 +119,7 @@ export function useCreatePolicy() {
 export function useUpdatePolicy() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: InsurancePolicyCreateRequest }) =>
+    mutationFn: ({ id, data }: { id: string; data: InsurancePolicyUpdateRequest }) =>
       insuranceApi.updatePolicy(id, data),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: policyKeys.all })

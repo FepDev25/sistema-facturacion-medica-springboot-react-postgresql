@@ -26,6 +26,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import { SERVICE_CATEGORY_LABELS } from '@/types/enums'
 import type { ServiceResponse } from '@/types/catalog'
 import { ServiceFormSchema, type ServiceFormValues } from '../../api/catalogApi'
@@ -48,6 +49,7 @@ export function ServiceDrawer({ open, onOpenChange, item }: ServiceDrawerProps) 
       description: '',
       price: 0,
       category: 'consultation',
+      isActive: true,
     },
   })
 
@@ -60,6 +62,7 @@ export function ServiceDrawer({ open, onOpenChange, item }: ServiceDrawerProps) 
           description: item.description ?? '',
           price: item.price,
           category: item.category,
+          isActive: item.isActive,
         })
       } else {
         form.reset({
@@ -68,6 +71,7 @@ export function ServiceDrawer({ open, onOpenChange, item }: ServiceDrawerProps) 
           description: '',
           price: 0,
           category: 'consultation',
+          isActive: true,
         })
       }
     }
@@ -218,6 +222,23 @@ export function ServiceDrawer({ open, onOpenChange, item }: ServiceDrawerProps) 
                   )}
                 />
               </div>
+
+              {isEditing ? (
+                <FormField
+                  control={form.control}
+                  name="isActive"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center gap-3">
+                      <FormControl>
+                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                      </FormControl>
+                      <div>
+                        <FormLabel className="cursor-pointer">Servicio activo</FormLabel>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+              ) : null}
             </div>
 
             <SheetFooter className="px-6 py-4 border-t flex flex-row justify-end gap-2">

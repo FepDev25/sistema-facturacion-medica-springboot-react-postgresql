@@ -19,9 +19,12 @@ export interface PatientCreateRequest {
 export interface PatientUpdateRequest {
   firstName: string
   lastName: string
+  birthDate: string
+  gender: Gender
   phone: string
   email?: string | null
   address?: string | null
+  bloodType?: string | null
   allergies?: string | null
 }
 

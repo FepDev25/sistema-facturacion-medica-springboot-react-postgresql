@@ -66,7 +66,7 @@ public class InsurancePolicyController {
     // Listado de pólizas por paciente — alternativa a GET /api/v1/patients/{id}/policies
     @GetMapping
     public ResponseEntity<Page<InsurancePolicyResponse>> listByPatient(
-            @RequestParam UUID patientId,
+            @RequestParam(required = false) UUID patientId,
             @RequestParam(required = false) Boolean onlyActive,
             @PageableDefault(size = 20, sort = "startDate", direction = Sort.Direction.DESC) Pageable pageable) {
 

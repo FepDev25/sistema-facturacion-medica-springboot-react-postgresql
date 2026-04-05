@@ -4,6 +4,7 @@ import type { PageResponse } from '@/types/common'
 import type {
   InsurancePolicyCreateRequest,
   InsurancePolicyResponse,
+  InsurancePolicyUpdateRequest,
   InsuranceProviderCreateRequest,
   InsuranceProviderResponse,
   InsuranceProviderUpdateRequest,
@@ -21,6 +22,7 @@ export const ProviderFormSchema = z.object({
   phone: z.string().min(1, 'Requerido').max(20, 'Maximo 20 caracteres'),
   email: OptionalEmailSchema,
   address: OptionalAddressSchema,
+  isActive: z.boolean(),
 })
 
 export type ProviderFormValues = z.infer<typeof ProviderFormSchema>
@@ -42,6 +44,7 @@ export const PolicyFormSchema = z.object({
     .string()
     .min(1, 'Requerido')
     .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato invalido (YYYY-MM-DD)'),
+  isActive: z.boolean(),
 })
 
 export type PolicyFormValues = z.infer<typeof PolicyFormSchema>
@@ -157,11 +160,7 @@ export async function updateProvider(
   id: string,
   data: InsuranceProviderUpdateRequest,
 ): Promise<InsuranceProviderResponse> {
-  const current = await apiClient.get<InsuranceProviderResponse>(`/insurance/providers/${id}`)
-  const response = await apiClient.put<InsuranceProviderResponse>(`/insurance/providers/${id}`, {
-    ...data,
-    isActive: current.data.isActive,
-  })
+  const response = await apiClient.put<InsuranceProviderResponse>(`/insurance/providers/${id}`, data)
   return response.data
 }
 
@@ -174,19 +173,6 @@ export async function deactivateProvider(id: string): Promise<InsuranceProviderR
 export async function getPolicies(
   params: PoliciesListParams = {},
 ): Promise<PageResponse<InsurancePolicyResponse>> {
-  if (!params.patientId) {
-    return {
-      content: [],
-      totalElements: 0,
-      totalPages: 0,
-      size: params.size ?? 20,
-      number: params.page ?? 0,
-      first: true,
-      last: true,
-      empty: true,
-    }
-  }
-
   const response = await apiClient.get<PageResponse<ApiInsurancePolicyResponse>>('/insurance/policies', {
     params: {
       patientId: params.patientId,
@@ -212,15 +198,9 @@ export async function createPolicy(
 
 export async function updatePolicy(
   id: string,
-  data: InsurancePolicyCreateRequest,
+  data: InsurancePolicyUpdateRequest,
 ): Promise<InsurancePolicyResponse> {
-  const response = await apiClient.put<ApiInsurancePolicyResponse>(`/insurance/policies/${id}`, {
-    coveragePercentage: data.coveragePercentage,
-    deductible: data.deductible,
-    startDate: data.startDate,
-    endDate: data.endDate,
-    isActive: true,
-  })
+  const response = await apiClient.put<ApiInsurancePolicyResponse>(`/insurance/policies/${id}`, data)
   return enrichPolicy(response.data)
 }
 
@@ -238,12 +218,27 @@ export function toProviderCreateRequest(
 
 export function toProviderUpdateRequest(
   values: ProviderFormValues,
+  isActive: boolean,
 ): InsuranceProviderUpdateRequest {
   return {
     name: values.name.trim(),
     phone: values.phone.trim(),
     email: toNullable(values.email),
     address: toNullable(values.address),
+    isActive,
+  }
+}
+
+export function toPolicyUpdateRequest(
+  values: PolicyFormValues,
+  isActive: boolean,
+): InsurancePolicyUpdateRequest {
+  return {
+    coveragePercentage: values.coveragePercentage,
+    deductible: values.deductible,
+    startDate: values.startDate,
+    endDate: values.endDate,
+    isActive,
   }
 }
 

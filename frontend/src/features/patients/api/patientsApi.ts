@@ -3,6 +3,7 @@ import { apiClient } from '@/lib/axios'
 import type { PageResponse } from '@/types/common'
 import type { AppointmentSummaryResponse } from '@/types/appointment'
 import type { InsurancePolicySummaryResponse } from '@/types/insurance'
+import type { InvoiceListViewResponse } from '@/types/invoice'
 import type {
   PatientCreateRequest,
   PatientResponse,
@@ -67,6 +68,13 @@ export interface PatientAppointmentsParams {
 
 export interface PatientPoliciesParams {
   onlyActive?: boolean
+  page?: number
+  size?: number
+  sort?: string
+}
+
+export interface PatientInvoicesParams {
+  status?: InvoiceListViewResponse['status']
   page?: number
   size?: number
   sort?: string
@@ -213,6 +221,25 @@ export async function getPatientPolicies(
   }
 }
 
+export async function getPatientInvoices(
+  id: string,
+  params: PatientInvoicesParams = {},
+): Promise<PageResponse<InvoiceListViewResponse>> {
+  const response = await apiClient.get<PageResponse<InvoiceListViewResponse>>(
+    `/patients/${id}/invoices`,
+    {
+      params: {
+        status: params.status?.toUpperCase(),
+        page: params.page ?? 0,
+        size: params.size ?? 20,
+        sort: params.sort,
+      },
+    },
+  )
+
+  return response.data
+}
+
 export function toPatientCreateRequest(values: PatientFormValues): PatientCreateRequest {
   return {
     dni: values.dni.trim(),
@@ -232,9 +259,12 @@ export function toPatientUpdateRequest(values: PatientFormValues): PatientUpdate
   return {
     firstName: values.firstName.trim(),
     lastName: values.lastName.trim(),
+    birthDate: values.birthDate,
+    gender: values.gender,
     phone: values.phone.trim(),
     email: toNullable(values.email),
     address: toNullable(values.address),
+    bloodType: toNullable(values.bloodType),
     allergies: toNullable(values.allergies),
   }
 }

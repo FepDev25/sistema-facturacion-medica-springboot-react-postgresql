@@ -9,7 +9,8 @@ import { useDoctors } from '../../hooks/useDoctors'
 export function DoctorDetailPage() {
   const { id } = useParams({ from: '/doctors/$id' })
   const { data: doctors = [], isLoading } = useDoctors({ includeInactive: true })
-  const { data: doctorAppointments = [] } = useAppointments({ doctorId: id })
+  const { data: doctorAppointmentsPage } = useAppointments({ doctorId: id, page: 0, size: 20 })
+  const doctorAppointments = doctorAppointmentsPage?.content ?? []
 
   if (isLoading) {
     return <div className="px-6 py-8 text-sm text-slate-500">Cargando médico...</div>

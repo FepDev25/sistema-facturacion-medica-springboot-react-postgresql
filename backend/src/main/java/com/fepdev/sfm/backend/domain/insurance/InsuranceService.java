@@ -166,6 +166,11 @@ public class InsuranceService {
     // listar pólizas de seguro de un paciente, con opción de filtrar solo las activas
     @Transactional(readOnly = true)
     public Page<InsurancePolicyResponse> listPoliciesByPatient(UUID patientId, Boolean onlyActive, Pageable pageable) {
+        if (patientId == null) {
+            return policyRepo.findAllWithFilter(onlyActive, pageable)
+                    .map(policyMapper::toResponse);
+        }
+
         return policyRepo.findByPatientIdWithFilter(patientId, onlyActive, pageable)
                          .map(policyMapper::toResponse);
     }

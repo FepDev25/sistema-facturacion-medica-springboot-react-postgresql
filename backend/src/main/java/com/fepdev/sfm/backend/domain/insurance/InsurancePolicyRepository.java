@@ -31,4 +31,11 @@ public interface InsurancePolicyRepository extends JpaRepository<InsurancePolicy
     Page<InsurancePolicy> findByPatientIdWithFilter(@Param("patientId") UUID patientId, 
                                                     @Param("onlyActive") Boolean onlyActive, 
                                                     Pageable pageable);
+
+    @Query("""
+        SELECT p FROM InsurancePolicy p
+        WHERE (:onlyActive IS NULL OR :onlyActive = false OR p.isActive = true)
+        ORDER BY p.startDate DESC""")
+    Page<InsurancePolicy> findAllWithFilter(@Param("onlyActive") Boolean onlyActive,
+                                            Pageable pageable);
 }

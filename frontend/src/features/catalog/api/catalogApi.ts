@@ -38,6 +38,7 @@ export const ServiceFormSchema = z.object({
   description: z.string().max(500, 'Máximo 500 caracteres').optional(),
   price: z.number({ message: 'Debe ser un número' }).min(0, 'No puede ser negativo'),
   category: z.enum(SERVICE_CATEGORIES),
+  isActive: z.boolean(),
 })
 
 export type ServiceFormValues = z.infer<typeof ServiceFormSchema>
@@ -49,6 +50,7 @@ export const MedicationFormSchema = z.object({
   price: z.number({ message: 'Debe ser un número' }).min(0, 'No puede ser negativo'),
   unit: z.enum(MEDICATION_UNITS),
   requiresPrescription: z.boolean(),
+  isActive: z.boolean(),
 })
 
 export type MedicationFormValues = z.infer<typeof MedicationFormSchema>
@@ -113,11 +115,7 @@ export async function updateService(
   id: string,
   data: ServiceUpdateRequest,
 ): Promise<ServiceResponse> {
-  const existing = await getServiceById(id)
-  const response = await apiClient.put<ServiceResponse>(`/catalog/services/${id}`, {
-    ...data,
-    isActive: existing.isActive,
-  })
+  const response = await apiClient.put<ServiceResponse>(`/catalog/services/${id}`, data)
   return response.data
 }
 
@@ -163,11 +161,7 @@ export async function updateMedication(
   id: string,
   data: MedicationUpdateRequest,
 ): Promise<MedicationResponse> {
-  const existing = await getMedicationById(id)
-  const response = await apiClient.put<MedicationResponse>(`/catalog/medications/${id}`, {
-    ...data,
-    isActive: existing.isActive,
-  })
+  const response = await apiClient.put<MedicationResponse>(`/catalog/medications/${id}`, data)
   return response.data
 }
 

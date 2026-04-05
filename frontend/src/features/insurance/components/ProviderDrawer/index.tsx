@@ -19,6 +19,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { Checkbox } from '@/components/ui/checkbox'
 import type { InsuranceProviderResponse } from '@/types/insurance'
 import {
   ProviderFormSchema,
@@ -34,6 +35,7 @@ const DEFAULT_VALUES: ProviderFormValues = {
   phone: '',
   email: '',
   address: '',
+  isActive: true,
 }
 
 interface ProviderDrawerProps {
@@ -60,6 +62,7 @@ export function ProviderDrawer({ open, onOpenChange, item }: ProviderDrawerProps
               phone: item.phone,
               email: item.email ?? '',
               address: item.address ?? '',
+              isActive: item.isActive,
             }
           : DEFAULT_VALUES,
       )
@@ -73,7 +76,7 @@ export function ProviderDrawer({ open, onOpenChange, item }: ProviderDrawerProps
   function onSubmit(values: ProviderFormValues) {
     if (isEditing && item) {
       updateProvider.mutate(
-        { id: item.id, data: toProviderUpdateRequest(values) },
+        { id: item.id, data: toProviderUpdateRequest(values, values.isActive) },
         { onSuccess: () => onOpenChange(false) },
       )
       return
@@ -180,6 +183,23 @@ export function ProviderDrawer({ open, onOpenChange, item }: ProviderDrawerProps
                   </FormItem>
                 )}
               />
+
+              {isEditing ? (
+                <FormField
+                  control={form.control}
+                  name="isActive"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center gap-3">
+                      <FormControl>
+                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                      </FormControl>
+                      <div>
+                        <FormLabel className="cursor-pointer">Proveedor activo</FormLabel>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+              ) : null}
             </div>
 
             <SheetFooter className="px-6 py-4 border-t flex flex-row justify-end gap-2">

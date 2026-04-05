@@ -50,6 +50,7 @@ export function MedicationDrawer({ open, onOpenChange, item }: MedicationDrawerP
       price: 0,
       unit: 'tablet',
       requiresPrescription: false,
+      isActive: true,
     },
   })
 
@@ -63,6 +64,7 @@ export function MedicationDrawer({ open, onOpenChange, item }: MedicationDrawerP
           price: item.price,
           unit: item.unit,
           requiresPrescription: item.requiresPrescription,
+          isActive: item.isActive,
         })
       } else {
         form.reset({
@@ -72,6 +74,7 @@ export function MedicationDrawer({ open, onOpenChange, item }: MedicationDrawerP
           price: 0,
           unit: 'tablet',
           requiresPrescription: false,
+          isActive: true,
         })
       }
     }
@@ -240,6 +243,23 @@ export function MedicationDrawer({ open, onOpenChange, item }: MedicationDrawerP
                   </FormItem>
                 )}
               />
+
+              {isEditing ? (
+                <FormField
+                  control={form.control}
+                  name="isActive"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center gap-3">
+                      <FormControl>
+                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                      </FormControl>
+                      <div>
+                        <FormLabel className="cursor-pointer">Medicamento activo</FormLabel>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+              ) : null}
             </div>
 
             <SheetFooter className="px-6 py-4 border-t flex flex-row justify-end gap-2">

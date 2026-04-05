@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Plus } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -24,8 +24,8 @@ import type {
 import { usePatients } from '@/features/patients/hooks/usePatients'
 import {
   useDeactivateProvider,
-  usePolicies,
-  useProviders,
+  usePoliciesPage,
+  useProvidersPage,
 } from '../../hooks/useInsurance'
 import { getProviderColumns } from '../providerColumns'
 import { getPolicyColumns } from '../policyColumns'
@@ -38,7 +38,10 @@ export function InsurancePage() {
   const [activeTab, setActiveTab] = useState<'providers' | 'policies'>('providers')
   const [showInactiveProviders, setShowInactiveProviders] = useState(false)
   const [showInactivePolicies, setShowInactivePolicies] = useState(false)
-  const [policyPatientId, setPolicyPatientId] = useState('')
+  const [policyPatientId, setPolicyPatientId] = useState('all')
+  const [providersPage, setProvidersPage] = useState(0)
+  const [policiesPage, setPoliciesPage] = useState(0)
+  const pageSize = 20
 
   const [providerDrawerOpen, setProviderDrawerOpen] = useState(false)
   const [selectedProvider, setSelectedProvider] =
@@ -47,14 +50,20 @@ export function InsurancePage() {
   const [policyDrawerOpen, setPolicyDrawerOpen] = useState(false)
   const [selectedPolicy, setSelectedPolicy] = useState<InsurancePolicyResponse | null>(null)
 
-  const { data: providers = [], isLoading: providersLoading } = useProviders({
+  const { data: providersData, isLoading: providersLoading } = useProvidersPage({
     includeInactive: true,
+    page: providersPage,
+    size: pageSize,
   })
+  const providers = providersData?.content ?? []
   const { data: patients = [] } = usePatients()
-  const { data: policies = [], isLoading: policiesLoading } = usePolicies({
-    patientId: policyPatientId || undefined,
+  const { data: policiesData, isLoading: policiesLoading } = usePoliciesPage({
+    patientId: policyPatientId !== 'all' ? policyPatientId : undefined,
     onlyActive: false,
+    page: policiesPage,
+    size: pageSize,
   })
+  const policies = policiesData?.content ?? []
 
   const deactivateProvider = useDeactivateProvider()
 
@@ -138,7 +147,10 @@ export function InsurancePage() {
                     <Checkbox
                       id="show-inactive-providers"
                       checked={showInactiveProviders}
-                      onCheckedChange={(checked) => setShowInactiveProviders(!!checked)}
+                      onCheckedChange={(checked) => {
+                        setShowInactiveProviders(!!checked)
+                        setProvidersPage(0)
+                      }}
                     />
                     <Label
                       htmlFor="show-inactive-providers"
@@ -170,11 +182,18 @@ export function InsurancePage() {
               {activeTab === 'policies' && (
                 <div className="flex items-center gap-3">
                   <div className="w-full sm:w-72">
-                    <Select value={policyPatientId} onValueChange={setPolicyPatientId}>
+                    <Select
+                      value={policyPatientId}
+                      onValueChange={(value) => {
+                        setPolicyPatientId(value)
+                        setPoliciesPage(0)
+                      }}
+                    >
                       <SelectTrigger className="h-8">
-                        <SelectValue placeholder="Seleccionar paciente" />
+                        <SelectValue placeholder="Todos los pacientes" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="all">Todos los pacientes</SelectItem>
                         {patients.map((patient) => (
                           <SelectItem key={patient.id} value={patient.id}>
                             {patient.firstName} {patient.lastName} ({patient.dni})
@@ -188,7 +207,10 @@ export function InsurancePage() {
                     <Checkbox
                       id="show-inactive-policies"
                       checked={showInactivePolicies}
-                      onCheckedChange={(checked) => setShowInactivePolicies(!!checked)}
+                      onCheckedChange={(checked) => {
+                        setShowInactivePolicies(!!checked)
+                        setPoliciesPage(0)
+                      }}
                     />
                     <Label
                       htmlFor="show-inactive-policies"
@@ -227,25 +249,84 @@ export function InsurancePage() {
               pageSize={20}
               emptyMessage="No hay aseguradoras registradas."
             />
+            {!providersLoading && providersData && providersData.totalPages > 1 ? (
+              <div className="mt-3 flex items-center justify-between px-1">
+                <p className="text-xs text-slate-500">
+                  Pagina {providersData.number + 1} de {providersData.totalPages} -{' '}
+                  {providersData.totalElements} aseguradoras
+                </p>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7"
+                    aria-label="Pagina anterior"
+                    onClick={() => setProvidersPage((prev) => Math.max(prev - 1, 0))}
+                    disabled={providersData.number <= 0}
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7"
+                    aria-label="Pagina siguiente"
+                    onClick={() =>
+                      setProvidersPage((prev) =>
+                        providersData.number + 1 >= providersData.totalPages ? prev : prev + 1,
+                      )
+                    }
+                    disabled={providersData.number + 1 >= providersData.totalPages}
+                  >
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+            ) : null}
           </TabsContent>
 
           <TabsContent value="policies">
-            {!policyPatientId ? (
-              <div className="rounded-md border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-600">
-                Selecciona un paciente para ver sus polizas.
-              </div>
-            ) : null}
             <DataTable
               columns={policyColumns}
-              data={policyPatientId ? filteredPolicies : []}
+              data={filteredPolicies}
               isLoading={policiesLoading}
               pageSize={20}
-              emptyMessage={
-                policyPatientId
-                  ? 'No hay polizas registradas para este paciente.'
-                  : 'Selecciona un paciente para listar polizas.'
-              }
+              emptyMessage="No hay polizas registradas."
             />
+            {!policiesLoading && policiesData && policiesData.totalPages > 1 ? (
+              <div className="mt-3 flex items-center justify-between px-1">
+                <p className="text-xs text-slate-500">
+                  Pagina {policiesData.number + 1} de {policiesData.totalPages} -{' '}
+                  {policiesData.totalElements} polizas
+                </p>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7"
+                    aria-label="Pagina anterior"
+                    onClick={() => setPoliciesPage((prev) => Math.max(prev - 1, 0))}
+                    disabled={policiesData.number <= 0}
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7"
+                    aria-label="Pagina siguiente"
+                    onClick={() =>
+                      setPoliciesPage((prev) =>
+                        policiesData.number + 1 >= policiesData.totalPages ? prev : prev + 1,
+                      )
+                    }
+                    disabled={policiesData.number + 1 >= policiesData.totalPages}
+                  >
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+            ) : null}
           </TabsContent>
         </Tabs>
       </div>

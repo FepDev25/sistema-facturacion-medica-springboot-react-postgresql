@@ -14,6 +14,7 @@ export const DoctorFormSchema = z.object({
   specialty: z.string().min(1, 'Requerido').max(100, 'Máximo 100 caracteres'),
   phone: z.string().min(1, 'Requerido').max(20, 'Máximo 20 caracteres'),
   email: z.string().min(1, 'Requerido').email('Email inválido').max(100, 'Máximo 100 caracteres'),
+  isActive: z.boolean(),
 })
 
 export type DoctorFormValues = z.infer<typeof DoctorFormSchema>
@@ -79,10 +80,7 @@ export async function updateDoctor(
   id: string,
   data: DoctorUpdateRequest,
 ): Promise<DoctorResponse> {
-  const response = await apiClient.put<DoctorResponse>(`/doctors/${id}`, {
-    ...data,
-    isActive: true,
-  })
+  const response = await apiClient.put<DoctorResponse>(`/doctors/${id}`, data)
   return response.data
 }
 
@@ -102,12 +100,13 @@ export function toDoctorCreateRequest(values: DoctorFormValues): DoctorCreateReq
   }
 }
 
-export function toDoctorUpdateRequest(values: DoctorFormValues): DoctorUpdateRequest {
+export function toDoctorUpdateRequest(values: DoctorFormValues, isActive: boolean): DoctorUpdateRequest {
   return {
     firstName: values.firstName.trim(),
     lastName: values.lastName.trim(),
     specialty: values.specialty.trim(),
     phone: values.phone.trim(),
     email: values.email.trim(),
+    isActive,
   }
 }

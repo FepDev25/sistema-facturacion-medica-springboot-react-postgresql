@@ -16,6 +16,7 @@ export interface ServiceUpdateRequest {
   description?: string | null
   price: number
   category: ServiceCategory
+  isActive: boolean
 }
 
 export interface ServiceResponse {
@@ -54,6 +55,7 @@ export interface MedicationUpdateRequest {
   price: number
   unit: MedicationUnit
   requiresPrescription: boolean
+  isActive: boolean
 }
 
 export interface MedicationResponse {

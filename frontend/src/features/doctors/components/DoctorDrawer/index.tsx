@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/form'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Checkbox } from '@/components/ui/checkbox'
 import type { DoctorResponse } from '@/types/doctor'
 import {
   DoctorFormSchema,
@@ -34,6 +35,7 @@ const DEFAULT_VALUES: DoctorFormValues = {
   specialty: '',
   phone: '',
   email: '',
+  isActive: true,
 }
 
 interface DoctorDrawerProps {
@@ -61,6 +63,7 @@ export function DoctorDrawer({ open, onOpenChange, item }: DoctorDrawerProps) {
               specialty: item.specialty,
               phone: item.phone,
               email: item.email,
+              isActive: item.isActive,
             }
           : DEFAULT_VALUES,
       )
@@ -76,7 +79,7 @@ export function DoctorDrawer({ open, onOpenChange, item }: DoctorDrawerProps) {
       updateDoctor.mutate(
         {
           id: item.id,
-          data: toDoctorUpdateRequest(values),
+          data: toDoctorUpdateRequest(values, values.isActive),
         },
         {
           onSuccess: () => onOpenChange(false),
@@ -198,6 +201,23 @@ export function DoctorDrawer({ open, onOpenChange, item }: DoctorDrawerProps) {
                   </FormItem>
                 )}
               />
+
+              {isEditing ? (
+                <FormField
+                  control={form.control}
+                  name="isActive"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center gap-3">
+                      <FormControl>
+                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                      </FormControl>
+                      <div>
+                        <FormLabel className="cursor-pointer">Medico activo</FormLabel>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+              ) : null}
             </div>
 
             <SheetFooter className="px-6 py-4 border-t flex flex-row justify-end gap-2">

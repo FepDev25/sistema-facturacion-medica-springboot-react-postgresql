@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Plus, Search } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, Search } from 'lucide-react'
 import { toast } from 'sonner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
@@ -12,7 +12,12 @@ import {
   useRolePermissions,
 } from '@/features/auth/hooks/useRolePermissions'
 import type { ServiceResponse, MedicationResponse } from '@/types/catalog'
-import { useServices, useMedications, useToggleServiceActive, useToggleMedicationActive } from '../../hooks/useCatalog'
+import {
+  useFilteredMedicationsPage,
+  useFilteredServicesPage,
+  useToggleServiceActive,
+  useToggleMedicationActive,
+} from '../../hooks/useCatalog'
 import { getServiceColumns } from '../serviceColumns'
 import { getMedicationColumns } from '../medicationColumns'
 import { ServiceDrawer } from '../ServiceDrawer'
@@ -24,6 +29,8 @@ export function CatalogPage() {
   const [activeTab, setActiveTab] = useState<'services' | 'medications'>('services')
   const [search, setSearch] = useState('')
   const [showInactive, setShowInactive] = useState(false)
+  const [page, setPage] = useState(0)
+  const pageSize = 20
 
   const [serviceDrawerOpen, setServiceDrawerOpen] = useState(false)
   const [selectedService, setSelectedService] = useState<ServiceResponse | null>(null)
@@ -31,33 +38,34 @@ export function CatalogPage() {
   const [medicationDrawerOpen, setMedicationDrawerOpen] = useState(false)
   const [selectedMedication, setSelectedMedication] = useState<MedicationResponse | null>(null)
 
-  const { data: services = [], isLoading: servicesLoading } = useServices({
+  const { data: servicesPage, isLoading: servicesLoading } = useFilteredServicesPage({
     includeInactive: true,
+    q: activeTab === 'services' ? search : undefined,
+    page: activeTab === 'services' ? page : 0,
+    size: pageSize,
   })
-  const { data: medications = [], isLoading: medicationsLoading } = useMedications({
+  const services = servicesPage?.content ?? []
+
+  const { data: medicationsPage, isLoading: medicationsLoading } = useFilteredMedicationsPage({
     includeInactive: true,
+    q: activeTab === 'medications' ? search : undefined,
+    page: activeTab === 'medications' ? page : 0,
+    size: pageSize,
   })
+  const medications = medicationsPage?.content ?? []
 
   const toggleServiceActive = useToggleServiceActive()
   const toggleMedicationActive = useToggleMedicationActive()
 
-  const filteredServices = useMemo(() => {
-    return services.filter((s) => {
-      if (!showInactive && !s.isActive) return false
-      if (!search) return true
-      const q = search.toLowerCase()
-      return s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q)
-    })
-  }, [services, search, showInactive])
+  const filteredServices = useMemo(
+    () => services.filter((s) => (showInactive ? true : s.isActive)),
+    [services, showInactive],
+  )
 
-  const filteredMedications = useMemo(() => {
-    return medications.filter((m) => {
-      if (!showInactive && !m.isActive) return false
-      if (!search) return true
-      const q = search.toLowerCase()
-      return m.name.toLowerCase().includes(q) || m.code.toLowerCase().includes(q)
-    })
-  }, [medications, search, showInactive])
+  const filteredMedications = useMemo(
+    () => medications.filter((m) => (showInactive ? true : m.isActive)),
+    [medications, showInactive],
+  )
 
   const serviceColumns = useMemo(
     () =>
@@ -108,6 +116,7 @@ export function CatalogPage() {
   function handleTabChange(value: string) {
     setActiveTab(value as 'services' | 'medications')
     setSearch('')
+    setPage(0)
   }
 
   return (
@@ -145,7 +154,10 @@ export function CatalogPage() {
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
                 <Input
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => {
+                    setSearch(e.target.value)
+                    setPage(0)
+                  }}
                   placeholder="Buscar por código o nombre..."
                   className="h-8 pl-8 w-full sm:w-64 text-sm"
                 />
@@ -155,7 +167,10 @@ export function CatalogPage() {
                 <Checkbox
                   id="show-inactive"
                   checked={showInactive}
-                  onCheckedChange={(v) => setShowInactive(!!v)}
+                  onCheckedChange={(v) => {
+                    setShowInactive(!!v)
+                    setPage(0)
+                  }}
                 />
                 <Label htmlFor="show-inactive" className="text-sm text-slate-600 cursor-pointer">
                   Mostrar inactivos
@@ -212,6 +227,40 @@ export function CatalogPage() {
                 search ? 'Sin resultados para la búsqueda.' : 'No hay servicios registrados.'
               }
             />
+            {!servicesLoading && servicesPage && servicesPage.totalPages > 1 ? (
+              <div className="mt-3 flex items-center justify-between px-1">
+                <p className="text-xs text-slate-500">
+                  Pagina {servicesPage.number + 1} de {servicesPage.totalPages} -{' '}
+                  {servicesPage.totalElements} servicios
+                </p>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7"
+                    aria-label="Pagina anterior"
+                    onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
+                    disabled={servicesPage.number <= 0}
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7"
+                    aria-label="Pagina siguiente"
+                    onClick={() =>
+                      setPage((prev) =>
+                        servicesPage.number + 1 >= servicesPage.totalPages ? prev : prev + 1,
+                      )
+                    }
+                    disabled={servicesPage.number + 1 >= servicesPage.totalPages}
+                  >
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+            ) : null}
           </TabsContent>
 
           <TabsContent value="medications">
@@ -224,6 +273,40 @@ export function CatalogPage() {
                 search ? 'Sin resultados para la búsqueda.' : 'No hay medicamentos registrados.'
               }
             />
+            {!medicationsLoading && medicationsPage && medicationsPage.totalPages > 1 ? (
+              <div className="mt-3 flex items-center justify-between px-1">
+                <p className="text-xs text-slate-500">
+                  Pagina {medicationsPage.number + 1} de {medicationsPage.totalPages} -{' '}
+                  {medicationsPage.totalElements} medicamentos
+                </p>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7"
+                    aria-label="Pagina anterior"
+                    onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
+                    disabled={medicationsPage.number <= 0}
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7"
+                    aria-label="Pagina siguiente"
+                    onClick={() =>
+                      setPage((prev) =>
+                        medicationsPage.number + 1 >= medicationsPage.totalPages ? prev : prev + 1,
+                      )
+                    }
+                    disabled={medicationsPage.number + 1 >= medicationsPage.totalPages}
+                  >
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+            ) : null}
           </TabsContent>
         </Tabs>
       </div>
