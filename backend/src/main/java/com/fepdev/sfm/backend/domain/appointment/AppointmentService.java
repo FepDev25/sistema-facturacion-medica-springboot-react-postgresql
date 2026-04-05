@@ -152,14 +152,14 @@ public class AppointmentService {
         return appointmentMapper.toResponse(appointmentRepository.save(appointment));
     }
 
-    // registrar no-presentación: IN_PROGRESS a NO_SHOW
+    // registrar no-presentación: SCHEDULED o CONFIRMED a NO_SHOW
     @Transactional
     public AppointmentResponse markNoShow(UUID id) {
         Appointment appointment = appointmentRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("La cita con el id: " + id + " no existe"));
 
-        if (appointment.getStatus() != Status.IN_PROGRESS) {
-            throw new BusinessRuleException("Solo se puede registrar no-presentación en citas en estado IN_PROGRESS. Estado actual: " + appointment.getStatus());
+        if (appointment.getStatus() != Status.SCHEDULED && appointment.getStatus() != Status.CONFIRMED) {
+            throw new BusinessRuleException("Solo se puede registrar no-presentación en citas en estado SCHEDULED o CONFIRMED. Estado actual: " + appointment.getStatus());
         }
 
         appointment.setStatus(Status.NO_SHOW);

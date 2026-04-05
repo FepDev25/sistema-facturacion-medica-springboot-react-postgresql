@@ -1,10 +1,27 @@
+import { useState } from 'react'
 import { useParams } from '@tanstack/react-router'
 import { ClipboardCheck, Stethoscope, UserRound } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { AllergyAlert } from '@/components/AllergyAlert'
 import { BackToListButton } from '@/components/BackToListButton'
+import {
+  NO_PERMISSION_MESSAGE,
+  useRolePermissions,
+} from '@/features/auth/hooks/useRolePermissions'
 import { APPOINTMENT_STATUS_LABELS } from '@/types/enums'
 import { formatDateTime } from '@/lib/utils'
-import { useAppointment, useAppointmentMedicalRecord } from '../../hooks/useAppointments'
+import { toast } from 'sonner'
+import { AppointmentStatusFlow } from '../AppointmentStatusFlow'
+import { CompleteAppointmentDrawer } from '../CompleteAppointmentDrawer'
+import {
+  useAppointment,
+  useAppointmentMedicalRecord,
+  useCancelAppointment,
+  useConfirmAppointment,
+  useNoShowAppointment,
+  useStartAppointment,
+} from '../../hooks/useAppointments'
 
 const STATUS_CLASS: Record<string, string> = {
   scheduled: 'border-blue-200 text-blue-700 bg-blue-50',
@@ -16,10 +33,16 @@ const STATUS_CLASS: Record<string, string> = {
 }
 
 export function AppointmentDetailPage() {
+  const { canCompleteAppointment, canManagePatients } = useRolePermissions()
   const { id } = useParams({ from: '/appointments/$id' })
+  const [completeDrawerOpen, setCompleteDrawerOpen] = useState(false)
 
   const appointmentQuery = useAppointment(id)
   const recordQuery = useAppointmentMedicalRecord(id)
+  const confirmAppointment = useConfirmAppointment()
+  const startAppointment = useStartAppointment()
+  const cancelAppointment = useCancelAppointment()
+  const noShowAppointment = useNoShowAppointment()
 
   if (appointmentQuery.isLoading) {
     return <div className="px-6 py-8 text-sm text-slate-500">Cargando cita...</div>
@@ -46,10 +69,71 @@ export function AppointmentDetailPage() {
             <p className="text-sm text-slate-500 mt-0.5">{formatDateTime(appointment.scheduledAt)}</p>
           </div>
           <BackToListButton fallbackTo="/appointments" label="Volver a citas" />
+          {appointment.status === 'in_progress' ? (
+            <Button
+              size="sm"
+              disabled={!canCompleteAppointment}
+              onClick={() => {
+                if (!canCompleteAppointment) {
+                  toast.error(NO_PERMISSION_MESSAGE)
+                  return
+                }
+                setCompleteDrawerOpen(true)
+              }}
+            >
+              Completar cita
+            </Button>
+          ) : null}
         </div>
       </div>
 
       <div className="flex-1 px-6 py-5 overflow-auto space-y-6">
+        <AllergyAlert
+          allergies={appointment.patient.allergies}
+          patientName={`${appointment.patient.firstName} ${appointment.patient.lastName}`}
+        />
+
+        <AppointmentStatusFlow
+          status={appointment.status}
+          canOperate={canManagePatients}
+          canComplete={canCompleteAppointment}
+          onConfirm={() => {
+            if (!canManagePatients) {
+              toast.error(NO_PERMISSION_MESSAGE)
+              return
+            }
+            confirmAppointment.mutate(appointment.id)
+          }}
+          onStart={() => {
+            if (!canManagePatients) {
+              toast.error(NO_PERMISSION_MESSAGE)
+              return
+            }
+            startAppointment.mutate(appointment.id)
+          }}
+          onComplete={() => {
+            if (!canCompleteAppointment) {
+              toast.error(NO_PERMISSION_MESSAGE)
+              return
+            }
+            setCompleteDrawerOpen(true)
+          }}
+          onNoShow={() => {
+            if (!canManagePatients) {
+              toast.error(NO_PERMISSION_MESSAGE)
+              return
+            }
+            noShowAppointment.mutate(appointment.id)
+          }}
+          onCancel={() => {
+            if (!canManagePatients) {
+              toast.error(NO_PERMISSION_MESSAGE)
+              return
+            }
+            cancelAppointment.mutate(appointment.id)
+          }}
+        />
+
         <section className="rounded-md border border-border bg-white p-4">
           <h2 className="text-sm font-semibold text-slate-900 mb-3">Resumen de atención</h2>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
@@ -83,9 +167,9 @@ export function AppointmentDetailPage() {
             {appointment.patient.firstName} {appointment.patient.lastName}
           </p>
           <p className="text-xs text-slate-500 mt-1">DNI: {appointment.patient.dni}</p>
-          <p className="text-xs text-slate-500 mt-1">
-            Alergias: {appointment.patient.allergies ?? 'Sin registro'}
-          </p>
+          {!appointment.patient.allergies ? (
+            <p className="text-xs text-slate-500 mt-1">Alergias: Sin registro</p>
+          ) : null}
         </section>
 
         <section className="rounded-md border border-border bg-white p-4">
@@ -116,6 +200,13 @@ export function AppointmentDetailPage() {
           )}
         </section>
       </div>
+
+      <CompleteAppointmentDrawer
+        appointmentId={appointment.id}
+        patientId={appointment.patient.id}
+        open={completeDrawerOpen}
+        onOpenChange={setCompleteDrawerOpen}
+      />
     </div>
   )
 }

@@ -138,9 +138,7 @@ export function getAppointmentColumns({
               onClick={() => onCancel(item)}
               disabled={
                 !canOperate ||
-                item.status === 'cancelled' ||
-                item.status === 'completed' ||
-                item.status === 'no_show'
+                (item.status !== 'scheduled' && item.status !== 'confirmed')
               }
               title="Cancelar"
             >

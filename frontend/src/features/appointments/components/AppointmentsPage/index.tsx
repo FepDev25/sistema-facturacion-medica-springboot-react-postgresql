@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Plus } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
@@ -39,10 +39,16 @@ export function AppointmentsPage() {
 
   const [statusFilter, setStatusFilter] = useState<AppointmentStatusFilter>('all')
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [page, setPage] = useState(0)
+  const pageSize = 20
 
-  const { data: appointments = [], isLoading } = useAppointments({
+  const { data: appointmentsPage, isLoading } = useAppointments({
     status: statusFilter === 'all' ? undefined : statusFilter,
+    page,
+    size: pageSize,
   })
+
+  const appointments = appointmentsPage?.content ?? []
 
   const confirmAppointment = useConfirmAppointment()
   const startAppointment = useStartAppointment()
@@ -106,7 +112,10 @@ export function AppointmentsPage() {
             <span className="text-sm text-slate-600">Estado:</span>
             <Select
               value={statusFilter}
-              onValueChange={(value) => setStatusFilter(value as AppointmentStatusFilter)}
+              onValueChange={(value) => {
+                setStatusFilter(value as AppointmentStatusFilter)
+                setPage(0)
+              }}
             >
               <SelectTrigger className="h-8 w-full sm:w-52 text-sm">
                 <SelectValue placeholder="Todos" />
@@ -144,9 +153,44 @@ export function AppointmentsPage() {
           columns={columns}
           data={appointments}
           isLoading={isLoading}
-          pageSize={20}
+          pageSize={pageSize}
           emptyMessage="No hay citas para el filtro seleccionado."
         />
+
+        {!isLoading && appointmentsPage && appointmentsPage.totalPages > 1 ? (
+          <div className="mt-3 flex items-center justify-between px-1">
+            <p className="text-xs text-slate-500">
+              Pagina {appointmentsPage.number + 1} de {appointmentsPage.totalPages} -{' '}
+              {appointmentsPage.totalElements} citas
+            </p>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-7 w-7"
+                aria-label="Pagina anterior"
+                onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
+                disabled={appointmentsPage.number <= 0}
+              >
+                <ChevronLeft className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-7 w-7"
+                aria-label="Pagina siguiente"
+                onClick={() =>
+                  setPage((prev) =>
+                    appointmentsPage.number + 1 >= appointmentsPage.totalPages ? prev : prev + 1,
+                  )
+                }
+                disabled={appointmentsPage.number + 1 >= appointmentsPage.totalPages}
+              >
+                <ChevronRight className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </div>
+        ) : null}
       </div>
 
       <AppointmentDrawer open={drawerOpen} onOpenChange={setDrawerOpen} />

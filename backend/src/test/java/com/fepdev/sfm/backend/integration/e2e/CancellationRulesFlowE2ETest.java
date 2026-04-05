@@ -41,6 +41,29 @@ class CancellationRulesFlowE2ETest extends AbstractPostgresFlowE2ETest {
     }
 
     @Test
+    void appointmentNoShow_allowsScheduledAndConfirmed_butRejectsInProgress() {
+        Patient patient = createPatient("noshow1");
+        Doctor doctor = createDoctor("noshow1");
+
+        var scheduled = createScheduledAppointment(patient, doctor);
+        var noShowFromScheduled = appointmentService.markNoShow(scheduled.id());
+        assertThat(noShowFromScheduled.status()).isEqualTo(Status.NO_SHOW);
+
+        var confirmed = createScheduledAppointment(patient, doctor);
+        appointmentService.confirmAppointment(confirmed.id());
+        var noShowFromConfirmed = appointmentService.markNoShow(confirmed.id());
+        assertThat(noShowFromConfirmed.status()).isEqualTo(Status.NO_SHOW);
+
+        var inProgress = createScheduledAppointment(patient, doctor);
+        appointmentService.confirmAppointment(inProgress.id());
+        appointmentService.startAppointment(inProgress.id());
+
+        assertThatThrownBy(() -> appointmentService.markNoShow(inProgress.id()))
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("SCHEDULED o CONFIRMED");
+    }
+
+    @Test
     void invoiceCancellation_rejectsWhenInvoiceHasPayments() {
         Patient patient = createPatient("cancel2");
         Doctor doctor = createDoctor("cancel2");

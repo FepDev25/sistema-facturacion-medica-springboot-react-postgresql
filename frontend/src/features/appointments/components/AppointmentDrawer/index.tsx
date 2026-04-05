@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -27,6 +28,8 @@ import { useDoctors } from '@/features/doctors/hooks/useDoctors'
 import {
   AppointmentFormSchema,
   type AppointmentFormValues,
+  getAvailability,
+  getAppointmentById,
   toAppointmentCreateRequest,
 } from '../../api/appointmentsApi'
 import { useCreateAppointment } from '../../hooks/useAppointments'
@@ -57,6 +60,67 @@ export function AppointmentDrawer({ open, onOpenChange }: AppointmentDrawerProps
   const createAppointment = useCreateAppointment()
   const isPending = createAppointment.isPending
 
+  const selectedDoctorId = form.watch('doctorId')
+  const selectedScheduledAt = form.watch('scheduledAt')
+  const selectedDuration = form.watch('durationMinutes')
+
+  const availabilityRange = useMemo(() => {
+    if (!selectedDoctorId || !selectedScheduledAt || !selectedDuration) {
+      return null
+    }
+
+    const start = new Date(selectedScheduledAt)
+    if (Number.isNaN(start.getTime())) {
+      return null
+    }
+
+    const dayStart = new Date(start)
+    dayStart.setHours(0, 0, 0, 0)
+
+    const dayEnd = new Date(start)
+    dayEnd.setHours(23, 59, 59, 999)
+
+    return {
+      from: dayStart.toISOString(),
+      to: dayEnd.toISOString(),
+      candidateStart: start,
+      candidateEnd: new Date(start.getTime() + selectedDuration * 60 * 1000),
+    }
+  }, [selectedDoctorId, selectedScheduledAt, selectedDuration])
+
+  const availabilityQuery = useQuery({
+    queryKey: [
+      'appointments',
+      'availability',
+      selectedDoctorId,
+      availabilityRange?.from,
+      availabilityRange?.to,
+    ],
+    queryFn: async () => {
+      const occupied = await getAvailability(
+        selectedDoctorId,
+        availabilityRange?.from ?? '',
+        availabilityRange?.to ?? '',
+      )
+
+      return Promise.all(occupied.map((slot) => getAppointmentById(slot.id)))
+    },
+    enabled: Boolean(selectedDoctorId && availabilityRange),
+  })
+
+  const hasScheduleConflict = useMemo(() => {
+    if (!availabilityRange || !availabilityQuery.data) {
+      return false
+    }
+
+    return availabilityQuery.data.some((slot) => {
+      const slotStart = new Date(slot.scheduledAt)
+      const slotEnd = new Date(slot.scheduledEndAt)
+
+      return availabilityRange.candidateStart < slotEnd && availabilityRange.candidateEnd > slotStart
+    })
+  }, [availabilityQuery.data, availabilityRange])
+
   const { data: patientResults = [] } = useSearchPatients(patientQuery)
 
   const { data: doctors = [] } = useDoctors({ includeInactive: false })
@@ -72,6 +136,10 @@ export function AppointmentDrawer({ open, onOpenChange }: AppointmentDrawerProps
   }, [doctorQuery, doctors])
 
   function onSubmit(values: AppointmentFormValues) {
+    if (hasScheduleConflict) {
+      return
+    }
+
     createAppointment.mutate(toAppointmentCreateRequest(values), {
       onSuccess: () => {
         form.reset(DEFAULT_VALUES)
@@ -252,6 +320,18 @@ export function AppointmentDrawer({ open, onOpenChange }: AppointmentDrawerProps
                 />
               </div>
 
+              {availabilityQuery.isFetching ? (
+                <p className="text-xs text-slate-500">Validando disponibilidad del medico...</p>
+              ) : null}
+
+              {hasScheduleConflict ? (
+                <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2">
+                  <p className="text-xs text-red-700">
+                    El medico ya tiene una cita en ese horario. Selecciona otra fecha u hora.
+                  </p>
+                </div>
+              ) : null}
+
               <FormField
                 control={form.control}
                 name="chiefComplaint"
@@ -302,7 +382,7 @@ export function AppointmentDrawer({ open, onOpenChange }: AppointmentDrawerProps
               >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isPending}>
+              <Button type="submit" disabled={isPending || hasScheduleConflict || availabilityQuery.isFetching}>
                 {isPending ? 'Guardando...' : 'Crear cita'}
               </Button>
             </SheetFooter>

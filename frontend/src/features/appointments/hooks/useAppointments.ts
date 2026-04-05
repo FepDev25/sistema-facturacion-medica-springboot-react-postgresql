@@ -21,7 +21,13 @@ export const appointmentKeys = {
 }
 
 export function useAppointments(
-  params: { status?: string; doctorId?: string; patientId?: string } = {},
+  params: {
+    status?: string
+    doctorId?: string
+    patientId?: string
+    page?: number
+    size?: number
+  } = {},
 ) {
   return useQuery({
     queryKey: appointmentKeys.list(params),
@@ -37,10 +43,9 @@ export function useAppointments(
           | 'cancelled'
           | 'no_show'
           | undefined,
-        page: 0,
-        size: 100,
+        page: params.page ?? 0,
+        size: params.size ?? 20,
       }),
-    select: (data) => data.content,
   })
 }
 
@@ -132,10 +137,11 @@ export function useCompleteAppointment() {
       appointmentsApi.completeAppointment(id, data),
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: appointmentKeys.all })
+      void qc.invalidateQueries({ queryKey: ['medical-records'] })
       toast.success('Cita completada')
     },
-    onError: () => {
-      toast.error('Error al completar la cita')
+    onError: (error) => {
+      toast.error((error as Error).message || 'Error al completar la cita')
     },
   })
 }
