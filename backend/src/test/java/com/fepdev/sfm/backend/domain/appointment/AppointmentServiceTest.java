@@ -325,16 +325,16 @@ class AppointmentServiceTest {
     // --- markNoShow ---
 
     @Test
-    void markNoShow_whenScheduled_throwsBusinessRuleException() {
+    void markNoShow_whenInProgress_throwsBusinessRuleException() {
         UUID id = UUID.randomUUID();
         Appointment appointment = new Appointment();
-        appointment.setStatus(Status.SCHEDULED);
+        appointment.setStatus(Status.IN_PROGRESS);
 
         when(appointmentRepository.findById(id)).thenReturn(Optional.of(appointment));
 
         assertThatThrownBy(() -> appointmentService.markNoShow(id))
             .isInstanceOf(BusinessRuleException.class)
-            .hasMessageContaining("IN_PROGRESS");
+            .hasMessageContaining("SCHEDULED");
     }
 
     @Test
@@ -347,10 +347,10 @@ class AppointmentServiceTest {
     }
 
     @Test
-    void markNoShow_whenInProgress_setsStatusNoShow() {
+    void markNoShow_whenScheduled_setsStatusNoShow() {
         UUID id = UUID.randomUUID();
         Appointment appointment = new Appointment();
-        appointment.setStatus(Status.IN_PROGRESS);
+        appointment.setStatus(Status.SCHEDULED);
 
         when(appointmentRepository.findById(id)).thenReturn(Optional.of(appointment));
         when(appointmentRepository.save(appointment)).thenReturn(appointment);

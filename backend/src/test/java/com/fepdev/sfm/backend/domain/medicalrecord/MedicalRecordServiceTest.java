@@ -18,6 +18,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 
 import com.fepdev.sfm.backend.domain.medicalrecord.dto.MedicalRecordResponse;
+import com.fepdev.sfm.backend.domain.patient.PatientRepository;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -29,6 +30,9 @@ class MedicalRecordServiceTest {
 
     @Mock
     MedicalRecordMapper medicalRecordMapper;
+
+    @Mock
+    PatientRepository patientRepository;
 
     @InjectMocks
     MedicalRecordService medicalRecordService;
@@ -69,7 +73,7 @@ class MedicalRecordServiceTest {
     @Test
     void getMedicalRecordsByPatientId_whenRepositoryExistCheckFails_throwsEntityNotFoundException() {
         UUID patientId = UUID.randomUUID();
-        when(medicalRecordRepository.existsById(patientId)).thenReturn(false);
+        when(patientRepository.existsById(patientId)).thenReturn(false);
 
         assertThatThrownBy(() -> medicalRecordService.getMedicalRecordsByPatientId(patientId, Pageable.unpaged()))
                 .isInstanceOf(EntityNotFoundException.class);
@@ -84,7 +88,7 @@ class MedicalRecordServiceTest {
                 null, "nota", OffsetDateTime.now(), OffsetDateTime.now(), OffsetDateTime.now());
         Pageable pageable = Pageable.ofSize(10);
 
-        when(medicalRecordRepository.existsById(patientId)).thenReturn(true);
+        when(patientRepository.existsById(patientId)).thenReturn(true);
         when(medicalRecordRepository.findByPatientId(patientId, pageable))
                 .thenReturn(new PageImpl<>(java.util.List.of(entity), pageable, 1));
         when(medicalRecordMapper.toResponse(entity)).thenReturn(response);
