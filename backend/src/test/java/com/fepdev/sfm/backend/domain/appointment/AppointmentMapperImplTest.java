@@ -1,11 +1,10 @@
 package com.fepdev.sfm.backend.domain.appointment;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 

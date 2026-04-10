@@ -46,7 +46,7 @@ class DoctorControllerWebMvcTest {
     @Test
     void create_whenValidRequest_returns201() throws Exception {
         UUID id = UUID.randomUUID();
-        DoctorResponse response = new DoctorResponse(id, "LIC-1", "Ana", "Lopez", "Cardio", "555", "ana@x.com", true, null, null);
+        DoctorResponse response = new DoctorResponse(id, "LIC-1", "Ana", "Lopez", "Cardio", "555", "ana@x.com", true, null, null, null, null);
         when(doctorService.createDoctor(any())).thenReturn(response);
 
         String body = """

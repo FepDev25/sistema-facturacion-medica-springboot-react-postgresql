@@ -2275,6 +2275,7 @@ components:
         specialty: { type: string, maxLength: 100 }
         phone: { type: string, maxLength: 20 }
         email: { type: string, format: email, maxLength: 100 }
+        userId: { type: string, format: uuid, nullable: true, description: 'ID del SystemUser (rol DOCTOR) a vincular. Si es null, el doctor no tendra acceso al sistema.' }
 
     DoctorUpdateRequest:
       type: object
@@ -2298,6 +2299,8 @@ components:
         phone: { type: string }
         email: { type: string, format: email }
         isActive: { type: boolean }
+        userId: { type: string, format: uuid, nullable: true }
+        username: { type: string, nullable: true }
         createdAt: { type: string, format: date-time, nullable: true }
         updatedAt: { type: string, format: date-time, nullable: true }
 

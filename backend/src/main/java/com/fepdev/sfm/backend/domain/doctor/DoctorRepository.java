@@ -18,6 +18,8 @@ public interface DoctorRepository extends JpaRepository<Doctor, UUID> {
 
     boolean existsByLicenseNumber(String licenseNumber);
     Optional<Doctor> findByLicenseNumber(String licenseNumber);
+    Optional<Doctor> findByUserId(UUID userId);
+    boolean existsByUserId(UUID userId);
 
     // Consulta para obtener la agenda de un doctor, con filtros opcionales de fecha
     @Query("""

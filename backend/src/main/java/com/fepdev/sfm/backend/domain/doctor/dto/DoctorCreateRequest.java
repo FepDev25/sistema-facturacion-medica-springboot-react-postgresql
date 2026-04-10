@@ -1,5 +1,7 @@
 package com.fepdev.sfm.backend.domain.doctor.dto;
 
+import java.util.UUID;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -29,5 +31,7 @@ public record DoctorCreateRequest(
     @NotBlank(message = "El correo es obligatorio")
     @Email(message = "El formato del correo electrónico no es válido")
     @Size(max = 100, message = "El correo no puede exceder los 100 caracteres")
-    String email
+    String email,
+
+    UUID userId
 ) {}

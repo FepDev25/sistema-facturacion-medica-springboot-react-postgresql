@@ -16,9 +16,9 @@ import com.fepdev.sfm.backend.domain.doctor.dto.DoctorUpdateRequest;
 @Mapper(componentModel = "spring")
 public interface DoctorMapper {
 
-    // "active" y no "isActive": Lombok genera setActive() para boolean isActive
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "active", ignore = true)
+    @Mapping(target = "user", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     Doctor toEntity(DoctorCreateRequest request);
@@ -27,11 +27,14 @@ public interface DoctorMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "licenseNumber", ignore = true)
     @Mapping(source = "isActive", target = "active")
+    @Mapping(target = "user", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     void updateEntity(DoctorUpdateRequest request, @MappingTarget Doctor entity);
 
     @Mapping(source = "active", target = "isActive")
+    @Mapping(source = "user.id", target = "userId")
+    @Mapping(source = "user.username", target = "username")
     DoctorResponse toResponse(Doctor entity);
 
     DoctorSummaryResponse toSummaryResponse(Doctor entity);

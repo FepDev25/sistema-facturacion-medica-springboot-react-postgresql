@@ -1,9 +1,14 @@
 package com.fepdev.sfm.backend.domain.doctor;
 
+import com.fepdev.sfm.backend.security.SystemUser;
 import com.fepdev.sfm.backend.shared.domain.BaseEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ForeignKey;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -36,5 +41,9 @@ public class Doctor extends BaseEntity {
 
     @Column(name = "is_active", nullable = false)
     private boolean isActive;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "fk_doctors_user"))
+    private SystemUser user;
     
 }

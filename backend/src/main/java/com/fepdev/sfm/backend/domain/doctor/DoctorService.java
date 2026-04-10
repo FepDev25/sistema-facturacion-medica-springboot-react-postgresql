@@ -15,6 +15,8 @@ import com.fepdev.sfm.backend.domain.doctor.dto.DoctorCreateRequest;
 import com.fepdev.sfm.backend.domain.doctor.dto.DoctorResponse;
 import com.fepdev.sfm.backend.domain.doctor.dto.DoctorSummaryResponse;
 import com.fepdev.sfm.backend.domain.doctor.dto.DoctorUpdateRequest;
+import com.fepdev.sfm.backend.security.SystemUser;
+import com.fepdev.sfm.backend.security.SystemUserRepository;
 import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -24,16 +26,18 @@ public class DoctorService {
     
     private final DoctorRepository doctorRepository;
     private final DoctorMapper doctorMapper;
+    private final SystemUserRepository systemUserRepository;
 
     private final AppointmentRepository appointmentRepository;
     private final AppointmentMapper appointmentMapper;
 
-    public DoctorService(DoctorRepository doctorRepository, DoctorMapper doctorMapper, AppointmentRepository appointmentRepository, AppointmentMapper appointmentMapper ) {
+    public DoctorService(DoctorRepository doctorRepository, DoctorMapper doctorMapper,
+            SystemUserRepository systemUserRepository, AppointmentRepository appointmentRepository, AppointmentMapper appointmentMapper) {
         this.doctorRepository = doctorRepository;
         this.doctorMapper = doctorMapper;
+        this.systemUserRepository = systemUserRepository;
         this.appointmentRepository = appointmentRepository;
         this.appointmentMapper = appointmentMapper;
-
     }
 
     // crear doctor, se valida que no se repita el numero de licencia
@@ -44,8 +48,26 @@ public class DoctorService {
             throw new BusinessRuleException("El doctor con el número de licencia " + request.licenseNumber() + " ya se encuentra registrado en el sistema.");
         }
 
+        if (request.userId() != null) {
+            if (doctorRepository.existsByUserId(request.userId())) {
+                throw new BusinessRuleException("El usuario con ID " + request.userId() + " ya está vinculado a otro doctor.");
+            }
+            SystemUser systemUser = systemUserRepository.findById(request.userId())
+                    .orElseThrow(() -> new EntityNotFoundException("Usuario del sistema con ID " + request.userId() + " no encontrado."));
+            if (!"DOCTOR".equals(systemUser.getRole().name())) {
+                throw new BusinessRuleException("El usuario con ID " + request.userId() + " no tiene rol DOCTOR.");
+            }
+            if (!systemUser.isActive()) {
+                throw new BusinessRuleException("El usuario con ID " + request.userId() + " no está activo.");
+            }
+        }
+
         Doctor doctor = doctorMapper.toEntity(request);
-        doctor.setActive(true); // Por defecto activo
+        doctor.setActive(true);
+        if (request.userId() != null) {
+            SystemUser systemUser = systemUserRepository.getReferenceById(request.userId());
+            doctor.setUser(systemUser);
+        }
         Doctor savedDoctor = doctorRepository.save(doctor);
         return doctorMapper.toResponse(savedDoctor);
     }
@@ -105,6 +127,13 @@ public class DoctorService {
 
         return appointmentRepository.findWithFilters(doctorId, null, null, startDate, endDate, pageable)
                 .map(appointmentMapper::toSummaryResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public DoctorResponse getDoctorByUserId(UUID userId) {
+        Doctor doctor = doctorRepository.findByUserId(userId)
+                .orElseThrow(() -> new EntityNotFoundException("No se encontró un doctor vinculado al usuario con ID " + userId + "."));
+        return doctorMapper.toResponse(doctor);
     }
 
 }

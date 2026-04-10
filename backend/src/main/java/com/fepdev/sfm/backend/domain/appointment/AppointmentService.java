@@ -6,6 +6,8 @@ import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +22,7 @@ import com.fepdev.sfm.backend.domain.medicalrecord.MedicalRecordMapper;
 import com.fepdev.sfm.backend.domain.medicalrecord.MedicalRecordRepository;
 import com.fepdev.sfm.backend.domain.medicalrecord.dto.MedicalRecordCreateRequest;
 import com.fepdev.sfm.backend.domain.patient.PatientRepository;
+import com.fepdev.sfm.backend.security.SystemUserRepository;
 import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -35,6 +38,7 @@ public class AppointmentService {
 
     private final DoctorRepository doctorRepository;
     private final PatientRepository patientRepository;
+    private final SystemUserRepository systemUserRepository;
 
     private final MedicalRecordRepository medicalRecordRepository;
     private final MedicalRecordMapper medicalRecordMapper;
@@ -42,12 +46,15 @@ public class AppointmentService {
     private final InvoiceService invoiceService;
 
     public AppointmentService(AppointmentRepository appointmentRepository, AppointmentMapper appointmentMapper,
-            DoctorRepository doctorRepository, PatientRepository patientRepository, MedicalRecordRepository medicalRecordRepository,
+            DoctorRepository doctorRepository, PatientRepository patientRepository,
+            SystemUserRepository systemUserRepository,
+            MedicalRecordRepository medicalRecordRepository,
             MedicalRecordMapper medicalRecordMapper, InvoiceService invoiceService) {
         this.appointmentRepository = appointmentRepository;
         this.appointmentMapper = appointmentMapper;
         this.doctorRepository = doctorRepository;
         this.patientRepository = patientRepository;
+        this.systemUserRepository = systemUserRepository;
         this.medicalRecordRepository = medicalRecordRepository;
         this.medicalRecordMapper = medicalRecordMapper;
         this.invoiceService = invoiceService;
@@ -121,6 +128,22 @@ public class AppointmentService {
 
         if (appointment.getStatus() != Status.IN_PROGRESS) {
             throw new BusinessRuleException("Solo se pueden completar citas en estado IN_PROGRESS. Estado actual: " + appointment.getStatus());
+        }
+
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getName() != null) {
+            String username = auth.getName();
+            Doctor authenticatedDoctor = doctorRepository.findByUserId(
+                    systemUserRepository.findByUsername(username)
+                            .orElseThrow(() -> new BusinessRuleException(
+                                    "No se encontró el usuario autenticado en el sistema.")).getId())
+                    .orElse(null);
+            if (authenticatedDoctor == null) {
+                throw new BusinessRuleException("El usuario autenticado no tiene un perfil de doctor vinculado.");
+            }
+            if (!authenticatedDoctor.getId().equals(appointment.getDoctor().getId())) {
+                throw new BusinessRuleException("El doctor autenticado solo puede completar sus propias citas.");
+            }
         }
 
         appointment.setStatus(Status.COMPLETED);

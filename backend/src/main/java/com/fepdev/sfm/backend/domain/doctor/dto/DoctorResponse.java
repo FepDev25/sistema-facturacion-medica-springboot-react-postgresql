@@ -12,6 +12,8 @@ public record DoctorResponse(
     String phone,
     String email,
     boolean isActive,
+    UUID userId,
+    String username,
     OffsetDateTime createdAt,
     OffsetDateTime updatedAt
 ) {}

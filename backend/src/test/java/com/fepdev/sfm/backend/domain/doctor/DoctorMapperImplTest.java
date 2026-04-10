@@ -18,7 +18,7 @@ class DoctorMapperImplTest {
     @Test
     void toEntity_toResponse_and_listMappings_mapExpectedFields() {
         DoctorCreateRequest create = new DoctorCreateRequest(
-                "LIC-001", "Ana", "Lopez", "Cardiologia", "555", "ana@x.com");
+                "LIC-001", "Ana", "Lopez", "Cardiologia", "555", "ana@x.com", null);
 
         Doctor entity = mapper.toEntity(create);
         ReflectionTestUtils.setField(entity, "id", UUID.randomUUID());

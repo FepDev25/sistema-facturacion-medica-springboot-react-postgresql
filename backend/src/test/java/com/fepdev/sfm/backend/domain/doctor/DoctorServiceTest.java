@@ -1,20 +1,19 @@
 package com.fepdev.sfm.backend.domain.doctor;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import static org.mockito.ArgumentMatchers.any;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.fepdev.sfm.backend.domain.appointment.AppointmentMapper;
@@ -32,12 +31,12 @@ class DoctorServiceTest {
     @Mock DoctorMapper doctorMapper;
     @Mock AppointmentRepository appointmentRepository;
     @Mock AppointmentMapper appointmentMapper;
+    @Mock com.fepdev.sfm.backend.security.SystemUserRepository systemUserRepository;
 
     @InjectMocks DoctorService doctorService;
 
-    // licenseNumber, firstName, lastName, specialty, phone, email
     private DoctorCreateRequest request(String license) {
-        return new DoctorCreateRequest(license, "Carlos", "López", "Cardiología", "555-1234", "c@example.com");
+        return new DoctorCreateRequest(license, "Carlos", "López", "Cardiología", "555-1234", "c@example.com", null);
     }
 
     @Test
@@ -56,7 +55,7 @@ class DoctorServiceTest {
         DoctorCreateRequest req = request("LIC-002");
         Doctor doctor = new Doctor();
         DoctorResponse expected = new DoctorResponse(
-            UUID.randomUUID(), "LIC-002", "Carlos", "López", "Cardiología", "555-1234", "c@example.com", true, null, null);
+            UUID.randomUUID(), "LIC-002", "Carlos", "López", "Cardiología", "555-1234", "c@example.com", true, null, null, null, null);
 
         when(doctorRepository.existsByLicenseNumber("LIC-002")).thenReturn(false);
         when(doctorMapper.toEntity(req)).thenReturn(doctor);
