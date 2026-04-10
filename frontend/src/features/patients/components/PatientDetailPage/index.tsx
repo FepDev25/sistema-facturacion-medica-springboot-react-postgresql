@@ -96,9 +96,11 @@ export function PatientDetailPage() {
             </div>
             <div className="md:col-span-2 lg:col-span-4">
               <p className="text-xs text-slate-500">Alergias</p>
-              {!patient.allergies ? (
-                <p className="text-sm text-slate-800">—</p>
-              ) : null}
+              {patient.allergies ? (
+                <p className="text-sm text-slate-800">{patient.allergies}</p>
+              ) : (
+                <p className="text-sm text-slate-400">—</p>
+              )}
             </div>
             <div>
               <p className="text-xs text-slate-500">Creado</p>
