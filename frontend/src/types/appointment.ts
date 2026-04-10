@@ -1,6 +1,4 @@
 import type { AppointmentStatus } from './enums'
-import type { PatientSummaryResponse } from './patient'
-import type { DoctorSummaryResponse } from './doctor'
 
 // ── Requests ──────────────────────────────────────────────────────────────────
 
@@ -22,21 +20,29 @@ export interface AppointmentStatusUpdateRequest {
 
 export interface AppointmentResponse {
   id: string
-  patient: PatientSummaryResponse
-  doctor: DoctorSummaryResponse
+  patientId: string
+  patientFirstName: string
+  patientLastName: string
+  doctorId: string
+  doctorFirstName: string
+  doctorLastName: string
   scheduledAt: string
   scheduledEndAt: string
   durationMinutes: number
   status: AppointmentStatus
-  chiefComplaint: string
+  chiefComplaint: string | null
   notes: string | null
-  createdAt: string
+  createdAt: string | null
+  updatedAt: string | null
 }
 
-// Embedded in MedicalRecordResponse, InvoiceResponse
+// Paginated list projection (flat fields from backend)
 export interface AppointmentSummaryResponse {
   id: string
+  patientFirstName: string
+  patientLastName: string
+  doctorFirstName: string
+  doctorLastName: string
   scheduledAt: string
   status: AppointmentStatus
-  chiefComplaint: string
 }

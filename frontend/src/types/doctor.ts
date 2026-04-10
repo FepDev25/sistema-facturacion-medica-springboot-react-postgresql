@@ -30,14 +30,15 @@ export interface DoctorResponse {
   phone: string
   email: string
   isActive: boolean
-  createdAt: string
-  updatedAt: string
+  userId: string | null
+  username: string | null
+  createdAt: string | null
+  updatedAt: string | null
 }
 
-// Embedded in AppointmentResponse
+// Paginated list projection (flat fields from backend)
 export interface DoctorSummaryResponse {
   id: string
-  licenseNumber: string
   firstName: string
   lastName: string
   specialty: string

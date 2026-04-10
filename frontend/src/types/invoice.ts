@@ -1,7 +1,4 @@
 import type { InvoiceStatus, ItemType, PaymentMethod } from './enums'
-import type { PatientSummaryResponse } from './patient'
-import type { AppointmentSummaryResponse } from './appointment'
-import type { InsurancePolicySummaryResponse } from './insurance'
 import type { ServiceSummaryResponse } from './catalog'
 import type { MedicationSummaryResponse } from './catalog'
 
@@ -13,7 +10,7 @@ export interface InvoiceItemRequest {
   itemType: ItemType
   description: string
   quantity: number               // >= 1
-  unitPrice: number              // >= 0
+  unitPrice: number              // > 0
 }
 
 // Invoice
@@ -28,10 +25,12 @@ export interface InvoiceInsurancePolicyRequest {
 
 export interface InvoiceResponse {
   id: string
+  patientId: string
+  patientFirstName: string
+  patientLastName: string
+  appointmentId: string | null
+  insurancePolicyId: string | null
   invoiceNumber: string
-  patient: PatientSummaryResponse
-  appointment: AppointmentSummaryResponse | null
-  insurancePolicy: InsurancePolicySummaryResponse | null
   subtotal: number
   tax: number
   total: number
@@ -43,8 +42,8 @@ export interface InvoiceResponse {
   notes: string | null
   items: InvoiceItemResponse[]
   payments: PaymentResponse[]
-  createdAt: string
-  updatedAt?: string
+  createdAt: string | null
+  updatedAt: string | null
 }
 
 export interface InvoiceListViewResponse {
@@ -58,18 +57,21 @@ export interface InvoiceListViewResponse {
   status: InvoiceStatus
   issueDate: string
   dueDate: string
-  createdAt: string
+  createdAt: string | null
 }
 
 export interface InvoiceItemResponse {
   id: string
-  service: ServiceSummaryResponse | null
-  medication: MedicationSummaryResponse | null
+  serviceId: string | null
+  serviceName: string | null
+  medicationId: string | null
+  medicationName: string | null
   itemType: ItemType
   description: string
   quantity: number
   unitPrice: number
   subtotal: number
+  createdAt: string | null
 }
 
 // Used in lists and embedded in PaymentResponse
@@ -95,13 +97,14 @@ export interface PaymentCreateRequest {
 
 export interface PaymentResponse {
   id: string
-  invoice: InvoiceSummaryResponse
+  invoiceId: string
+  invoiceNumber: string
   amount: number
   paymentMethod: PaymentMethod
   referenceNumber: string | null
   notes: string | null
   paymentDate: string
-  createdAt: string
+  createdAt: string | null
 }
 
 export const ITEM_TYPE_LABELS: Record<ItemType, string> = {

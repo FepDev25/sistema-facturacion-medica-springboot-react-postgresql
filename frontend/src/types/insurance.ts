@@ -1,41 +1,3 @@
-import type { PatientSummaryResponse } from './patient'
-
-// ── Insurance Provider ────────────────────────────────────────────────────────
-
-export interface InsuranceProviderCreateRequest {
-  name: string
-  code: string
-  phone: string
-  email?: string | null
-  address?: string | null
-}
-
-// code is immutable after registration
-export interface InsuranceProviderUpdateRequest {
-  name: string
-  phone: string
-  email?: string | null
-  address?: string | null
-  isActive: boolean
-}
-
-export interface InsuranceProviderResponse {
-  id: string
-  name: string
-  code: string
-  phone: string
-  email: string | null
-  address: string | null
-  isActive: boolean
-}
-
-// Embedded in InsurancePolicyResponse
-export interface InsuranceProviderSummaryResponse {
-  id: string
-  name: string
-  code: string
-}
-
 // ── Insurance Policy ──────────────────────────────────────────────────────────
 
 export interface InsurancePolicyCreateRequest {
@@ -58,14 +20,19 @@ export interface InsurancePolicyUpdateRequest {
 
 export interface InsurancePolicyResponse {
   id: string
-  patient: PatientSummaryResponse
-  provider: InsuranceProviderSummaryResponse
+  patientId: string
+  patientFirstName: string
+  patientLastName: string
+  providerId: string
+  providerName: string
   policyNumber: string
   coveragePercentage: number
   deductible: number
   startDate: string
   endDate: string
   isActive: boolean
+  createdAt: string | null
+  updatedAt: string | null
 }
 
 // Embedded in InvoiceResponse
@@ -74,4 +41,5 @@ export interface InsurancePolicySummaryResponse {
   policyNumber: string
   coveragePercentage: number
   providerName: string
+  isActive: boolean
 }

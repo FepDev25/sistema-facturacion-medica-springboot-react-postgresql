@@ -52,5 +52,5 @@ export interface PatientSummaryResponse {
   dni: string
   firstName: string
   lastName: string
-  allergies: string | null
+  phone: string
 }
