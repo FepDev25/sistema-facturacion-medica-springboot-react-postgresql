@@ -4,12 +4,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.hamcrest.Matchers.nullValue;
 
 import java.time.Duration;
+import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,7 +61,9 @@ class AuthControllerWebMvcTest {
 
     private SystemUser activeAdmin() {
         SystemUser user = new SystemUser();
+        ReflectionTestUtils.setField(user, "id", UUID.fromString("11111111-1111-1111-1111-111111111111"));
         ReflectionTestUtils.setField(user, "username", "admin");
+        ReflectionTestUtils.setField(user, "email", "admin@sfm.local");
         ReflectionTestUtils.setField(user, "passwordHash", "x");
         ReflectionTestUtils.setField(user, "role", Role.ADMIN);
         ReflectionTestUtils.setField(user, "active", true);
@@ -86,7 +90,9 @@ class AuthControllerWebMvcTest {
         mockMvc.perform(post("/api/v1/auth/login").contentType("application/json").content(body))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").value("access-token"))
-                .andExpect(jsonPath("$.refreshToken").value("refresh-token"));
+                .andExpect(jsonPath("$.refreshToken").value("refresh-token"))
+                .andExpect(jsonPath("$.userId").value("11111111-1111-1111-1111-111111111111"))
+                .andExpect(jsonPath("$.username").value("admin"));
     }
 
     @Test
@@ -135,7 +141,9 @@ class AuthControllerWebMvcTest {
                 .andExpect(jsonPath("$.accessToken").value("new-access-token"))
                 .andExpect(jsonPath("$.role").value("ADMIN"))
                 .andExpect(jsonPath("$.tokenType").value("Bearer"))
-                .andExpect(jsonPath("$.refreshToken").value(nullValue()));
+                .andExpect(jsonPath("$.refreshToken").value(nullValue()))
+                .andExpect(jsonPath("$.userId").value("11111111-1111-1111-1111-111111111111"))
+                .andExpect(jsonPath("$.username").value("admin"));
     }
 
     @Test
@@ -228,5 +236,37 @@ class AuthControllerWebMvcTest {
                 .andExpect(status().isNoContent());
 
         verify(tokenBlacklistService, never()).blacklist(any(), any());
+    }
+
+    @Test
+    void me_whenNoAuthentication_returns401() throws Exception {
+        mockMvc.perform(get("/api/v1/auth/me"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void me_whenAuthenticated_returnsUserProfile() throws Exception {
+        SystemUser user = activeAdmin();
+        when(userDetailsService.loadUserByUsername("admin")).thenReturn(user);
+
+        org.springframework.security.core.Authentication auth =
+                new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
+
+        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(auth);
+
+        try {
+            mockMvc.perform(get("/api/v1/auth/me"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.id").value("11111111-1111-1111-1111-111111111111"))
+                    .andExpect(jsonPath("$.username").value("admin"))
+                    .andExpect(jsonPath("$.email").value("admin@sfm.local"))
+                    .andExpect(jsonPath("$.role").value("ADMIN"))
+                    .andExpect(jsonPath("$.active").value(true))
+                    .andExpect(jsonPath("$.doctorId").value(nullValue()))
+                    .andExpect(jsonPath("$.doctorFirstName").value(nullValue()))
+                    .andExpect(jsonPath("$.doctorLastName").value(nullValue()));
+        } finally {
+            org.springframework.security.core.context.SecurityContextHolder.clearContext();
+        }
     }
 }

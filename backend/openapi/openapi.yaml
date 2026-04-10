@@ -85,7 +85,21 @@ paths:
         '204':
           description: Logout procesado
         '400': { $ref: '#/components/responses/BadRequestError' }
-        '422': { $ref: '#/components/responses/UnprocessableError' }
+         '422': { $ref: '#/components/responses/UnprocessableError' }
+
+  /api/v1/auth/me:
+    get:
+      tags: [Auth]
+      operationId: auth_me
+      summary: Obtener perfil del usuario autenticado
+      responses:
+        '200':
+          description: Perfil del usuario
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfileResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
 
   /api/v1/patients:
     post:
@@ -1773,7 +1787,39 @@ components:
           enum: [Bearer]
         role:
           type: string
+        userId:
+          type: string
+          format: uuid
+        username:
+          type: string
           enum: [ADMIN, DOCTOR, RECEPTIONIST]
+
+    UserProfileResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [ADMIN, DOCTOR, RECEPTIONIST]
+        active:
+          type: boolean
+        doctorId:
+          type: string
+          format: uuid
+          nullable: true
+        doctorFirstName:
+          type: string
+          nullable: true
+        doctorLastName:
+          type: string
+          nullable: true
 
     AppointmentCreateRequest:
       type: object

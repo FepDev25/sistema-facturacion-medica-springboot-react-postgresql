@@ -5,6 +5,9 @@ import java.time.Duration;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,6 +17,7 @@ import com.fepdev.sfm.backend.domain.auth.dto.LoginRequest;
 import com.fepdev.sfm.backend.domain.auth.dto.LogoutRequest;
 import com.fepdev.sfm.backend.domain.auth.dto.RefreshTokenRequest;
 import com.fepdev.sfm.backend.domain.auth.dto.TokenResponse;
+import com.fepdev.sfm.backend.domain.auth.dto.UserProfileResponse;
 import com.fepdev.sfm.backend.security.JwtService;
 import com.fepdev.sfm.backend.security.SystemUser;
 import com.fepdev.sfm.backend.security.TokenBlacklistService;
@@ -23,7 +27,6 @@ import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
 import io.jsonwebtoken.JwtException;
 import jakarta.validation.Valid;
 
-// controlador de autenticacion: login y refresh token
 @RestController
 @RequestMapping("/api/v1/auth")
 public class AuthController {
@@ -43,13 +46,8 @@ public class AuthController {
         this.tokenBlacklistService = tokenBlacklistService;
     }
 
-    
-    // Login: autentica credenciales y devuelve access + refresh token.
-    // Errores de credenciales son manejados por HandlerException via AuthenticationException → 401.
     @PostMapping("/login")
     public ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequest request) {
-        // AuthenticationManager valida username y password contra la BD.
-        // Si falla lanza AuthenticationException - HandlerException - 401
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.username(), request.password()));
 
@@ -58,12 +56,10 @@ public class AuthController {
         String accessToken  = jwtService.generateAccessToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
 
-        return ResponseEntity.ok(TokenResponse.login(accessToken, refreshToken, user.getRole().name()));
+        return ResponseEntity.ok(TokenResponse.login(accessToken, refreshToken, user.getRole().name(),
+                user.getId(), user.getUsername()));
     }
 
-    
-    // Refresh: valida el refresh token y emite un nuevo access token.
-    // No emite un nuevo refresh token, el cliente debe re-autenticarse cuando el refresh expire.
     @PostMapping("/refresh")
     public ResponseEntity<TokenResponse> refresh(@Valid @RequestBody RefreshTokenRequest request) {
         final String token = request.refreshToken();
@@ -82,15 +78,14 @@ public class AuthController {
             }
 
             String newAccessToken = jwtService.generateAccessToken(user);
-            return ResponseEntity.ok(TokenResponse.refresh(newAccessToken, user.getRole().name()));
+            return ResponseEntity.ok(TokenResponse.refresh(newAccessToken, user.getRole().name(),
+                    user.getId(), user.getUsername()));
 
         } catch (JwtException e) {
             throw new BusinessRuleException("El refresh token es invalido o ha expirado");
         }
     }
 
-    // Logout: revoca el refresh token agregando su jti a la blacklist de Redis.
-    // El access token expira naturalmente (15 min), riesgo aceptable.
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@Valid @RequestBody LogoutRequest request) {
         final String token = request.refreshToken();
@@ -108,9 +103,19 @@ public class AuthController {
             tokenBlacklistService.blacklist(jti, remainingTtl);
 
         } catch (JwtException e) {
-            // Token invalido o expirado: no hace falta blacklistearlo, el logout es efectivo
         }
 
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserProfileResponse> me() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getName() == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        SystemUser user = (SystemUser) userDetailsService.loadUserByUsername(auth.getName());
+        return ResponseEntity.ok(UserProfileResponse.from(user));
     }
 }
