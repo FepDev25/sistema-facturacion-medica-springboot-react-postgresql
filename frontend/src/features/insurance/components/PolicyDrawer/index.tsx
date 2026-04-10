@@ -81,8 +81,8 @@ export function PolicyDrawer({ open, onOpenChange, item }: PolicyDrawerProps) {
       form.reset(
         item
           ? {
-              patientId: item.patient.id,
-              providerId: item.provider.id,
+              patientId: item.patientId,
+              providerId: item.providerId,
               policyNumber: item.policyNumber,
               coveragePercentage: item.coveragePercentage,
               deductible: item.deductible,

@@ -1,15 +1,15 @@
 import { z } from 'zod'
 import { apiClient } from '@/lib/axios'
 import type { PageResponse } from '@/types/common'
-import type { AppointmentSummaryResponse } from '@/types/appointment'
-import type { InsurancePolicySummaryResponse } from '@/types/insurance'
-import type { InvoiceListViewResponse } from '@/types/invoice'
 import type {
   PatientCreateRequest,
   PatientResponse,
   PatientSummaryResponse,
   PatientUpdateRequest,
 } from '@/types/patient'
+import type { AppointmentSummaryResponse } from '@/types/appointment'
+import type { InsurancePolicySummaryResponse } from '@/types/insurance'
+import type { InvoiceListViewResponse } from '@/types/invoice'
 
 const GENDERS = ['male', 'female', 'other', 'prefer_not_to_say'] as const
 
@@ -84,53 +84,9 @@ function toNullable(value?: string): string | null {
   return value && value.trim().length > 0 ? value.trim() : null
 }
 
-interface ApiPatientAppointmentSummary {
-  id: string
-  scheduledAt: string
-  status: AppointmentSummaryResponse['status']
-}
-
-interface ApiAppointmentDetail {
-  id: string
-  scheduledAt: string
-  status: AppointmentSummaryResponse['status']
-  chiefComplaint: string | null
-}
-
-function mapAppointmentSummary(apiItem: ApiAppointmentDetail): AppointmentSummaryResponse {
-  return {
-    id: apiItem.id,
-    scheduledAt: apiItem.scheduledAt,
-    status: apiItem.status,
-    chiefComplaint: apiItem.chiefComplaint ?? '',
-  }
-}
-
-async function enrichAppointmentSummary(
-  apiItem: ApiPatientAppointmentSummary,
-): Promise<AppointmentSummaryResponse> {
-  const response = await apiClient.get<ApiAppointmentDetail>(`/appointments/${apiItem.id}`)
-  return mapAppointmentSummary(response.data)
-}
-
-function mapInsurancePolicySummary(apiItem: {
-  id: string
-  policyNumber: string
-  providerName: string
-  coveragePercentage: number
-  isActive: boolean
-}): InsurancePolicySummaryResponse {
-  return {
-    id: apiItem.id,
-    policyNumber: apiItem.policyNumber,
-    providerName: apiItem.providerName,
-    coveragePercentage: apiItem.coveragePercentage,
-  }
-}
-
 export async function getPatients(
   params: PatientsListParams = {},
-): Promise<PageResponse<PatientResponse>> {
+): Promise<PageResponse<PatientSummaryResponse>> {
   const response = await apiClient.get<PageResponse<PatientSummaryResponse>>('/patients', {
     params: {
       lastName: params.lastName,
@@ -140,12 +96,7 @@ export async function getPatients(
     },
   })
 
-  const details = await Promise.all(response.data.content.map((item) => getPatientById(item.id)))
-
-  return {
-    ...response.data,
-    content: details,
-  }
+  return response.data
 }
 
 export async function getPatientById(id: string): Promise<PatientResponse> {
@@ -178,47 +129,37 @@ export async function getPatientAppointments(
   id: string,
   params: PatientAppointmentsParams = {},
 ): Promise<PageResponse<AppointmentSummaryResponse>> {
-  const response = await apiClient.get<
-    PageResponse<ApiPatientAppointmentSummary>
-  >(`/patients/${id}/appointments`, {
-    params: {
-      page: params.page ?? 0,
-      size: params.size ?? 20,
-      sort: params.sort,
+  const response = await apiClient.get<PageResponse<AppointmentSummaryResponse>>(
+    `/patients/${id}/appointments`,
+    {
+      params: {
+        page: params.page ?? 0,
+        size: params.size ?? 20,
+        sort: params.sort,
+      },
     },
-  })
+  )
 
-  return {
-    ...response.data,
-    content: await Promise.all(response.data.content.map((item) => enrichAppointmentSummary(item))),
-  }
+  return response.data
 }
 
 export async function getPatientPolicies(
   id: string,
   params: PatientPoliciesParams = {},
 ): Promise<PageResponse<InsurancePolicySummaryResponse>> {
-  const response = await apiClient.get<
-    PageResponse<{
-      id: string
-      policyNumber: string
-      providerName: string
-      coveragePercentage: number
-      isActive: boolean
-    }>
-  >(`/patients/${id}/policies`, {
-    params: {
-      onlyActive: params.onlyActive,
-      page: params.page ?? 0,
-      size: params.size ?? 20,
-      sort: params.sort,
+  const response = await apiClient.get<PageResponse<InsurancePolicySummaryResponse>>(
+    `/patients/${id}/policies`,
+    {
+      params: {
+        onlyActive: params.onlyActive,
+        page: params.page ?? 0,
+        size: params.size ?? 20,
+        sort: params.sort,
+      },
     },
-  })
+  )
 
-  return {
-    ...response.data,
-    content: response.data.content.map(mapInsurancePolicySummary),
-  }
+  return response.data
 }
 
 export async function getPatientInvoices(

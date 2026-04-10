@@ -4,11 +4,11 @@ import { Badge } from '@/components/ui/badge'
 import { BackToListButton } from '@/components/BackToListButton'
 import { formatDateTime } from '@/lib/utils'
 import { useAppointments } from '@/features/appointments/hooks/useAppointments'
-import { useDoctors } from '../../hooks/useDoctors'
+import { useDoctorById } from '../../hooks/useDoctors'
 
 export function DoctorDetailPage() {
   const { id } = useParams({ from: '/doctors/$id' })
-  const { data: doctors = [], isLoading } = useDoctors({ includeInactive: true })
+  const { data: doctor, isLoading } = useDoctorById(id)
   const { data: doctorAppointmentsPage } = useAppointments({ doctorId: id, page: 0, size: 20 })
   const doctorAppointments = doctorAppointmentsPage?.content ?? []
 
@@ -16,7 +16,6 @@ export function DoctorDetailPage() {
     return <div className="px-6 py-8 text-sm text-slate-500">Cargando médico...</div>
   }
 
-  const doctor = doctors.find((item) => item.id === id)
   if (!doctor) {
     return (
       <div className="px-6 py-8">
@@ -26,7 +25,7 @@ export function DoctorDetailPage() {
     )
   }
 
-  const upcomingAppointments = doctorAppointments
+  const upcomingAppointments = [...doctorAppointments]
     .sort(
       (a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime(),
     )
@@ -105,11 +104,10 @@ export function DoctorDetailPage() {
                 >
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-sm text-slate-800">
-                      {appointment.patient.firstName} {appointment.patient.lastName}
+                      {appointment.patientFirstName} {appointment.patientLastName}
                     </p>
                     <p className="text-xs text-slate-500">{formatDateTime(appointment.scheduledAt)}</p>
                   </div>
-                  <p className="text-xs text-slate-500 mt-1">{appointment.chiefComplaint}</p>
                 </div>
               ))}
             </div>

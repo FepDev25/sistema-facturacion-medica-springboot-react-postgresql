@@ -27,14 +27,13 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { GENDER_LABELS } from '@/types/enums'
-import type { PatientResponse } from '@/types/patient'
 import {
   PatientFormSchema,
   type PatientFormValues,
   toPatientCreateRequest,
   toPatientUpdateRequest,
 } from '../../api/patientsApi'
-import { useCreatePatient, useUpdatePatient } from '../../hooks/usePatients'
+import { useCreatePatient, usePatient, useUpdatePatient } from '../../hooks/usePatients'
 
 const DEFAULT_VALUES: PatientFormValues = {
   dni: '',
@@ -52,11 +51,12 @@ const DEFAULT_VALUES: PatientFormValues = {
 interface PatientDrawerProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  item?: PatientResponse | null
+  patientId?: string | null
 }
 
-export function PatientDrawer({ open, onOpenChange, item }: PatientDrawerProps) {
-  const isEditing = !!item
+export function PatientDrawer({ open, onOpenChange, patientId }: PatientDrawerProps) {
+  const isEditing = !!patientId
+  const { data: patient } = usePatient(patientId ?? '')
 
   const form = useForm<PatientFormValues>({
     resolver: zodResolver(PatientFormSchema),
@@ -66,33 +66,33 @@ export function PatientDrawer({ open, onOpenChange, item }: PatientDrawerProps) 
   useEffect(() => {
     if (open) {
       form.reset(
-        item
+        patient
           ? {
-              dni: item.dni,
-              firstName: item.firstName,
-              lastName: item.lastName,
-              birthDate: item.birthDate,
-              gender: item.gender,
-              phone: item.phone,
-              email: item.email ?? '',
-              address: item.address ?? '',
-              bloodType: item.bloodType ?? '',
-              allergies: item.allergies ?? '',
+              dni: patient.dni,
+              firstName: patient.firstName,
+              lastName: patient.lastName,
+              birthDate: patient.birthDate,
+              gender: patient.gender,
+              phone: patient.phone,
+              email: patient.email ?? '',
+              address: patient.address ?? '',
+              bloodType: patient.bloodType ?? '',
+              allergies: patient.allergies ?? '',
             }
           : DEFAULT_VALUES,
       )
     }
-  }, [open, item, form])
+  }, [open, patient, form])
 
   const createPatient = useCreatePatient()
   const updatePatient = useUpdatePatient()
   const isPending = createPatient.isPending || updatePatient.isPending
 
   function onSubmit(values: PatientFormValues) {
-    if (isEditing && item) {
+    if (isEditing && patientId) {
       updatePatient.mutate(
         {
-          id: item.id,
+          id: patientId,
           data: toPatientUpdateRequest(values),
         },
         {

@@ -22,6 +22,7 @@ import {
   useNoShowAppointment,
   useStartAppointment,
 } from '../../hooks/useAppointments'
+import { usePatient } from '@/features/patients/hooks/usePatients'
 
 const STATUS_CLASS: Record<string, string> = {
   scheduled: 'border-blue-200 text-blue-700 bg-blue-50',
@@ -88,10 +89,7 @@ export function AppointmentDetailPage() {
       </div>
 
       <div className="flex-1 px-6 py-5 overflow-auto space-y-6">
-        <AllergyAlert
-          allergies={appointment.patient.allergies}
-          patientName={`${appointment.patient.firstName} ${appointment.patient.lastName}`}
-        />
+        <PatientAllergiesSection patientId={appointment.patientId} />
 
         <AppointmentStatusFlow
           status={appointment.status}
@@ -164,12 +162,8 @@ export function AppointmentDetailPage() {
             <h2 className="text-sm font-semibold text-slate-900">Paciente</h2>
           </div>
           <p className="text-sm text-slate-800">
-            {appointment.patient.firstName} {appointment.patient.lastName}
+            {appointment.patientFirstName} {appointment.patientLastName}
           </p>
-          <p className="text-xs text-slate-500 mt-1">DNI: {appointment.patient.dni}</p>
-          {!appointment.patient.allergies ? (
-            <p className="text-xs text-slate-500 mt-1">Alergias: Sin registro</p>
-          ) : null}
         </section>
 
         <section className="rounded-md border border-border bg-white p-4">
@@ -178,10 +172,8 @@ export function AppointmentDetailPage() {
             <h2 className="text-sm font-semibold text-slate-900">Médico</h2>
           </div>
           <p className="text-sm text-slate-800">
-            Dr. {appointment.doctor.firstName} {appointment.doctor.lastName}
+            Dr. {appointment.doctorFirstName} {appointment.doctorLastName}
           </p>
-          <p className="text-xs text-slate-500 mt-1">Especialidad: {appointment.doctor.specialty}</p>
-          <p className="text-xs text-slate-500 mt-1">Licencia: {appointment.doctor.licenseNumber}</p>
         </section>
 
         <section className="rounded-md border border-border bg-white p-4">
@@ -189,7 +181,7 @@ export function AppointmentDetailPage() {
             <ClipboardCheck className="h-4 w-4 text-slate-500" />
             <h2 className="text-sm font-semibold text-slate-900">Notas clínicas</h2>
           </div>
-          <p className="text-sm text-slate-800 mb-3">{appointment.chiefComplaint}</p>
+          <p className="text-sm text-slate-800 mb-3">{appointment.chiefComplaint ?? 'Sin motivo registrado.'}</p>
           <p className="text-sm text-slate-600">{appointment.notes ?? 'Sin notas adicionales.'}</p>
           {medicalRecord && (
             <div className="mt-4 rounded-md border border-green-200 bg-green-50 px-3 py-2">
@@ -203,10 +195,23 @@ export function AppointmentDetailPage() {
 
       <CompleteAppointmentDrawer
         appointmentId={appointment.id}
-        patientId={appointment.patient.id}
+        patientId={appointment.patientId}
         open={completeDrawerOpen}
         onOpenChange={setCompleteDrawerOpen}
       />
     </div>
+  )
+}
+
+function PatientAllergiesSection({ patientId }: { patientId: string }) {
+  const { data: patient } = usePatient(patientId)
+
+  if (!patient) return null
+
+  return (
+    <AllergyAlert
+      allergies={patient.allergies}
+      patientName={`${patient.firstName} ${patient.lastName}`}
+    />
   )
 }

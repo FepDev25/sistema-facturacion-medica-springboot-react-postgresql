@@ -19,14 +19,13 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
-import type { DoctorResponse } from '@/types/doctor'
 import {
   DoctorFormSchema,
   type DoctorFormValues,
   toDoctorCreateRequest,
   toDoctorUpdateRequest,
 } from '../../api/doctorsApi'
-import { useCreateDoctor, useUpdateDoctor } from '../../hooks/useDoctors'
+import { useCreateDoctor, useDoctorById, useUpdateDoctor } from '../../hooks/useDoctors'
 
 const DEFAULT_VALUES: DoctorFormValues = {
   licenseNumber: '',
@@ -41,11 +40,12 @@ const DEFAULT_VALUES: DoctorFormValues = {
 interface DoctorDrawerProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  item?: DoctorResponse | null
+  doctorId?: string | null
 }
 
-export function DoctorDrawer({ open, onOpenChange, item }: DoctorDrawerProps) {
-  const isEditing = !!item
+export function DoctorDrawer({ open, onOpenChange, doctorId }: DoctorDrawerProps) {
+  const isEditing = !!doctorId
+  const { data: doctor } = useDoctorById(doctorId ?? '')
 
   const form = useForm<DoctorFormValues>({
     resolver: zodResolver(DoctorFormSchema),
@@ -55,30 +55,30 @@ export function DoctorDrawer({ open, onOpenChange, item }: DoctorDrawerProps) {
   useEffect(() => {
     if (open) {
       form.reset(
-        item
+        doctor
           ? {
-              licenseNumber: item.licenseNumber,
-              firstName: item.firstName,
-              lastName: item.lastName,
-              specialty: item.specialty,
-              phone: item.phone,
-              email: item.email,
-              isActive: item.isActive,
+              licenseNumber: doctor.licenseNumber,
+              firstName: doctor.firstName,
+              lastName: doctor.lastName,
+              specialty: doctor.specialty,
+              phone: doctor.phone,
+              email: doctor.email,
+              isActive: doctor.isActive,
             }
           : DEFAULT_VALUES,
       )
     }
-  }, [open, item, form])
+  }, [open, doctor, form])
 
   const createDoctor = useCreateDoctor()
   const updateDoctor = useUpdateDoctor()
   const isPending = createDoctor.isPending || updateDoctor.isPending
 
   function onSubmit(values: DoctorFormValues) {
-    if (isEditing && item) {
+    if (isEditing && doctorId) {
       updateDoctor.mutate(
         {
-          id: item.id,
+          id: doctorId,
           data: toDoctorUpdateRequest(values, values.isActive),
         },
         {

@@ -27,6 +27,24 @@ export function getPatientAppointmentColumns(): ColumnDef<AppointmentSummaryResp
       ),
     },
     {
+      id: 'patient',
+      header: 'Paciente',
+      cell: ({ row }) => (
+        <p className="font-medium text-slate-900">
+          {row.original.patientFirstName} {row.original.patientLastName}
+        </p>
+      ),
+    },
+    {
+      id: 'doctor',
+      header: 'Médico',
+      cell: ({ row }) => (
+        <p className="text-sm text-slate-700">
+          Dr. {row.original.doctorFirstName} {row.original.doctorLastName}
+        </p>
+      ),
+    },
+    {
       accessorKey: 'status',
       header: 'Estado',
       size: 130,
@@ -35,11 +53,6 @@ export function getPatientAppointmentColumns(): ColumnDef<AppointmentSummaryResp
           {APPOINTMENT_STATUS_LABELS[row.original.status]}
         </Badge>
       ),
-    },
-    {
-      accessorKey: 'chiefComplaint',
-      header: 'Motivo',
-      cell: ({ row }) => <span className="text-sm text-slate-700">{row.original.chiefComplaint}</span>,
     },
     {
       id: 'actions',

@@ -50,6 +50,21 @@ export function InvoiceDetailPage() {
   const invoiceQuery = useInvoice(id)
   const paymentsQuery = useInvoicePayments(id)
 
+  const assignInsurancePolicy = useAssignInvoiceInsurancePolicy(id)
+  const removeInvoiceItem = useRemoveInvoiceItem(id)
+  const addInvoiceItem = useAddInvoiceItem(id)
+
+  const { data: patientPolicies = [] } = usePolicies({
+    patientId: id ? undefined : undefined,
+    onlyActive: true,
+  })
+
+  useEffect(() => {
+    if (invoiceQuery.data?.insurancePolicyId) {
+      setSelectedPolicyId(invoiceQuery.data.insurancePolicyId)
+    }
+  }, [invoiceQuery.data?.insurancePolicyId])
+
   if (invoiceQuery.isLoading) {
     return <div className="px-6 py-8 text-sm text-slate-500">Cargando factura...</div>
   }
@@ -66,19 +81,6 @@ export function InvoiceDetailPage() {
 
   const payments = paymentsQuery.data ?? []
   const isDraft = invoice.status === 'draft'
-
-  const { data: patientPolicies = [] } = usePolicies({
-    patientId: invoice.patient.id,
-    onlyActive: true,
-  })
-
-  const assignInsurancePolicy = useAssignInvoiceInsurancePolicy(invoice.id)
-  const removeInvoiceItem = useRemoveInvoiceItem(invoice.id)
-  const addInvoiceItem = useAddInvoiceItem(invoice.id)
-
-  useEffect(() => {
-    setSelectedPolicyId(invoice.insurancePolicy?.id ?? '')
-  }, [invoice.insurancePolicy?.id])
 
   return (
     <div className="flex flex-col h-full">
@@ -172,17 +174,8 @@ export function InvoiceDetailPage() {
             <h2 className="text-sm font-semibold text-slate-900">Paciente y cobertura</h2>
           </div>
           <p className="text-sm text-slate-800">
-            {invoice.patient.firstName} {invoice.patient.lastName}
+            {invoice.patientFirstName} {invoice.patientLastName}
           </p>
-          <p className="text-xs text-slate-500 mt-1">DNI: {invoice.patient.dni}</p>
-          {invoice.insurancePolicy ? (
-            <p className="text-xs text-slate-500 mt-1">
-              Poliza {invoice.insurancePolicy.policyNumber} - {invoice.insurancePolicy.providerName} ({' '}
-              {invoice.insurancePolicy.coveragePercentage}% cobertura)
-            </p>
-          ) : (
-            <p className="text-xs text-slate-500 mt-1">Sin seguro aplicado</p>
-          )}
 
           {isDraft ? (
             <div className="mt-4 flex flex-col sm:flex-row sm:items-end gap-2">
@@ -195,7 +188,7 @@ export function InvoiceDetailPage() {
                   <SelectContent>
                     {patientPolicies.map((policy) => (
                       <SelectItem key={policy.id} value={policy.id}>
-                        {policy.policyNumber} - {policy.provider.name}
+                        {policy.policyNumber} - {policy.providerName}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -328,19 +321,6 @@ export function InvoiceDetailPage() {
             </div>
           )}
         </section>
-
-        {invoice.appointment && (
-          <section className="rounded-md border border-border bg-white p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <Shield className="h-4 w-4 text-slate-500" />
-              <h2 className="text-sm font-semibold text-slate-900">Contexto clínico</h2>
-            </div>
-            <p className="text-sm text-slate-800">{invoice.appointment.chiefComplaint}</p>
-            <p className="text-xs text-slate-500 mt-1">
-              Cita del {formatDateTime(invoice.appointment.scheduledAt)}
-            </p>
-          </section>
-        )}
       </div>
 
       <PaymentDrawer

@@ -4,6 +4,7 @@ import type { PageResponse } from '@/types/common'
 import type {
   DoctorCreateRequest,
   DoctorResponse,
+  DoctorSummaryResponse,
   DoctorUpdateRequest,
 } from '@/types/doctor'
 
@@ -27,17 +28,10 @@ export interface DoctorsListParams {
   sort?: string
 }
 
-interface ApiDoctorSummaryResponse {
-  id: string
-  firstName: string
-  lastName: string
-  specialty: string
-}
-
 export async function getDoctors(
   params: DoctorsListParams = {},
-): Promise<PageResponse<DoctorResponse>> {
-  const response = await apiClient.get<PageResponse<ApiDoctorSummaryResponse>>('/doctors', {
+): Promise<PageResponse<DoctorSummaryResponse>> {
+  const response = await apiClient.get<PageResponse<DoctorSummaryResponse>>('/doctors', {
     params: {
       active: params.active,
       specialty: params.specialty,
@@ -47,12 +41,7 @@ export async function getDoctors(
     },
   })
 
-  const details = await Promise.all(response.data.content.map((item) => getDoctorById(item.id)))
-
-  return {
-    ...response.data,
-    content: details,
-  }
+  return response.data
 }
 
 export async function getDoctorById(id: string): Promise<DoctorResponse> {

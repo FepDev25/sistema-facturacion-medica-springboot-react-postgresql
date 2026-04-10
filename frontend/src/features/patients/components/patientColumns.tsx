@@ -1,8 +1,8 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { Link } from '@tanstack/react-router'
 import { Eye, Pencil } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import type { PatientSummaryResponse } from '@/types/patient'
 import type { PatientResponse } from '@/types/patient'
 
 interface PatientColumnsOptions {
@@ -13,7 +13,7 @@ interface PatientColumnsOptions {
 export function getPatientColumns({
   onEdit,
   canEdit,
-}: PatientColumnsOptions): ColumnDef<PatientResponse, unknown>[] {
+}: PatientColumnsOptions): ColumnDef<PatientSummaryResponse, unknown>[] {
   return [
     {
       accessorKey: 'dni',
@@ -41,18 +41,6 @@ export function getPatientColumns({
       cell: ({ row }) => <span className="text-sm text-slate-600">{row.original.phone}</span>,
     },
     {
-      accessorKey: 'allergies',
-      header: 'Alergias',
-      cell: ({ row }) =>
-        row.original.allergies ? (
-          <Badge variant="outline" className="border-amber-200 text-amber-700 bg-amber-50">
-            {row.original.allergies}
-          </Badge>
-        ) : (
-          <span className="text-xs text-slate-400">—</span>
-        ),
-    },
-    {
       id: 'actions',
       size: 100,
       cell: ({ row }) => (
@@ -75,7 +63,7 @@ export function getPatientColumns({
             className="h-7 w-7 text-slate-500 hover:text-slate-900"
             aria-label="Editar paciente"
             disabled={!canEdit}
-            onClick={() => onEdit(row.original)}
+            onClick={() => onEdit(row.original as unknown as PatientResponse)}
             title="Editar"
           >
             <Pencil className="h-3.5 w-3.5" />

@@ -10,7 +10,6 @@ import {
   NO_PERMISSION_MESSAGE,
   useRolePermissions,
 } from '@/features/auth/hooks/useRolePermissions'
-import type { DoctorResponse } from '@/types/doctor'
 import { useDeactivateDoctor, useDoctorsPage } from '../../hooks/useDoctors'
 import { getDoctorColumns } from '../doctorColumns'
 import { DoctorDrawer } from '../DoctorDrawer'
@@ -21,7 +20,7 @@ export function DoctorsPage() {
   const [search, setSearch] = useState('')
   const [showInactive, setShowInactive] = useState(false)
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [selectedDoctor, setSelectedDoctor] = useState<DoctorResponse | null>(null)
+  const [editingDoctorId, setEditingDoctorId] = useState<string | null>(null)
   const [page, setPage] = useState(0)
   const pageSize = 20
 
@@ -43,7 +42,7 @@ export function DoctorsPage() {
             toast.error(NO_PERMISSION_MESSAGE)
             return
           }
-          setSelectedDoctor(doctor)
+          setEditingDoctorId(doctor.id)
           setDrawerOpen(true)
         },
         onDeactivate: (doctor) => {
@@ -107,7 +106,7 @@ export function DoctorsPage() {
                 toast.error(NO_PERMISSION_MESSAGE)
                 return
               }
-              setSelectedDoctor(null)
+              setEditingDoctorId(null)
               setDrawerOpen(true)
             }}
           >
@@ -160,7 +159,7 @@ export function DoctorsPage() {
         ) : null}
       </div>
 
-      <DoctorDrawer open={drawerOpen} onOpenChange={setDrawerOpen} item={selectedDoctor} />
+      <DoctorDrawer open={drawerOpen} onOpenChange={setDrawerOpen} doctorId={editingDoctorId} />
     </div>
   )
 }

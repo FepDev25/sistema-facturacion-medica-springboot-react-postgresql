@@ -1,13 +1,12 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { Eye, Pencil, UserX } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import type { DoctorResponse } from '@/types/doctor'
+import type { DoctorSummaryResponse } from '@/types/doctor'
 
 interface DoctorColumnsOptions {
-  onEdit: (doctor: DoctorResponse) => void
-  onDeactivate: (doctor: DoctorResponse) => void
+  onEdit: (doctor: DoctorSummaryResponse) => void
+  onDeactivate: (doctor: DoctorSummaryResponse) => void
   canManage: boolean
 }
 
@@ -15,18 +14,8 @@ export function getDoctorColumns({
   onEdit,
   onDeactivate,
   canManage,
-}: DoctorColumnsOptions): ColumnDef<DoctorResponse, unknown>[] {
+}: DoctorColumnsOptions): ColumnDef<DoctorSummaryResponse, unknown>[] {
   return [
-    {
-      accessorKey: 'licenseNumber',
-      header: 'Licencia',
-      size: 160,
-      cell: ({ row }) => (
-        <span className="font-mono text-xs text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
-          {row.original.licenseNumber}
-        </span>
-      ),
-    },
     {
       id: 'fullName',
       header: 'Nombre completo',
@@ -40,25 +29,6 @@ export function getDoctorColumns({
       accessorKey: 'specialty',
       header: 'Especialidad',
       cell: ({ row }) => <span className="text-sm text-slate-700">{row.original.specialty}</span>,
-    },
-    {
-      accessorKey: 'phone',
-      header: 'Teléfono',
-      size: 170,
-      cell: ({ row }) => <span className="text-sm text-slate-700">{row.original.phone}</span>,
-    },
-    {
-      accessorKey: 'isActive',
-      header: 'Estado',
-      size: 110,
-      cell: ({ row }) =>
-        row.original.isActive ? (
-          <Badge className="bg-green-100 text-green-800 hover:bg-green-100 border-0">Activo</Badge>
-        ) : (
-          <Badge variant="secondary" className="text-slate-400">
-            Inactivo
-          </Badge>
-        ),
     },
     {
       id: 'actions',
@@ -93,7 +63,7 @@ export function getDoctorColumns({
             size="icon"
             className="h-7 w-7 text-slate-500 hover:text-slate-900"
             aria-label="Desactivar médico"
-            disabled={!canManage || !row.original.isActive}
+            disabled={!canManage}
             onClick={() => onDeactivate(row.original)}
             title="Desactivar"
           >

@@ -43,93 +43,10 @@ export interface AppointmentsListParams {
   sort?: string
 }
 
-interface ApiAppointmentSummaryResponse {
-  id: string
-  patientFirstName: string
-  patientLastName: string
-  doctorFirstName: string
-  doctorLastName: string
-  scheduledAt: string
-  status: AppointmentSummaryResponse['status']
-}
-
-interface ApiPatientDetail {
-  id: string
-  dni: string
-  firstName: string
-  lastName: string
-  allergies: string | null
-}
-
-interface ApiDoctorDetail {
-  id: string
-  licenseNumber: string
-  firstName: string
-  lastName: string
-  specialty: string
-}
-
-interface ApiAppointmentResponse {
-  id: string
-  patientId: string
-  patientFirstName: string
-  patientLastName: string
-  doctorId: string
-  doctorFirstName: string
-  doctorLastName: string
-  scheduledAt: string
-  scheduledEndAt: string
-  durationMinutes: number
-  status: AppointmentResponse['status']
-  chiefComplaint: string | null
-  notes: string | null
-  createdAt: string | null
-}
-
-function mapAppointmentResponse(
-  item: ApiAppointmentResponse,
-  patient: ApiPatientDetail,
-  doctor: ApiDoctorDetail,
-): AppointmentResponse {
-  return {
-    id: item.id,
-    patient: {
-      id: patient.id,
-      dni: patient.dni,
-      firstName: patient.firstName,
-      lastName: patient.lastName,
-      allergies: patient.allergies,
-    },
-    doctor: {
-      id: doctor.id,
-      licenseNumber: doctor.licenseNumber,
-      firstName: doctor.firstName,
-      lastName: doctor.lastName,
-      specialty: doctor.specialty,
-    },
-    scheduledAt: item.scheduledAt,
-    scheduledEndAt: item.scheduledEndAt,
-    durationMinutes: item.durationMinutes,
-    status: item.status,
-    chiefComplaint: item.chiefComplaint ?? '',
-    notes: item.notes,
-    createdAt: item.createdAt ?? item.scheduledAt,
-  }
-}
-
-async function enrichAppointment(item: ApiAppointmentResponse): Promise<AppointmentResponse> {
-  const [patientResponse, doctorResponse] = await Promise.all([
-    apiClient.get<ApiPatientDetail>(`/patients/${item.patientId}`),
-    apiClient.get<ApiDoctorDetail>(`/doctors/${item.doctorId}`),
-  ])
-
-  return mapAppointmentResponse(item, patientResponse.data, doctorResponse.data)
-}
-
 export async function getAppointments(
   params: AppointmentsListParams = {},
-): Promise<PageResponse<AppointmentResponse>> {
-  const response = await apiClient.get<PageResponse<ApiAppointmentSummaryResponse>>('/appointments', {
+): Promise<PageResponse<AppointmentSummaryResponse>> {
+  const response = await apiClient.get<PageResponse<AppointmentSummaryResponse>>('/appointments', {
     params: {
       doctorId: params.doctorId,
       patientId: params.patientId,
@@ -142,58 +59,47 @@ export async function getAppointments(
     },
   })
 
-  return {
-    ...response.data,
-    content: await Promise.all(
-      response.data.content.map(async (item) => getAppointmentById(item.id)),
-    ),
-  }
+  return response.data
 }
 
 export async function getAppointmentById(id: string): Promise<AppointmentResponse> {
-  const response = await apiClient.get<ApiAppointmentResponse>(`/appointments/${id}`)
-  return enrichAppointment(response.data)
+  const response = await apiClient.get<AppointmentResponse>(`/appointments/${id}`)
+  return response.data
 }
 
 export async function createAppointment(
   data: AppointmentCreateRequest,
 ): Promise<AppointmentResponse> {
-  const response = await apiClient.post<ApiAppointmentResponse>('/appointments', data)
-  return enrichAppointment(response.data)
-}
-
-async function transitionStatus(
-  id: string,
-  endpoint: 'confirm' | 'start' | 'cancel' | 'no-show',
-): Promise<AppointmentResponse> {
-  const response = await apiClient.patch<ApiAppointmentResponse>(
-    `/appointments/${id}/${endpoint}`,
-  )
-  return enrichAppointment(response.data)
+  const response = await apiClient.post<AppointmentResponse>('/appointments', data)
+  return response.data
 }
 
 export async function confirmAppointment(id: string): Promise<AppointmentResponse> {
-  return transitionStatus(id, 'confirm')
+  const response = await apiClient.patch<AppointmentResponse>(`/appointments/${id}/confirm`)
+  return response.data
 }
 
 export async function startAppointment(id: string): Promise<AppointmentResponse> {
-  return transitionStatus(id, 'start')
+  const response = await apiClient.patch<AppointmentResponse>(`/appointments/${id}/start`)
+  return response.data
 }
 
 export async function completeAppointment(
   id: string,
   data: MedicalRecordCreateRequest,
 ): Promise<AppointmentResponse> {
-  const response = await apiClient.patch<ApiAppointmentResponse>(`/appointments/${id}/complete`, data)
-  return enrichAppointment(response.data)
+  const response = await apiClient.patch<AppointmentResponse>(`/appointments/${id}/complete`, data)
+  return response.data
 }
 
 export async function cancelAppointment(id: string): Promise<AppointmentResponse> {
-  return transitionStatus(id, 'cancel')
+  const response = await apiClient.patch<AppointmentResponse>(`/appointments/${id}/cancel`)
+  return response.data
 }
 
 export async function noShowAppointment(id: string): Promise<AppointmentResponse> {
-  return transitionStatus(id, 'no-show')
+  const response = await apiClient.patch<AppointmentResponse>(`/appointments/${id}/no-show`)
+  return response.data
 }
 
 export async function getAvailability(

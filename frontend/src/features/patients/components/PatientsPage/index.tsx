@@ -8,7 +8,6 @@ import {
   NO_PERMISSION_MESSAGE,
   useRolePermissions,
 } from '@/features/auth/hooks/useRolePermissions'
-import type { PatientResponse } from '@/types/patient'
 import { usePatientsPage } from '../../hooks/usePatients'
 import { getPatientColumns } from '../patientColumns'
 import { PatientDrawer } from '../PatientDrawer'
@@ -18,7 +17,7 @@ export function PatientsPage() {
 
   const [search, setSearch] = useState('')
   const [drawerOpen, setDrawerOpen] = useState(false)
-  const [selectedPatient, setSelectedPatient] = useState<PatientResponse | null>(null)
+  const [editingPatientId, setEditingPatientId] = useState<string | null>(null)
   const [page, setPage] = useState(0)
   const pageSize = 20
 
@@ -37,7 +36,7 @@ export function PatientsPage() {
             toast.error(NO_PERMISSION_MESSAGE)
             return
           }
-          setSelectedPatient(patient)
+          setEditingPatientId(patient.id)
           setDrawerOpen(true)
         },
         canEdit: canManagePatients,
@@ -78,7 +77,7 @@ export function PatientsPage() {
                 toast.error(NO_PERMISSION_MESSAGE)
                 return
               }
-              setSelectedPatient(null)
+              setEditingPatientId(null)
               setDrawerOpen(true)
             }}
           >
@@ -131,7 +130,7 @@ export function PatientsPage() {
         ) : null}
       </div>
 
-      <PatientDrawer open={drawerOpen} onOpenChange={setDrawerOpen} item={selectedPatient} />
+      <PatientDrawer open={drawerOpen} onOpenChange={setDrawerOpen} patientId={editingPatientId} />
     </div>
   )
 }

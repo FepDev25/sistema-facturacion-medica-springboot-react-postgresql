@@ -46,7 +46,7 @@ export function useInvoice(id: string) {
 export function useInvoicePayments(id: string) {
   return useQuery({
     queryKey: invoiceKeys.payments(id),
-    queryFn: () => invoicesApi.getPaymentsByInvoice(id),
+    queryFn: () => invoicesApi.getInvoicePayments(id),
     enabled: !!id,
     select: (data) => data.content,
   })

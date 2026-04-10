@@ -30,14 +30,14 @@ export function getPolicyColumns({
       header: 'Paciente',
       cell: ({ row }) => (
         <p className="font-medium text-slate-900">
-          {row.original.patient.firstName} {row.original.patient.lastName}
+          {row.original.patientFirstName} {row.original.patientLastName}
         </p>
       ),
     },
     {
       id: 'provider',
       header: 'Aseguradora',
-      cell: ({ row }) => <span className="text-sm text-slate-700">{row.original.provider.name}</span>,
+      cell: ({ row }) => <span className="text-sm text-slate-700">{row.original.providerName}</span>,
     },
     {
       accessorKey: 'coveragePercentage',
@@ -91,7 +91,7 @@ export function getPolicyColumns({
             variant="ghost"
             size="icon"
             className="h-7 w-7 text-slate-500 hover:text-slate-900"
-            aria-label="Editar póliza"
+            aria-label="Editar poliza"
             disabled={!canManage}
             onClick={() => onEdit(row.original)}
             title="Editar"

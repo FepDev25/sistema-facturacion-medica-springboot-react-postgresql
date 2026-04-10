@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { APPOINTMENT_STATUS_LABELS } from '@/types/enums'
 import { formatDateTime } from '@/lib/utils'
-import type { AppointmentResponse } from '@/types/appointment'
+import type { AppointmentSummaryResponse } from '@/types/appointment'
 
 const STATUS_CLASS: Record<string, string> = {
   scheduled: 'border-blue-200 text-blue-700 bg-blue-50',
@@ -17,10 +17,10 @@ const STATUS_CLASS: Record<string, string> = {
 }
 
 interface AppointmentColumnsOptions {
-  onConfirm: (item: AppointmentResponse) => void
-  onStart: (item: AppointmentResponse) => void
-  onCancel: (item: AppointmentResponse) => void
-  onNoShow: (item: AppointmentResponse) => void
+  onConfirm: (item: AppointmentSummaryResponse) => void
+  onStart: (item: AppointmentSummaryResponse) => void
+  onCancel: (item: AppointmentSummaryResponse) => void
+  onNoShow: (item: AppointmentSummaryResponse) => void
   canOperate: boolean
 }
 
@@ -30,7 +30,7 @@ export function getAppointmentColumns({
   onCancel,
   onNoShow,
   canOperate,
-}: AppointmentColumnsOptions): ColumnDef<AppointmentResponse, unknown>[] {
+}: AppointmentColumnsOptions): ColumnDef<AppointmentSummaryResponse, unknown>[] {
   return [
     {
       accessorKey: 'scheduledAt',
@@ -45,7 +45,7 @@ export function getAppointmentColumns({
       header: 'Paciente',
       cell: ({ row }) => (
         <p className="font-medium text-slate-900">
-          {row.original.patient.firstName} {row.original.patient.lastName}
+          {row.original.patientFirstName} {row.original.patientLastName}
         </p>
       ),
     },
@@ -54,7 +54,7 @@ export function getAppointmentColumns({
       header: 'Médico',
       cell: ({ row }) => (
         <p className="text-sm text-slate-700">
-          Dr. {row.original.doctor.firstName} {row.original.doctor.lastName}
+          Dr. {row.original.doctorFirstName} {row.original.doctorLastName}
         </p>
       ),
     },
@@ -67,11 +67,6 @@ export function getAppointmentColumns({
           {APPOINTMENT_STATUS_LABELS[row.original.status]}
         </Badge>
       ),
-    },
-    {
-      accessorKey: 'chiefComplaint',
-      header: 'Motivo',
-      cell: ({ row }) => <span className="text-sm text-slate-600">{row.original.chiefComplaint}</span>,
     },
     {
       id: 'actions',
@@ -144,11 +139,6 @@ export function getAppointmentColumns({
             >
               <X className="h-3.5 w-3.5" />
             </Button>
-
-            <span className="ml-1 text-[11px] text-slate-400 flex items-center gap-1">
-              <Clock3 className="h-3 w-3" />
-              {item.durationMinutes}m
-            </span>
           </div>
         )
       },

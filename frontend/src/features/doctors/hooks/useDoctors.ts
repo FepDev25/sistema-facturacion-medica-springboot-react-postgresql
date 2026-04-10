@@ -6,6 +6,7 @@ import type { DoctorUpdateRequest } from '@/types/doctor'
 export const doctorKeys = {
   all: ['doctors'] as const,
   list: (params: object = {}) => [...doctorKeys.all, 'list', params] as const,
+  detail: (id: string) => [...doctorKeys.all, 'detail', id] as const,
 }
 
 export function useDoctors(params: { includeInactive?: boolean; specialty?: string } = {}) {
@@ -39,6 +40,14 @@ export function useDoctorsPage(
         page: params.page ?? 0,
         size: params.size ?? 20,
       }),
+  })
+}
+
+export function useDoctorById(id: string) {
+  return useQuery({
+    queryKey: doctorKeys.detail(id),
+    queryFn: () => doctorsApi.getDoctorById(id),
+    enabled: !!id,
   })
 }
 
