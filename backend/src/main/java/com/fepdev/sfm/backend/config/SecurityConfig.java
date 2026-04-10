@@ -50,6 +50,9 @@ public class SecurityConfig {
                                 "/swagger-ui/**", "/swagger-ui.html",
                                 "/api-docs/**", "/v3/api-docs/**").permitAll()
 
+                        // Usuarios del sistema — solo ADMIN puede listar
+                        .requestMatchers(HttpMethod.GET,   "/api/v1/system-users").hasAuthority("ADMIN")
+
                         // Catalogos — solo ADMIN escribe
                         .requestMatchers(HttpMethod.POST,   "/api/v1/catalog/**").hasAuthority("ADMIN")
                         .requestMatchers(HttpMethod.PUT,    "/api/v1/catalog/**").hasAuthority("ADMIN")

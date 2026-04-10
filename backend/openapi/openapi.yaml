@@ -85,7 +85,7 @@ paths:
         '204':
           description: Logout procesado
         '400': { $ref: '#/components/responses/BadRequestError' }
-         '422': { $ref: '#/components/responses/UnprocessableError' }
+        '422': { $ref: '#/components/responses/UnprocessableError' }
 
   /api/v1/auth/me:
     get:
@@ -100,6 +100,36 @@ paths:
               schema:
                 $ref: '#/components/schemas/UserProfileResponse'
         '401': { $ref: '#/components/responses/UnauthorizedError' }
+
+  /api/v1/system-users:
+    get:
+      tags: [Auth]
+      operationId: system_users_list
+      summary: Listar usuarios del sistema
+      description: Requiere rol ADMIN. Permite filtrar por rol y estado activo.
+      parameters:
+        - name: role
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [ADMIN, DOCTOR, RECEPTIONIST]
+        - name: active
+          in: query
+          required: false
+          schema: { type: boolean }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - $ref: '#/components/parameters/Sort'
+      responses:
+        '200':
+          description: Lista paginada de usuarios del sistema
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PageSystemUserSummaryResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
 
   /api/v1/patients:
     post:
@@ -2614,6 +2644,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/PaymentResponse'
+        totalElements: { type: integer }
+        totalPages: { type: integer }
+        size: { type: integer }
+        number: { type: integer }
+
+    SystemUserSummaryResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        username: { type: string }
+        email: { type: string, format: email }
+        role:
+          type: string
+          enum: [ADMIN, DOCTOR, RECEPTIONIST]
+        active: { type: boolean }
+
+    PageSystemUserSummaryResponse:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/SystemUserSummaryResponse'
         totalElements: { type: integer }
         totalPages: { type: integer }
         size: { type: integer }
