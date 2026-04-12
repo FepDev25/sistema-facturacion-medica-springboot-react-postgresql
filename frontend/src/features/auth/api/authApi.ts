@@ -21,6 +21,19 @@ export interface TokenResponse {
   refreshToken: string | null
   tokenType: 'Bearer'
   role: AuthRole
+  userId: string
+  username: string
+}
+
+export interface UserProfileResponse {
+  id: string
+  username: string
+  email: string
+  role: AuthRole
+  active: boolean
+  doctorId: string | null
+  doctorFirstName: string | null
+  doctorLastName: string | null
 }
 
 export const LoginFormSchema = z.object({
@@ -44,4 +57,9 @@ export async function refreshToken(
 
 export async function logout(data: LogoutRequest): Promise<void> {
   await apiClient.post('/auth/logout', data)
+}
+
+export async function getProfile(): Promise<UserProfileResponse> {
+  const response = await apiClient.get<UserProfileResponse>('/auth/me')
+  return response.data
 }

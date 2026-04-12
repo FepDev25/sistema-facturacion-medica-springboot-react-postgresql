@@ -5,12 +5,16 @@ export interface AuthSessionState {
   accessToken: string | null
   refreshToken: string | null
   role: AuthRole | null
+  userId: string | null
+  username: string | null
 }
 
 const INITIAL_STATE: AuthSessionState = {
   accessToken: null,
   refreshToken: null,
   role: null,
+  userId: null,
+  username: null,
 }
 
 let authSessionState: AuthSessionState = INITIAL_STATE
@@ -34,6 +38,8 @@ export function setAuthSession(tokens: TokenResponse) {
     accessToken: tokens.accessToken,
     refreshToken: tokens.refreshToken,
     role: tokens.role,
+    userId: tokens.userId,
+    username: tokens.username,
   }
   emitChange()
 }

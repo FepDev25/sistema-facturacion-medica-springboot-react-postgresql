@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Shield,
   Stethoscope,
+  UserCircle,
   Users,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -121,7 +122,18 @@ export function AppShell({ children }: AppShellProps) {
               })}
             </nav>
 
-            <div className="mt-auto p-3 border-t border-border">
+            <div className="mt-auto p-3 border-t border-border space-y-1">
+              <Link
+                to="/profile"
+                className="flex items-center gap-2 rounded-md px-3 py-2 text-sm text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                activeProps={{
+                  className:
+                    'bg-primary/10 text-primary font-medium hover:bg-primary/10 hover:text-primary',
+                }}
+              >
+                <UserCircle className="h-4 w-4" />
+                {session.username ?? 'Mi perfil'}
+              </Link>
               <Button
                 variant="outline"
                 size="sm"
@@ -143,15 +155,26 @@ export function AppShell({ children }: AppShellProps) {
                 <p className="text-sm font-semibold text-slate-900">Facturación Médica</p>
                 <p className="text-xs text-slate-500 mt-0.5">{roleLabel}</p>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleLogout}
-                disabled={logout.isPending}
-              >
-                <LogOut className="h-4 w-4" />
-                Salir
-              </Button>
+              <div className="flex items-center gap-2">
+                <Link
+                  to="/profile"
+                  className="rounded-md border border-border p-1.5 text-slate-600"
+                  activeProps={{
+                    className: 'rounded-md border border-border p-1.5 bg-primary text-primary-foreground',
+                  }}
+                >
+                  <UserCircle className="h-4 w-4" />
+                </Link>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleLogout}
+                  disabled={logout.isPending}
+                >
+                  <LogOut className="h-4 w-4" />
+                  Salir
+                </Button>
+              </div>
             </div>
             <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
               {NAV_ITEMS.map((item) => (

@@ -10,6 +10,7 @@ import { CatalogPage } from '@/features/catalog/components/CatalogPage'
 import { AppointmentDetailPage } from '@/features/appointments/components/AppointmentDetailPage'
 import { AppointmentsPage } from '@/features/appointments/components/AppointmentsPage'
 import { LoginPage } from '@/features/auth/components/LoginPage'
+import { ProfilePage } from '@/features/auth/components/ProfilePage'
 import { requireAuth } from '@/features/auth/guards/requireAuth'
 import { isAuthenticated } from '@/features/auth/store/authSessionStore'
 import { DashboardPage } from '@/features/dashboard/components/DashboardPage'
@@ -129,6 +130,13 @@ const medicalRecordDetailRoute = createRoute({
   component: MedicalRecordDetailPage,
 })
 
+const profileRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/profile',
+  beforeLoad: () => requireAuth('/profile'),
+  component: ProfilePage,
+})
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
   indexRoute,
@@ -143,6 +151,7 @@ const routeTree = rootRoute.addChildren([
   appointmentDetailRoute,
   invoiceDetailRoute,
   medicalRecordDetailRoute,
+  profileRoute,
 ])
 
 export const router = createRouter({ routeTree })
