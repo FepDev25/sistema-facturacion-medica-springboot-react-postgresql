@@ -7,6 +7,7 @@ import type {
   DoctorSummaryResponse,
   DoctorUpdateRequest,
 } from '@/types/doctor'
+import type { SystemUserSummaryResponse } from '@/types/systemUser'
 
 export const DoctorFormSchema = z.object({
   licenseNumber: z.string().min(1, 'Requerido').max(50, 'Máximo 50 caracteres'),
@@ -16,6 +17,7 @@ export const DoctorFormSchema = z.object({
   phone: z.string().min(1, 'Requerido').max(20, 'Máximo 20 caracteres'),
   email: z.string().min(1, 'Requerido').email('Email inválido').max(100, 'Máximo 100 caracteres'),
   isActive: z.boolean(),
+  userId: z.string().optional().nullable(),
 })
 
 export type DoctorFormValues = z.infer<typeof DoctorFormSchema>
@@ -78,6 +80,24 @@ export async function deactivateDoctor(id: string): Promise<DoctorResponse> {
   return getDoctorById(id)
 }
 
+export async function getSystemUsers(params: {
+  role?: string
+  active?: boolean
+  page?: number
+  size?: number
+} = {}): Promise<PageResponse<SystemUserSummaryResponse>> {
+  const response = await apiClient.get<PageResponse<SystemUserSummaryResponse>>('/system-users', {
+    params: {
+      role: params.role,
+      active: params.active,
+      page: params.page ?? 0,
+      size: params.size ?? 100,
+    },
+  })
+
+  return response.data
+}
+
 export function toDoctorCreateRequest(values: DoctorFormValues): DoctorCreateRequest {
   return {
     licenseNumber: values.licenseNumber.trim(),
@@ -86,6 +106,7 @@ export function toDoctorCreateRequest(values: DoctorFormValues): DoctorCreateReq
     specialty: values.specialty.trim(),
     phone: values.phone.trim(),
     email: values.email.trim(),
+    userId: values.userId && values.userId.trim().length > 0 ? values.userId.trim() : null,
   }
 }
 

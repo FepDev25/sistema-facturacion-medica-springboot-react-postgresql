@@ -7,6 +7,7 @@ export interface DoctorCreateRequest {
   specialty: string
   phone: string
   email: string
+  userId?: string | null
 }
 
 // licenseNumber is immutable after registration

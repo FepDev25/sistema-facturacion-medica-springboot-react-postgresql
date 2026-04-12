@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams } from '@tanstack/react-router'
-import { ClipboardCheck, Stethoscope, UserRound } from 'lucide-react'
+import { ClipboardCheck, ShieldAlert, Stethoscope, UserRound } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { AllergyAlert } from '@/components/AllergyAlert'
@@ -9,6 +9,7 @@ import {
   NO_PERMISSION_MESSAGE,
   useRolePermissions,
 } from '@/features/auth/hooks/useRolePermissions'
+import { useLoggedInDoctorId } from '@/features/auth/hooks/useLoggedInDoctorId'
 import { APPOINTMENT_STATUS_LABELS } from '@/types/enums'
 import { formatDateTime } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -34,7 +35,8 @@ const STATUS_CLASS: Record<string, string> = {
 }
 
 export function AppointmentDetailPage() {
-  const { canCompleteAppointment, canManagePatients } = useRolePermissions()
+  const { role, canCompleteAppointment, canManagePatients } = useRolePermissions()
+  const loggedInDoctorId = useLoggedInDoctorId()
   const { id } = useParams({ from: '/appointments/$id' })
   const [completeDrawerOpen, setCompleteDrawerOpen] = useState(false)
 
@@ -59,6 +61,10 @@ export function AppointmentDetailPage() {
     )
   }
 
+  const isOwnAppointment = role !== 'DOCTOR' || !loggedInDoctorId || appointment.doctorId === loggedInDoctorId
+  const canOperate = isOwnAppointment && canManagePatients
+  const canComplete = isOwnAppointment && canCompleteAppointment
+
   const medicalRecord = recordQuery.data
 
   return (
@@ -70,15 +76,10 @@ export function AppointmentDetailPage() {
             <p className="text-sm text-slate-500 mt-0.5">{formatDateTime(appointment.scheduledAt)}</p>
           </div>
           <BackToListButton fallbackTo="/appointments" label="Volver a citas" />
-          {appointment.status === 'in_progress' ? (
+          {appointment.status === 'in_progress' && canComplete ? (
             <Button
               size="sm"
-              disabled={!canCompleteAppointment}
               onClick={() => {
-                if (!canCompleteAppointment) {
-                  toast.error(NO_PERMISSION_MESSAGE)
-                  return
-                }
                 setCompleteDrawerOpen(true)
               }}
             >
@@ -89,42 +90,52 @@ export function AppointmentDetailPage() {
       </div>
 
       <div className="flex-1 px-6 py-5 overflow-auto space-y-6">
+        {!isOwnAppointment && (
+          <div className="rounded-md border border-amber-200 bg-amber-50 p-4 flex items-center gap-3">
+            <ShieldAlert className="h-5 w-5 text-amber-600 shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-amber-800">Solo lectura</p>
+              <p className="text-xs text-amber-700">Esta cita pertenece a otro médico. No puedes modificarla.</p>
+            </div>
+          </div>
+        )}
+
         <PatientAllergiesSection patientId={appointment.patientId} />
 
         <AppointmentStatusFlow
           status={appointment.status}
-          canOperate={canManagePatients}
-          canComplete={canCompleteAppointment}
+          canOperate={canOperate}
+          canComplete={canComplete}
           onConfirm={() => {
-            if (!canManagePatients) {
+            if (!canOperate) {
               toast.error(NO_PERMISSION_MESSAGE)
               return
             }
             confirmAppointment.mutate(appointment.id)
           }}
           onStart={() => {
-            if (!canManagePatients) {
+            if (!canOperate) {
               toast.error(NO_PERMISSION_MESSAGE)
               return
             }
             startAppointment.mutate(appointment.id)
           }}
           onComplete={() => {
-            if (!canCompleteAppointment) {
+            if (!canComplete) {
               toast.error(NO_PERMISSION_MESSAGE)
               return
             }
             setCompleteDrawerOpen(true)
           }}
           onNoShow={() => {
-            if (!canManagePatients) {
+            if (!canOperate) {
               toast.error(NO_PERMISSION_MESSAGE)
               return
             }
             noShowAppointment.mutate(appointment.id)
           }}
           onCancel={() => {
-            if (!canManagePatients) {
+            if (!canOperate) {
               toast.error(NO_PERMISSION_MESSAGE)
               return
             }

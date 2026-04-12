@@ -7,6 +7,20 @@ export const doctorKeys = {
   all: ['doctors'] as const,
   list: (params: object = {}) => [...doctorKeys.all, 'list', params] as const,
   detail: (id: string) => [...doctorKeys.all, 'detail', id] as const,
+  systemUsers: (params: object = {}) => [...doctorKeys.all, 'system-users', params] as const,
+}
+
+export function useSystemUsers(params: { role?: string; active?: boolean } = {}) {
+  return useQuery({
+    queryKey: doctorKeys.systemUsers(params),
+    queryFn: () =>
+      doctorsApi.getSystemUsers({
+        role: params.role,
+        active: params.active,
+      }),
+    select: (data) => data.content,
+    enabled: params.role === 'DOCTOR',
+  })
 }
 
 export function useDoctors(params: { includeInactive?: boolean; specialty?: string } = {}) {

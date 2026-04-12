@@ -14,6 +14,7 @@ import {
   NO_PERMISSION_MESSAGE,
   useRolePermissions,
 } from '@/features/auth/hooks/useRolePermissions'
+import { useLoggedInDoctorId } from '@/features/auth/hooks/useLoggedInDoctorId'
 import { APPOINTMENT_STATUS_LABELS } from '@/types/enums'
 import {
   useAppointments,
@@ -35,15 +36,19 @@ type AppointmentStatusFilter =
   | 'no_show'
 
 export function AppointmentsPage() {
-  const { canManagePatients } = useRolePermissions()
+  const { role, canManagePatients } = useRolePermissions()
+  const loggedInDoctorId = useLoggedInDoctorId()
 
   const [statusFilter, setStatusFilter] = useState<AppointmentStatusFilter>('all')
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [page, setPage] = useState(0)
   const pageSize = 20
 
+  const isDoctorView = role === 'DOCTOR' && !!loggedInDoctorId
+
   const { data: appointmentsPage, isLoading } = useAppointments({
     status: statusFilter === 'all' ? undefined : statusFilter,
+    doctorId: isDoctorView ? loggedInDoctorId : undefined,
     page,
     size: pageSize,
   })
@@ -135,7 +140,7 @@ export function AppointmentsPage() {
           <Button
             size="sm"
             className="h-8 gap-1.5 w-full sm:w-auto"
-            disabled={!canManagePatients}
+            disabled={!canManagePatients || isDoctorView}
             onClick={() => {
               if (!canManagePatients) {
                 toast.error(NO_PERMISSION_MESSAGE)

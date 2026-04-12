@@ -1,5 +1,5 @@
 import { useParams } from '@tanstack/react-router'
-import { CalendarClock, Mail, Phone, Stethoscope } from 'lucide-react'
+import { CalendarClock, Link2, Mail, Phone, Stethoscope } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { BackToListButton } from '@/components/BackToListButton'
 import { formatDateTime } from '@/lib/utils'
@@ -83,6 +83,22 @@ export function DoctorDetailPage() {
                 <Mail className="h-4 w-4 text-slate-500" />
                 {doctor.email}
               </p>
+            </div>
+            <div className="lg:col-span-2">
+              <p className="text-xs text-slate-500">Acceso al sistema</p>
+              {doctor.userId ? (
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-cyan-100 text-cyan-800 hover:bg-cyan-100 border-0">
+                    <Link2 className="h-3 w-3 mr-1" />
+                    Vinculado
+                  </Badge>
+                  <span className="text-sm text-slate-700 font-mono">{doctor.username}</span>
+                </div>
+              ) : (
+                <Badge variant="secondary" className="text-slate-400">
+                  Sin acceso
+                </Badge>
+              )}
             </div>
           </div>
         </section>

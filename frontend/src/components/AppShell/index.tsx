@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { useMemo } from 'react'
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
 import {
   CalendarDays,
@@ -15,48 +16,26 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useLogout } from '@/features/auth/hooks/useAuth'
 import { useAuthSession } from '@/features/auth/store/authSessionStore'
+import type { AuthRole } from '@/features/auth/api/authApi'
 
 interface AppShellProps {
   children: ReactNode
 }
 
-const NAV_ITEMS = [
-  {
-    to: '/',
-    label: 'Dashboard',
-    icon: LayoutDashboard,
-  },
-  {
-    to: '/patients',
-    label: 'Pacientes',
-    icon: Users,
-  },
-  {
-    to: '/doctors',
-    label: 'Médicos',
-    icon: Stethoscope,
-  },
-  {
-    to: '/appointments',
-    label: 'Citas',
-    icon: CalendarDays,
-  },
-  {
-    to: '/invoices',
-    label: 'Facturas',
-    icon: CreditCard,
-  },
-  {
-    to: '/insurance',
-    label: 'Seguros',
-    icon: Shield,
-  },
-  {
-    to: '/catalog',
-    label: 'Catálogo',
-    icon: ClipboardList,
-  },
-] as const
+const visibleNavItems: Array<{
+  to: string
+  label: string
+  icon: typeof LayoutDashboard
+  roles: AuthRole[]
+}> = [
+  { to: '/', label: 'Dashboard', icon: LayoutDashboard, roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST'] },
+  { to: '/patients', label: 'Pacientes', icon: Users, roles: ['ADMIN', 'RECEPTIONIST'] },
+  { to: '/doctors', label: 'Médicos', icon: Stethoscope, roles: ['ADMIN'] },
+  { to: '/appointments', label: 'Citas', icon: CalendarDays, roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST'] },
+  { to: '/invoices', label: 'Facturas', icon: CreditCard, roles: ['ADMIN', 'RECEPTIONIST'] },
+  { to: '/insurance', label: 'Seguros', icon: Shield, roles: ['ADMIN'] },
+  { to: '/catalog', label: 'Catálogo', icon: ClipboardList, roles: ['ADMIN'] },
+]
 
 export function AppShell({ children }: AppShellProps) {
   const navigate = useNavigate()
@@ -66,6 +45,11 @@ export function AppShell({ children }: AppShellProps) {
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   })
+
+  const visibleNavItems = useMemo(
+    () => (session.role ? visibleNavItems.filter((item) => item.roles.includes(session.role)) : []),
+    [session.role],
+  )
 
   if (pathname === '/login') {
     return <div className="min-h-screen bg-slate-50">{children}</div>
@@ -102,7 +86,7 @@ export function AppShell({ children }: AppShellProps) {
             </div>
 
             <nav className="p-3 space-y-1">
-              {NAV_ITEMS.map((item) => {
+              {visibleNavItems.map((item) => {
                 const Icon = item.icon
                 return (
                   <Link
@@ -177,7 +161,7 @@ export function AppShell({ children }: AppShellProps) {
               </div>
             </div>
             <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
-              {NAV_ITEMS.map((item) => (
+              {visibleNavItems.map((item) => (
                 <Link
                   key={item.to}
                   to={item.to}

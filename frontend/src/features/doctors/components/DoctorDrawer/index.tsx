@@ -16,6 +16,13 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -25,7 +32,7 @@ import {
   toDoctorCreateRequest,
   toDoctorUpdateRequest,
 } from '../../api/doctorsApi'
-import { useCreateDoctor, useDoctorById, useUpdateDoctor } from '../../hooks/useDoctors'
+import { useCreateDoctor, useDoctorById, useSystemUsers, useUpdateDoctor } from '../../hooks/useDoctors'
 
 const DEFAULT_VALUES: DoctorFormValues = {
   licenseNumber: '',
@@ -35,6 +42,7 @@ const DEFAULT_VALUES: DoctorFormValues = {
   phone: '',
   email: '',
   isActive: true,
+  userId: null,
 }
 
 interface DoctorDrawerProps {
@@ -46,6 +54,7 @@ interface DoctorDrawerProps {
 export function DoctorDrawer({ open, onOpenChange, doctorId }: DoctorDrawerProps) {
   const isEditing = !!doctorId
   const { data: doctor } = useDoctorById(doctorId ?? '')
+  const { data: doctorUsers = [] } = useSystemUsers({ role: 'DOCTOR', active: true })
 
   const form = useForm<DoctorFormValues>({
     resolver: zodResolver(DoctorFormSchema),
@@ -64,6 +73,7 @@ export function DoctorDrawer({ open, onOpenChange, doctorId }: DoctorDrawerProps
               phone: doctor.phone,
               email: doctor.email,
               isActive: doctor.isActive,
+              userId: doctor.userId,
             }
           : DEFAULT_VALUES,
       )
@@ -197,6 +207,42 @@ export function DoctorDrawer({ open, onOpenChange, doctorId }: DoctorDrawerProps
                     <FormControl>
                       <Input {...field} type="email" placeholder="doctor@hospital.com" />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="userId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Usuario del sistema{' '}
+                      <span className="text-slate-400 font-normal">(opcional)</span>
+                    </FormLabel>
+                    <Select
+                      value={field.value ?? ''}
+                      onValueChange={field.onChange}
+                      disabled={isEditing && !!doctor?.userId}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sin usuario vinculado" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="">Sin usuario vinculado</SelectItem>
+                        {doctorUsers.map((user) => (
+                          <SelectItem key={user.id} value={user.id}>
+                            {user.username} — {user.email}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {isEditing && doctor?.userId && (
+                      <p className="text-xs text-slate-400">El usuario vinculado no es editable</p>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}
