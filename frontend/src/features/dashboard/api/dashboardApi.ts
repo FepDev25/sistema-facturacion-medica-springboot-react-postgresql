@@ -59,7 +59,7 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
   }, 0)
 
   const pendingCollection = invoices.reduce((acc, invoice) => {
-    if (invoice.status === 'cancelled' || invoice.status === 'paid') {
+    if (invoice.status === 'cancelled' || invoice.status === 'paid' || invoice.status === 'overdue') {
       return acc
     }
 

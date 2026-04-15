@@ -26,7 +26,7 @@ export const AppointmentFormSchema = z.object({
     .int('Debe ser un número entero')
     .min(1, 'Mínimo 1 minuto')
     .max(240, 'Máximo 240 minutos'),
-  chiefComplaint: z.string().min(1, 'Requerido').max(500, 'Máximo 500 caracteres'),
+  chiefComplaint: z.string().max(500, 'Máximo 500 caracteres').optional(),
   notes: z.string().max(500, 'Máximo 500 caracteres').optional(),
 })
 
@@ -139,7 +139,7 @@ export function toAppointmentCreateRequest(
     doctorId: values.doctorId,
     scheduledAt: new Date(values.scheduledAt).toISOString(),
     durationMinutes: values.durationMinutes,
-    chiefComplaint: values.chiefComplaint.trim(),
+    chiefComplaint: values.chiefComplaint && values.chiefComplaint.trim().length > 0 ? values.chiefComplaint.trim() : null,
     notes: values.notes && values.notes.trim().length > 0 ? values.notes.trim() : null,
   }
 }

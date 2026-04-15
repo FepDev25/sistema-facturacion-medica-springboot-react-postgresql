@@ -131,7 +131,13 @@ export function AppointmentDrawer({ open, onOpenChange }: AppointmentDrawerProps
     }
 
     return doctors
-      .filter((doctor) => doctor.licenseNumber.toLowerCase().includes(q))
+      .filter(
+        (doctor) =>
+          doctor.firstName.toLowerCase().includes(q) ||
+          doctor.lastName.toLowerCase().includes(q) ||
+          doctor.specialty.toLowerCase().includes(q) ||
+          doctor.licenseNumber.toLowerCase().includes(q),
+      )
       .slice(0, 8)
   }, [doctorQuery, doctors])
 

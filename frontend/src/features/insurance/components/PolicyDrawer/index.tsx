@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -26,7 +26,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
-import { usePatients } from '@/features/patients/hooks/usePatients'
+import { useSearchPatients } from '@/features/patients/hooks/usePatients'
 import type { InsurancePolicyResponse } from '@/types/insurance'
 import {
   PolicyFormSchema,
@@ -55,6 +55,7 @@ interface PolicyDrawerProps {
 
 export function PolicyDrawer({ open, onOpenChange, item }: PolicyDrawerProps) {
   const isEditing = !!item
+  const [patientQuery, setPatientQuery] = useState('')
 
   const form = useForm<PolicyFormValues>({
     resolver: zodResolver(PolicyFormSchema),
@@ -62,19 +63,15 @@ export function PolicyDrawer({ open, onOpenChange, item }: PolicyDrawerProps) {
   })
 
   const { data: providers = [] } = useProviders({ includeInactive: false })
-  const { data: patientsData = [] } = usePatients()
+  const { data: patientResults = [] } = useSearchPatients(patientQuery)
   const createPolicy = useCreatePolicy()
   const updatePolicy = useUpdatePolicy()
   const isPending = createPolicy.isPending || updatePolicy.isPending
 
-  const patients = useMemo(
-    () =>
-      patientsData.map((patient) => ({
-        id: patient.id,
-        label: `${patient.firstName} ${patient.lastName} (${patient.dni})`,
-      })),
-    [patientsData],
-  )
+  const patients = patientResults.map((patient) => ({
+    id: patient.id,
+    label: `${patient.firstName} ${patient.lastName} (${patient.dni})`,
+  }))
 
   useEffect(() => {
     if (open) {
@@ -128,20 +125,33 @@ export function PolicyDrawer({ open, onOpenChange, item }: PolicyDrawerProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Paciente</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Seleccionar paciente" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {patients.map((patient) => (
-                          <SelectItem key={patient.id} value={patient.id}>
-                            {patient.label}
-                          </SelectItem>
+                    <Input
+                      placeholder="Buscar por nombre o DNI..."
+                      value={patientQuery}
+                      onChange={(e) => {
+                        setPatientQuery(e.target.value)
+                        if (field.value && !e.target.value) {
+                          field.onChange('')
+                        }
+                      }}
+                    />
+                    {patientResults.length > 0 && (
+                      <div className="mt-1 max-h-40 overflow-y-auto rounded-md border border-slate-200">
+                        {patientResults.map((patient) => (
+                          <button
+                            key={patient.id}
+                            type="button"
+                            className="w-full text-left px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                            onClick={() => {
+                              field.onChange(patient.id)
+                              setPatientQuery(`${patient.firstName} ${patient.lastName}`)
+                            }}
+                          >
+                            {patient.firstName} {patient.lastName} ({patient.dni})
+                          </button>
                         ))}
-                      </SelectContent>
-                    </Select>
+                      </div>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}

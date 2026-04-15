@@ -27,25 +27,32 @@ export const ProviderFormSchema = z.object({
 
 export type ProviderFormValues = z.infer<typeof ProviderFormSchema>
 
-export const PolicyFormSchema = z.object({
-  patientId: z.string().min(1, 'Requerido'),
-  providerId: z.string().min(1, 'Requerido'),
-  policyNumber: z.string().min(1, 'Requerido').max(100, 'Maximo 100 caracteres'),
-  coveragePercentage: z
-    .number({ message: 'Debe ser un numero' })
-    .min(0, 'Minimo 0%')
-    .max(100, 'Maximo 100%'),
-  deductible: z.number({ message: 'Debe ser un numero' }).min(0, 'No puede ser negativo'),
-  startDate: z
-    .string()
-    .min(1, 'Requerido')
-    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato invalido (YYYY-MM-DD)'),
-  endDate: z
-    .string()
-    .min(1, 'Requerido')
-    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato invalido (YYYY-MM-DD)'),
-  isActive: z.boolean(),
-})
+export const PolicyFormSchema = z
+  .object({
+    patientId: z.string().min(1, 'Requerido'),
+    providerId: z.string().min(1, 'Requerido'),
+    policyNumber: z.string().min(1, 'Requerido').max(100, 'Maximo 100 caracteres'),
+    coveragePercentage: z
+      .number({ message: 'Debe ser un numero' })
+      .min(0, 'Minimo 0%')
+      .max(100, 'Maximo 100%'),
+    deductible: z.number({ message: 'Debe ser un numero' }).min(0, 'No puede ser negativo'),
+    startDate: z
+      .string()
+      .min(1, 'Requerido')
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato invalido (YYYY-MM-DD)'),
+    endDate: z
+      .string()
+      .min(1, 'Requerido')
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato invalido (YYYY-MM-DD)'),
+    isActive: z.boolean(),
+  })
+  .refine((data) => {
+    if (data.startDate && data.endDate && data.endDate < data.startDate) {
+      return false
+    }
+    return true
+  }, { message: 'La fecha de fin debe ser posterior a la de inicio' })
 
 export type PolicyFormValues = z.infer<typeof PolicyFormSchema>
 

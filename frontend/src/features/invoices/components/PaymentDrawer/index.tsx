@@ -27,12 +27,20 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { PAYMENT_METHOD_LABELS } from '@/types/enums'
+import { formatCurrency } from '@/lib/utils'
 import {
   PaymentFormSchema,
   type PaymentFormValues,
   toPaymentCreateRequest,
 } from '../../api/invoicesApi'
-import { useRegisterPayment } from '../../hooks/useInvoices'
+import { useInvoice, useInvoicePayments } from '../../hooks/useInvoices'
+
+function getLocalDateTimeString(): string {
+  const now = new Date()
+  const offset = now.getTimezoneOffset()
+  const local = new Date(now.getTime() - offset * 60000)
+  return local.toISOString().slice(0, 16)
+}
 
 const DEFAULT_VALUES: PaymentFormValues = {
   amount: 0,
@@ -49,8 +57,19 @@ interface PaymentDrawerProps {
 }
 
 export function PaymentDrawer({ invoiceId, open, onOpenChange }: PaymentDrawerProps) {
+  const { data: invoice } = useInvoice(invoiceId)
+  const { data: payments = [] } = useInvoicePayments(invoiceId)
+
+  const totalPaid = payments.reduce((acc, p) => acc + p.amount, 0)
+  const balance = invoice ? Math.max(invoice.patientResponsibility - totalPaid, 0) : 0
+
+  const paymentFormSchema = PaymentFormSchema.refine(
+    (data) => data.amount <= balance,
+    { path: ['amount'], message: `El monto no puede exceder el saldo pendiente (${formatCurrency(balance)})` },
+  )
+
   const form = useForm<PaymentFormValues>({
-    resolver: zodResolver(PaymentFormSchema),
+    resolver: zodResolver(paymentFormSchema),
     defaultValues: DEFAULT_VALUES,
   })
 
@@ -58,7 +77,7 @@ export function PaymentDrawer({ invoiceId, open, onOpenChange }: PaymentDrawerPr
     if (open) {
       form.reset({
         ...DEFAULT_VALUES,
-        paymentDate: new Date().toISOString().slice(0, 16),
+        paymentDate: getLocalDateTimeString(),
       })
     }
   }, [open, form])
@@ -84,6 +103,23 @@ export function PaymentDrawer({ invoiceId, open, onOpenChange }: PaymentDrawerPr
             className="flex flex-col flex-1 overflow-hidden"
           >
             <div className="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-5">
+              <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Responsabilidad paciente:</span>
+                  <span className="font-medium text-slate-800">
+                    {invoice ? formatCurrency(invoice.patientResponsibility) : '—'}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Total pagado:</span>
+                  <span className="font-medium text-slate-800">{formatCurrency(totalPaid)}</span>
+                </div>
+                <div className="flex justify-between border-t border-slate-200 pt-1">
+                  <span className="text-slate-700 font-medium">Saldo pendiente:</span>
+                  <span className="font-bold text-slate-900">{formatCurrency(balance)}</span>
+                </div>
+              </div>
+
               <FormField
                 control={form.control}
                 name="amount"
@@ -94,6 +130,7 @@ export function PaymentDrawer({ invoiceId, open, onOpenChange }: PaymentDrawerPr
                       <Input
                         type="number"
                         min={0.01}
+                        max={balance > 0 ? balance : undefined}
                         step={0.01}
                         value={field.value}
                         onChange={(event) => field.onChange(event.target.valueAsNumber)}
@@ -103,6 +140,15 @@ export function PaymentDrawer({ invoiceId, open, onOpenChange }: PaymentDrawerPr
                       />
                     </FormControl>
                     <FormMessage />
+                    {balance > 0 ? (
+                      <button
+                        type="button"
+                        className="text-xs text-primary hover:underline"
+                        onClick={() => form.setValue('amount', Number(balance.toFixed(2)), { shouldValidate: true })}
+                      >
+                        Pagar total ({formatCurrency(balance)})
+                      </button>
+                    ) : null}
                   </FormItem>
                 )}
               />
@@ -112,11 +158,11 @@ export function PaymentDrawer({ invoiceId, open, onOpenChange }: PaymentDrawerPr
                 name="paymentMethod"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Método de pago</FormLabel>
+                    <FormLabel>Metodo de pago</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Seleccionar método" />
+                          <SelectValue placeholder="Seleccionar metodo" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>

@@ -279,7 +279,7 @@ export function PatientDrawer({ open, onOpenChange, patientId }: PatientDrawerPr
                         <span className="text-slate-400 font-normal">(opcional)</span>
                       </FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="O+" disabled={isEditing} />
+                        <Input {...field} placeholder="O+" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
