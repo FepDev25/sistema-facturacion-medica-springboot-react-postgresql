@@ -17,6 +17,8 @@ public record AppointmentResponse(
     OffsetDateTime scheduledEndAt,
     Integer durationMinutes,
     Status status,
+    UUID invoiceId,
+    String invoiceNumber,
     String chiefComplaint,
     String notes,
     OffsetDateTime createdAt,

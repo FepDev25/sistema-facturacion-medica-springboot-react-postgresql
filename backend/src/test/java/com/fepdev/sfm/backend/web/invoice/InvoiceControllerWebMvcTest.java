@@ -70,6 +70,24 @@ class InvoiceControllerWebMvcTest {
     }
 
     @Test
+    void getByAppointmentId_whenFound_returns200() throws Exception {
+        UUID appointmentId = UUID.randomUUID();
+        UUID invoiceId = UUID.randomUUID();
+        InvoiceResponse response = new InvoiceResponse(
+                invoiceId, UUID.randomUUID(), "Ana", "Lopez", appointmentId, null, "FAC-2026-00099",
+                new BigDecimal("100.00"), new BigDecimal("15.00"), new BigDecimal("115.00"),
+                BigDecimal.ZERO, new BigDecimal("115.00"), InvoiceStatus.PENDING,
+                LocalDate.now(), LocalDate.now().plusDays(30), null, List.of(), null, null);
+
+        when(invoiceService.getInvoiceByAppointmentId(appointmentId)).thenReturn(response);
+
+        mockMvc.perform(get("/api/v1/invoices/appointment/{appointmentId}", appointmentId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(invoiceId.toString()))
+                .andExpect(jsonPath("$.appointmentId").value(appointmentId.toString()));
+    }
+
+    @Test
     void addItem_whenInvalidRequest_returns400() throws Exception {
         UUID id = UUID.randomUUID();
         mockMvc.perform(post("/api/v1/invoices/{id}/items", id)

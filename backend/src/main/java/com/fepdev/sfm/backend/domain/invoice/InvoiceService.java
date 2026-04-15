@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -125,6 +126,19 @@ public class InvoiceService {
         Invoice invoice = invoiceRepository.findByInvoiceNumber(invoiceNumber)
                 .orElseThrow(() -> new EntityNotFoundException("Factura con número: " + invoiceNumber + " no encontrada"));
         return buildFullResponse(invoice);
+    }
+
+    @Transactional(readOnly = true)
+    public InvoiceResponse getInvoiceByAppointmentId(UUID appointmentId) {
+        return findInvoiceByAppointmentId(appointmentId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Factura para la cita con ID: " + appointmentId + " no encontrada"));
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<InvoiceResponse> findInvoiceByAppointmentId(UUID appointmentId) {
+        return invoiceRepository.findTopByAppointmentIdOrderByCreatedAtDesc(appointmentId)
+                .map(this::buildFullResponse);
     }
 
     // consulta de facturas con filtros

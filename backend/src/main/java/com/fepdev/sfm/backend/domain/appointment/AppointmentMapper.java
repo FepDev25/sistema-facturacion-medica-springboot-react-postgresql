@@ -43,6 +43,8 @@ public interface AppointmentMapper {
     @Mapping(source = "doctor.id", target = "doctorId")
     @Mapping(source = "doctor.firstName", target = "doctorFirstName")
     @Mapping(source = "doctor.lastName", target = "doctorLastName")
+    @Mapping(target = "invoiceId", ignore = true)
+    @Mapping(target = "invoiceNumber", ignore = true)
     AppointmentResponse toResponse(Appointment entity);
 
     @Mapping(source = "patient.firstName", target = "patientFirstName")

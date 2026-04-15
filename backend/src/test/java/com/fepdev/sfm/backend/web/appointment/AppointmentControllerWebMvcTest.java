@@ -59,7 +59,7 @@ class AppointmentControllerWebMvcTest {
         OffsetDateTime scheduledAt = OffsetDateTime.now().plusDays(1);
         AppointmentResponse response = new AppointmentResponse(
                 id, patientId, "Ana", "Lopez", doctorId, "Doc", "Torres", scheduledAt,
-                scheduledAt.plusMinutes(30), 30, Status.SCHEDULED, "Dolor", null, null, null);
+                scheduledAt.plusMinutes(30), 30, Status.SCHEDULED, null, null, "Dolor", null, null, null);
 
         when(appointmentService.createAppointment(any())).thenReturn(response);
 
@@ -123,7 +123,7 @@ class AppointmentControllerWebMvcTest {
         OffsetDateTime start = OffsetDateTime.now().plusDays(1);
         AppointmentResponse response = new AppointmentResponse(
                 id, patientId, "Ana", "Lopez", doctorId, "Doc", "Torres", start,
-                start.plusMinutes(30), 30, Status.COMPLETED, "Dolor", "ok", null, null);
+                start.plusMinutes(30), 30, Status.COMPLETED, null, null, "Dolor", "ok", null, null);
 
         when(appointmentService.completeAppointment(any(), any())).thenReturn(response);
 
@@ -189,7 +189,7 @@ class AppointmentControllerWebMvcTest {
         OffsetDateTime start = OffsetDateTime.now().plusDays(1);
         AppointmentResponse response = new AppointmentResponse(
                 id, patientId, "Ana", "Lopez", doctorId, "Doc", "Torres", start,
-                start.plusMinutes(30), 30, Status.IN_PROGRESS, "Dolor", null, null, null);
+                start.plusMinutes(30), 30, Status.IN_PROGRESS, null, null, "Dolor", null, null, null);
         when(appointmentService.startAppointment(id)).thenReturn(response);
 
         mockMvc.perform(patch("/api/v1/appointments/{id}/start", id))
@@ -203,7 +203,7 @@ class AppointmentControllerWebMvcTest {
         OffsetDateTime start = OffsetDateTime.now().plusDays(1);
         AppointmentResponse response = new AppointmentResponse(
                 id, UUID.randomUUID(), "Ana", "Lopez", UUID.randomUUID(), "Doc", "Torres", start,
-                start.plusMinutes(30), 30, Status.CANCELLED, "Dolor", null, null, null);
+                start.plusMinutes(30), 30, Status.CANCELLED, null, null, "Dolor", null, null, null);
         when(appointmentService.cancelAppointment(id)).thenReturn(response);
 
         mockMvc.perform(patch("/api/v1/appointments/{id}/cancel", id))
@@ -217,7 +217,7 @@ class AppointmentControllerWebMvcTest {
         OffsetDateTime start = OffsetDateTime.now().plusDays(1);
         AppointmentResponse response = new AppointmentResponse(
                 id, UUID.randomUUID(), "Ana", "Lopez", UUID.randomUUID(), "Doc", "Torres", start,
-                start.plusMinutes(30), 30, Status.NO_SHOW, "Dolor", null, null, null);
+                start.plusMinutes(30), 30, Status.NO_SHOW, null, null, "Dolor", null, null, null);
         when(appointmentService.markNoShow(id)).thenReturn(response);
 
         mockMvc.perform(patch("/api/v1/appointments/{id}/no-show", id))

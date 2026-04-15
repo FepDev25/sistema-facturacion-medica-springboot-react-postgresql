@@ -19,6 +19,8 @@ public interface InvoiceRepository extends JpaRepository<Invoice, UUID> {
 
     Optional<Invoice> findByInvoiceNumber(String invoiceNumber);
 
+    Optional<Invoice> findTopByAppointmentIdOrderByCreatedAtDesc(UUID appointmentId);
+
     @EntityGraph(attributePaths = {
             "patient",
             "appointment",

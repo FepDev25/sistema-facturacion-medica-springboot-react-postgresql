@@ -89,7 +89,7 @@ public class AppointmentService {
         appointment.setScheduledEndAt(endTime);
         appointment.setDoctor(doctor);
         appointment.setPatient(patientRepository.getReferenceById(request.patientId()));
-        return appointmentMapper.toResponse(appointmentRepository.save(appointment));
+        return enrichWithInvoice(appointmentMapper.toResponse(appointmentRepository.save(appointment)));
     }
 
     // confirmar una cita: SCHEDULED a CONFIRMED
@@ -103,7 +103,7 @@ public class AppointmentService {
         }
 
         appointment.setStatus(Status.CONFIRMED);
-        return appointmentMapper.toResponse(appointmentRepository.save(appointment));
+        return enrichWithInvoice(appointmentMapper.toResponse(appointmentRepository.save(appointment)));
     }
 
     // iniciar consulta: CONFIRMED a IN_PROGRESS
@@ -117,7 +117,7 @@ public class AppointmentService {
         }
 
         appointment.setStatus(Status.IN_PROGRESS);
-        return appointmentMapper.toResponse(appointmentRepository.save(appointment));
+        return enrichWithInvoice(appointmentMapper.toResponse(appointmentRepository.save(appointment)));
     }
 
     // completar consulta: IN_PROGRESS a COMPLETED
@@ -158,7 +158,7 @@ public class AppointmentService {
         // crear factura draft con número generado y montos en cero
         invoiceService.createDraftInvoice(appointment);
 
-        return appointmentMapper.toResponse(appointmentRepository.save(appointment));
+        return enrichWithInvoice(appointmentMapper.toResponse(appointmentRepository.save(appointment)));
     }
 
     // cancelar una cita: SCHEDULED o CONFIRMED a CANCELLED
@@ -172,7 +172,7 @@ public class AppointmentService {
         }
 
         appointment.setStatus(Status.CANCELLED);
-        return appointmentMapper.toResponse(appointmentRepository.save(appointment));
+        return enrichWithInvoice(appointmentMapper.toResponse(appointmentRepository.save(appointment)));
     }
 
     // registrar no-presentación: SCHEDULED o CONFIRMED a NO_SHOW
@@ -186,7 +186,7 @@ public class AppointmentService {
         }
 
         appointment.setStatus(Status.NO_SHOW);
-        return appointmentMapper.toResponse(appointmentRepository.save(appointment));
+        return enrichWithInvoice(appointmentMapper.toResponse(appointmentRepository.save(appointment)));
     }
 
     // obtener una cita por su id
@@ -194,7 +194,57 @@ public class AppointmentService {
     public AppointmentResponse getAppointmentById(UUID id) {
         Appointment appointment = appointmentRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("La cita con el id: " + id + " no existe"));
-        return appointmentMapper.toResponse(appointment);
+        return enrichWithInvoice(appointmentMapper.toResponse(appointment));
+    }
+
+    private AppointmentResponse enrichWithInvoice(AppointmentResponse base) {
+        if (base == null) {
+            return null;
+        }
+        try {
+            var invoiceOpt = invoiceService.findInvoiceByAppointmentId(base.id());
+            if (invoiceOpt == null || invoiceOpt.isEmpty()) {
+                throw new EntityNotFoundException("Factura no disponible");
+            }
+            var invoice = invoiceOpt.get();
+            return new AppointmentResponse(
+                    base.id(),
+                    base.patientId(),
+                    base.patientFirstName(),
+                    base.patientLastName(),
+                    base.doctorId(),
+                    base.doctorFirstName(),
+                    base.doctorLastName(),
+                    base.scheduledAt(),
+                    base.scheduledEndAt(),
+                    base.durationMinutes(),
+                    base.status(),
+                    invoice.id(),
+                    invoice.invoiceNumber(),
+                    base.chiefComplaint(),
+                    base.notes(),
+                    base.createdAt(),
+                    base.updatedAt());
+        } catch (EntityNotFoundException ex) {
+            return new AppointmentResponse(
+                    base.id(),
+                    base.patientId(),
+                    base.patientFirstName(),
+                    base.patientLastName(),
+                    base.doctorId(),
+                    base.doctorFirstName(),
+                    base.doctorLastName(),
+                    base.scheduledAt(),
+                    base.scheduledEndAt(),
+                    base.durationMinutes(),
+                    base.status(),
+                    null,
+                    null,
+                    base.chiefComplaint(),
+                    base.notes(),
+                    base.createdAt(),
+                    base.updatedAt());
+        }
     }
 
     // listar citas con filtros opcionales: doctor, paciente, estado, rango de fechas

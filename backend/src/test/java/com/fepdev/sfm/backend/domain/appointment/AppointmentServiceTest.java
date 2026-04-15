@@ -116,7 +116,7 @@ class AppointmentServiceTest {
         Appointment appointment = new Appointment();
         AppointmentResponse expected = new AppointmentResponse(
             UUID.randomUUID(), PATIENT_ID, null, null, DOCTOR_ID, null, null,
-            scheduledAt, scheduledAt.plusMinutes(45), 45, Status.SCHEDULED, null, null, null, null);
+            scheduledAt, scheduledAt.plusMinutes(45), 45, Status.SCHEDULED, null, null, null, null, null, null);
 
         when(doctorRepository.findById(DOCTOR_ID)).thenReturn(Optional.of(doctor));
         when(patientRepository.existsById(PATIENT_ID)).thenReturn(true);
@@ -409,7 +409,7 @@ class AppointmentServiceTest {
         AppointmentResponse response = new AppointmentResponse(
                 id, PATIENT_ID, "Ana", "Lopez", DOCTOR_ID, "Doc", "Torres",
                 OffsetDateTime.now().plusDays(1), OffsetDateTime.now().plusDays(1).plusMinutes(30),
-                30, Status.SCHEDULED, "Control", null, null, null);
+                30, Status.SCHEDULED, null, null, "Control", null, null, null);
 
         when(appointmentRepository.findById(id)).thenReturn(Optional.of(appointment));
         when(appointmentMapper.toResponse(appointment)).thenReturn(response);

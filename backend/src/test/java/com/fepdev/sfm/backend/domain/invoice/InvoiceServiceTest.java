@@ -89,6 +89,41 @@ class InvoiceServiceTest {
     // =========================================================
 
     @Test
+    void getInvoiceByAppointmentId_whenFound_returnsFullResponse() {
+        UUID appointmentId = UUID.randomUUID();
+        UUID invoiceId = UUID.randomUUID();
+
+        Invoice invoice = draftInvoice();
+        ReflectionTestUtils.setField(invoice, "id", invoiceId);
+        invoice.setInvoiceNumber("FAC-2026-00123");
+
+        InvoiceResponse base = new InvoiceResponse(
+                invoiceId, null, null, null, null, null, "FAC-2026-00123",
+                BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
+                BigDecimal.ZERO, BigDecimal.ZERO, InvoiceStatus.DRAFT,
+                LocalDate.now(), LocalDate.now().plusDays(30), null, List.of(), null, null);
+
+        when(invoiceRepository.findTopByAppointmentIdOrderByCreatedAtDesc(appointmentId)).thenReturn(Optional.of(invoice));
+        when(invoiceMapper.toResponse(invoice)).thenReturn(base);
+        when(invoiceItemRepository.findByInvoiceId(invoiceId)).thenReturn(List.of());
+        when(invoiceItemMapper.toResponseList(List.of())).thenReturn(List.of());
+
+        InvoiceResponse result = invoiceService.getInvoiceByAppointmentId(appointmentId);
+
+        assertThat(result.id()).isEqualTo(invoiceId);
+        assertThat(result.invoiceNumber()).isEqualTo("FAC-2026-00123");
+    }
+
+    @Test
+    void getInvoiceByAppointmentId_whenNotFound_throwsEntityNotFoundException() {
+        UUID appointmentId = UUID.randomUUID();
+        when(invoiceRepository.findTopByAppointmentIdOrderByCreatedAtDesc(appointmentId)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> invoiceService.getInvoiceByAppointmentId(appointmentId))
+                .isInstanceOf(EntityNotFoundException.class);
+    }
+
+    @Test
     void addItem_whenInvoiceNotDraft_throwsBusinessRuleException() {
         UUID invoiceId = UUID.randomUUID();
         Invoice invoice = new Invoice();

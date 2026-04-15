@@ -52,6 +52,11 @@ public class InvoiceController {
         return ResponseEntity.ok(invoiceService.getInvoiceByNumber(invoiceNumber));
     }
 
+    @GetMapping("/appointment/{appointmentId}")
+    public ResponseEntity<InvoiceResponse> getByAppointmentId(@PathVariable UUID appointmentId) {
+        return ResponseEntity.ok(invoiceService.getInvoiceByAppointmentId(appointmentId));
+    }
+
     @GetMapping
     public ResponseEntity<Page<InvoiceResponse>> list(
             @RequestParam(required = false) UUID patientId,
