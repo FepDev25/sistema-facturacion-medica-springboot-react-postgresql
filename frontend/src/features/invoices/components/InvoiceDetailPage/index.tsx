@@ -93,7 +93,7 @@ export function InvoiceDetailPage() {
           <div className="flex flex-col sm:flex-row sm:items-center gap-2">
             <Button
               size="sm"
-              disabled={!canRegisterPayments}
+              disabled={!canRegisterPayments || isDraft}
               onClick={() => {
                 if (!canRegisterPayments) {
                   toast.error(NO_PERMISSION_MESSAGE)
@@ -126,6 +126,14 @@ export function InvoiceDetailPage() {
             <div>
               <p className="text-xs text-slate-500">Vencimiento</p>
               <p className="text-sm text-slate-800">{formatDate(invoice.dueDate)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-slate-500">Subtotal</p>
+              <p className="text-sm text-slate-800">{formatCurrency(invoice.subtotal)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-slate-500">Impuestos</p>
+              <p className="text-sm text-slate-800">{formatCurrency(invoice.tax)}</p>
             </div>
             <div>
               <p className="text-xs text-slate-500">Total</p>

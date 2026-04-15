@@ -20,24 +20,24 @@ export function InvoiceCoverageBar({
   patientResponsibility,
 }: InvoiceCoverageBarProps) {
   const normalizedTotal = total > 0 ? total : insuranceCoverage + patientResponsibility
-  const insurancePercent = toPercent(insuranceCoverage, total)
-  const patientPercent = toPercent(patientResponsibility, total)
+  const insurancePercent = toPercent(insuranceCoverage, normalizedTotal)
+  const patientPercent = toPercent(patientResponsibility, normalizedTotal)
 
   return (
     <section className="rounded-md border border-border bg-white p-4">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-semibold text-slate-900">InvoiceCoverageBar</h2>
+        <h2 className="text-sm font-semibold text-slate-900">Distribución de cobertura</h2>
         <p className="text-xs text-slate-500">Total {formatCurrency(normalizedTotal)}</p>
       </div>
 
       <div className="h-3 w-full rounded-full bg-slate-100 overflow-hidden flex">
         <div
-          className="h-full bg-cyan-500"
+          className="h-full bg-cyan-500 transition-all"
           style={{ width: `${insurancePercent}%` }}
           aria-label="Cobertura del seguro"
         />
         <div
-          className="h-full bg-slate-400"
+          className="h-full bg-slate-400 transition-all"
           style={{ width: `${patientPercent}%` }}
           aria-label="Responsabilidad del paciente"
         />

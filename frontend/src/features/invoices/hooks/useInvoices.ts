@@ -15,7 +15,7 @@ export const invoiceKeys = {
 }
 
 export function useInvoices(
-  params: { status?: string; page?: number; size?: number } = {},
+  params: { status?: string; startDate?: string; endDate?: string; page?: number; size?: number } = {},
 ) {
   return useQuery({
     queryKey: invoiceKeys.list(params),
@@ -29,6 +29,8 @@ export function useInvoices(
           | 'cancelled'
           | 'overdue'
           | undefined,
+        startDate: params.startDate,
+        endDate: params.endDate,
         page: params.page ?? 0,
         size: params.size ?? 20,
       }),

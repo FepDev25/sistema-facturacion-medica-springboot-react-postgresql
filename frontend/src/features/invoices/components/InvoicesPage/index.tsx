@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -9,6 +10,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { DataTable } from '@/components/DataTable'
 import {
   NO_PERMISSION_MESSAGE,
@@ -22,6 +33,7 @@ import {
   useOverdueInvoice,
 } from '../../hooks/useInvoices'
 import { getInvoiceColumns } from '../invoiceColumns'
+import type { InvoiceListViewResponse } from '@/types/invoice'
 
 type InvoiceStatusFilter =
   | 'all'
@@ -36,11 +48,20 @@ export function InvoicesPage() {
   const { canManageInvoices } = useRolePermissions()
 
   const [statusFilter, setStatusFilter] = useState<InvoiceStatusFilter>('all')
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
   const [page, setPage] = useState(0)
   const pageSize = 20
 
+  const [confirmAction, setConfirmAction] = useState<{
+    type: 'confirm' | 'overdue' | 'cancel'
+    invoice: InvoiceListViewResponse
+  } | null>(null)
+
   const { data: invoicesPage, isLoading } = useInvoices({
     status: statusFilter === 'all' ? undefined : statusFilter,
+    startDate: startDate || undefined,
+    endDate: endDate || undefined,
     page,
     size: pageSize,
   })
@@ -58,26 +79,63 @@ export function InvoicesPage() {
             toast.error(NO_PERMISSION_MESSAGE)
             return
           }
-          confirmInvoice.mutate(invoice.id)
+          setConfirmAction({ type: 'confirm', invoice })
         },
         onOverdue: (invoice) => {
           if (!canManageInvoices) {
             toast.error(NO_PERMISSION_MESSAGE)
             return
           }
-          overdueInvoice.mutate(invoice.id)
+          setConfirmAction({ type: 'overdue', invoice })
         },
         onCancel: (invoice) => {
           if (!canManageInvoices) {
             toast.error(NO_PERMISSION_MESSAGE)
             return
           }
-          cancelInvoice.mutate(invoice.id)
+          setConfirmAction({ type: 'cancel', invoice })
         },
         canManage: canManageInvoices,
       }),
-    [cancelInvoice, canManageInvoices, confirmInvoice, overdueInvoice],
+    [canManageInvoices],
   )
+
+  function handleConfirmAction() {
+    if (!confirmAction) return
+
+    const { type, invoice } = confirmAction
+    setConfirmAction(null)
+
+    if (type === 'confirm') {
+      confirmInvoice.mutate(invoice.id)
+    } else if (type === 'overdue') {
+      overdueInvoice.mutate(invoice.id)
+    } else {
+      cancelInvoice.mutate(invoice.id)
+    }
+  }
+
+  const CONFIRM_MESSAGES: Record<string, { title: string; description: string }> = {
+    confirm: {
+      title: 'Confirmar factura',
+      description: `Se confirmara la factura ${confirmAction?.invoice.invoiceNumber}. Esta accion no se puede deshacer.`,
+    },
+    overdue: {
+      title: 'Marcar como vencida',
+      description: `Se marcara la factura ${confirmAction?.invoice.invoiceNumber} como vencida.`,
+    },
+    cancel: {
+      title: 'Cancelar factura',
+      description: `Se cancelara la factura ${confirmAction?.invoice.invoiceNumber}. Esta accion no se puede deshacer.`,
+    },
+  }
+
+  function resetFilters() {
+    setStatusFilter('all')
+    setStartDate('')
+    setEndDate('')
+    setPage(0)
+  }
 
   return (
     <div className="flex flex-col h-full">
@@ -89,28 +147,67 @@ export function InvoicesPage() {
       </div>
 
       <div className="flex-1 px-6 py-5 overflow-auto">
-        <div className="flex items-center mb-4 gap-2 w-full sm:w-auto">
-          <span className="text-sm text-slate-600">Estado:</span>
-          <Select
-            value={statusFilter}
-            onValueChange={(value) => {
-              setStatusFilter(value as InvoiceStatusFilter)
-              setPage(0)
-            }}
-          >
-            <SelectTrigger className="h-8 w-full sm:w-52 text-sm">
-              <SelectValue placeholder="Todos" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="draft">{INVOICE_STATUS_LABELS.draft}</SelectItem>
-              <SelectItem value="pending">{INVOICE_STATUS_LABELS.pending}</SelectItem>
-              <SelectItem value="partial_paid">{INVOICE_STATUS_LABELS.partial_paid}</SelectItem>
-              <SelectItem value="paid">{INVOICE_STATUS_LABELS.paid}</SelectItem>
-              <SelectItem value="cancelled">{INVOICE_STATUS_LABELS.cancelled}</SelectItem>
-              <SelectItem value="overdue">{INVOICE_STATUS_LABELS.overdue}</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-slate-600">Estado:</span>
+            <Select
+              value={statusFilter}
+              onValueChange={(value) => {
+                setStatusFilter(value as InvoiceStatusFilter)
+                setPage(0)
+              }}
+            >
+              <SelectTrigger className="h-8 w-full sm:w-44 text-sm">
+                <SelectValue placeholder="Todos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="draft">{INVOICE_STATUS_LABELS.draft}</SelectItem>
+                <SelectItem value="pending">{INVOICE_STATUS_LABELS.pending}</SelectItem>
+                <SelectItem value="partial_paid">{INVOICE_STATUS_LABELS.partial_paid}</SelectItem>
+                <SelectItem value="paid">{INVOICE_STATUS_LABELS.paid}</SelectItem>
+                <SelectItem value="cancelled">{INVOICE_STATUS_LABELS.cancelled}</SelectItem>
+                <SelectItem value="overdue">{INVOICE_STATUS_LABELS.overdue}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-slate-600">Desde:</span>
+            <Input
+              type="date"
+              className="h-8 w-full sm:w-36 text-sm"
+              value={startDate}
+              onChange={(e) => {
+                setStartDate(e.target.value)
+                setPage(0)
+              }}
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-slate-600">Hasta:</span>
+            <Input
+              type="date"
+              className="h-8 w-full sm:w-36 text-sm"
+              value={endDate}
+              onChange={(e) => {
+                setEndDate(e.target.value)
+                setPage(0)
+              }}
+            />
+          </div>
+
+          {(statusFilter !== 'all' || startDate || endDate) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 text-xs"
+              onClick={resetFilters}
+            >
+              Limpiar filtros
+            </Button>
+          )}
         </div>
 
         <DataTable
@@ -156,6 +253,23 @@ export function InvoicesPage() {
           </div>
         ) : null}
       </div>
+
+      <AlertDialog open={!!confirmAction} onOpenChange={(open) => { if (!open) setConfirmAction(null) }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmAction ? CONFIRM_MESSAGES[confirmAction.type].title : ''}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmAction ? CONFIRM_MESSAGES[confirmAction.type].description : ''}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmAction}>Confirmar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -34,6 +34,7 @@ export function getInvoiceColumns({
       accessorKey: 'invoiceNumber',
       header: 'Factura',
       size: 140,
+      enableSorting: true,
       cell: ({ row }) => (
         <span className="font-mono text-xs text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
           {row.original.invoiceNumber}
@@ -53,6 +54,7 @@ export function getInvoiceColumns({
       accessorKey: 'status',
       header: 'Estado',
       size: 130,
+      enableSorting: true,
       cell: ({ row }) => (
         <Badge variant="outline" className={STATUS_CLASS[row.original.status]}>
           {INVOICE_STATUS_LABELS[row.original.status]}
@@ -63,12 +65,14 @@ export function getInvoiceColumns({
       accessorKey: 'dueDate',
       header: 'Vencimiento',
       size: 130,
+      enableSorting: true,
       cell: ({ row }) => <span className="text-sm text-slate-700">{formatDate(row.original.dueDate)}</span>,
     },
     {
       accessorKey: 'total',
       header: () => <div className="text-right">Total</div>,
       size: 120,
+      enableSorting: true,
       cell: ({ row }) => (
         <div className="text-right text-sm font-medium tabular-nums text-slate-800">
           {formatCurrency(row.original.total)}
