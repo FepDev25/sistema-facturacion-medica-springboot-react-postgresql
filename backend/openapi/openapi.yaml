@@ -1205,6 +1205,27 @@ paths:
         '403': { $ref: '#/components/responses/ForbiddenError' }
         '404': { $ref: '#/components/responses/NotFoundError' }
 
+  /api/v1/invoices/appointment/{appointmentId}:
+    get:
+      tags: [Invoices]
+      operationId: invoices_get_by_appointment_id
+      summary: Obtener factura por id de cita
+      parameters:
+        - name: appointmentId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Factura encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+
   /api/v1/invoices:
     get:
       tags: [Invoices]
@@ -1890,6 +1911,8 @@ components:
         status:
           type: string
           enum: [scheduled, confirmed, in_progress, completed, cancelled, no_show]
+        invoiceId: { type: string, format: uuid, nullable: true }
+        invoiceNumber: { type: string, nullable: true }
         chiefComplaint: { type: string, nullable: true }
         notes: { type: string, nullable: true }
         createdAt: { type: string, format: date-time, nullable: true }
