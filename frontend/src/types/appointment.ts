@@ -30,6 +30,8 @@ export interface AppointmentResponse {
   scheduledEndAt: string
   durationMinutes: number
   status: AppointmentStatus
+  invoiceId: string | null
+  invoiceNumber: string | null
   chiefComplaint: string | null
   notes: string | null
   createdAt: string | null

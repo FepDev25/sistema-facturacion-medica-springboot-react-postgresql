@@ -238,6 +238,15 @@ export async function getInvoiceById(id: string): Promise<InvoiceResponse> {
   return mapInvoiceView(response.data)
 }
 
+export async function getInvoiceByAppointment(appointmentId: string): Promise<InvoiceResponse | null> {
+  try {
+    const response = await apiClient.get<ApiInvoiceViewResponse>(`/invoices/appointment/${appointmentId}`)
+    return mapInvoiceView(response.data)
+  } catch {
+    return null
+  }
+}
+
 export async function getInvoicePayments(
   invoiceId: string,
   params: { page?: number; size?: number } = {},

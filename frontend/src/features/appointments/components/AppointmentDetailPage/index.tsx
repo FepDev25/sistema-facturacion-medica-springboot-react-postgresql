@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useParams } from '@tanstack/react-router'
-import { ClipboardCheck, ShieldAlert, Stethoscope, UserRound } from 'lucide-react'
+import { ClipboardCheck, FileText, ShieldAlert, Stethoscope, UserRound } from 'lucide-react'
+import { Link } from '@tanstack/react-router'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { AllergyAlert } from '@/components/AllergyAlert'
@@ -201,6 +202,24 @@ export function AppointmentDetailPage() {
               <p className="text-xs text-green-700">Fecha: {formatDateTime(medicalRecord.recordDate)}</p>
             </div>
           )}
+          {appointment.invoiceId && appointment.invoiceNumber ? (
+            <div className="mt-3 rounded-md border border-cyan-200 bg-cyan-50 px-3 py-2 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <FileText className="h-4 w-4 text-cyan-700" />
+                <div>
+                  <p className="text-xs font-medium text-cyan-800">Factura generada</p>
+                  <p className="text-xs text-cyan-700 font-mono">{appointment.invoiceNumber}</p>
+                </div>
+              </div>
+              <Link
+                to="/invoices/$invoiceId"
+                params={{ invoiceId: appointment.invoiceId }}
+                className="text-xs text-cyan-800 underline hover:text-cyan-900"
+              >
+                Ver factura
+              </Link>
+            </div>
+          ) : null}
         </section>
       </div>
 
