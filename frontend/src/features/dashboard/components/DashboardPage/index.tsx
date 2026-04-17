@@ -9,6 +9,7 @@ import {
   Users,
 } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
+import { useRolePermissions } from '@/features/auth/hooks/useRolePermissions'
 import { useDashboardMetrics } from '../../hooks/useDashboard'
 
 interface MetricCardProps {
@@ -37,6 +38,7 @@ function MetricCard({ label, value, helper, icon: Icon }: MetricCardProps) {
 
 export function DashboardPage() {
   const { data, isLoading } = useDashboardMetrics()
+  const { canManagePatients, canManageDoctors, canManageInvoices, canManageInsurance, canManageCatalog, canRegisterPayments } = useRolePermissions()
 
   return (
     <div className="flex flex-col h-full">
@@ -102,24 +104,34 @@ export function DashboardPage() {
         <section className="rounded-md border border-border bg-white p-4">
           <h2 className="text-sm font-semibold text-slate-900 mb-3">Accesos rápidos</h2>
           <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
-            <Link to="/patients" className="text-sm text-primary underline-offset-4 hover:underline">
-              Gestionar pacientes
-            </Link>
-            <Link to="/doctors" className="text-sm text-primary underline-offset-4 hover:underline">
-              Gestionar médicos
-            </Link>
+            {canManagePatients && (
+              <Link to="/patients" className="text-sm text-primary underline-offset-4 hover:underline">
+                Gestionar pacientes
+              </Link>
+            )}
+            {canManageDoctors && (
+              <Link to="/doctors" className="text-sm text-primary underline-offset-4 hover:underline">
+                Gestionar médicos
+              </Link>
+            )}
             <Link to="/appointments" className="text-sm text-primary underline-offset-4 hover:underline">
               Ver agenda de citas
             </Link>
-            <Link to="/invoices" className="text-sm text-primary underline-offset-4 hover:underline">
-              Revisar facturas
-            </Link>
-            <Link to="/insurance" className="text-sm text-primary underline-offset-4 hover:underline">
-              Administrar seguros
-            </Link>
-            <Link to="/catalog" className="text-sm text-primary underline-offset-4 hover:underline">
-              Abrir catálogo clínico
-            </Link>
+            {(canManageInvoices || canRegisterPayments) && (
+              <Link to="/invoices" className="text-sm text-primary underline-offset-4 hover:underline">
+                Revisar facturas
+              </Link>
+            )}
+            {canManageInsurance && (
+              <Link to="/insurance" className="text-sm text-primary underline-offset-4 hover:underline">
+                Administrar seguros
+              </Link>
+            )}
+            {canManageCatalog && (
+              <Link to="/catalog" className="text-sm text-primary underline-offset-4 hover:underline">
+                Abrir catálogo clínico
+              </Link>
+            )}
           </div>
         </section>
       </div>

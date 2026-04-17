@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { useParams } from '@tanstack/react-router'
-import { CreditCard, FileText, Plus, Shield, Trash2, UserRound } from 'lucide-react'
+import { Link, useParams } from '@tanstack/react-router'
+import { ClipboardList, CreditCard, FileText, Plus, Shield, Trash2, UserRound } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -19,9 +19,11 @@ import { usePolicies } from '@/features/insurance/hooks/useInsurance'
 import { INVOICE_STATUS_LABELS, PAYMENT_METHOD_LABELS } from '@/types/enums'
 import { formatCurrency, formatDate, formatDateTime } from '@/lib/utils'
 import { toast } from 'sonner'
+import { useAppointmentMedicalRecord } from '@/features/appointments/hooks/useAppointments'
 import {
   useAddInvoiceItem,
   useAssignInvoiceInsurancePolicy,
+  useConfirmInvoice,
   useInvoice,
   useInvoicePayments,
   useRemoveInvoiceItem,
@@ -49,7 +51,9 @@ export function InvoiceDetailPage() {
 
   const invoiceQuery = useInvoice(id)
   const paymentsQuery = useInvoicePayments(id)
+  const medicalRecordQuery = useAppointmentMedicalRecord(invoiceQuery.data?.appointmentId ?? '')
 
+  const confirmInvoice = useConfirmInvoice()
   const assignInsurancePolicy = useAssignInvoiceInsurancePolicy(id)
   const removeInvoiceItem = useRemoveInvoiceItem(id)
   const addInvoiceItem = useAddInvoiceItem(id)
@@ -91,6 +95,23 @@ export function InvoiceDetailPage() {
             <p className="text-sm text-slate-500 mt-0.5">Detalle de factura y cobranza</p>
           </div>
           <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            {isDraft && (
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={!canManageInvoices || invoice.total === 0 || confirmInvoice.isPending}
+                title={invoice.total === 0 ? 'Agrega ítems antes de confirmar' : 'Confirmar factura'}
+                onClick={() => {
+                  if (!canManageInvoices) {
+                    toast.error(NO_PERMISSION_MESSAGE)
+                    return
+                  }
+                  confirmInvoice.mutate(invoice.id)
+                }}
+              >
+                {confirmInvoice.isPending ? 'Confirmando...' : 'Confirmar factura'}
+              </Button>
+            )}
             <Button
               size="sm"
               disabled={!canRegisterPayments || isDraft}
@@ -184,6 +205,21 @@ export function InvoiceDetailPage() {
           <p className="text-sm text-slate-800">
             {invoice.patientFirstName} {invoice.patientLastName}
           </p>
+          {medicalRecordQuery.data && (
+            <div className="mt-3 rounded-md border border-green-200 bg-green-50 px-3 py-2 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ClipboardList className="h-4 w-4 text-green-700" />
+                <p className="text-xs font-medium text-green-800">Expediente médico asociado</p>
+              </div>
+              <Link
+                to="/medical-records/$id"
+                params={{ id: medicalRecordQuery.data.id }}
+                className="text-xs text-green-800 underline hover:text-green-900"
+              >
+                Ver expediente
+              </Link>
+            </div>
+          )}
 
           {isDraft ? (
             <div className="mt-4 flex flex-col sm:flex-row sm:items-end gap-2">

@@ -196,10 +196,21 @@ export function AppointmentDetailPage() {
           <p className="text-sm text-slate-800 mb-3">{appointment.chiefComplaint ?? 'Sin motivo registrado.'}</p>
           <p className="text-sm text-slate-600">{appointment.notes ?? 'Sin notas adicionales.'}</p>
           {medicalRecord && (
-            <div className="mt-4 rounded-md border border-green-200 bg-green-50 px-3 py-2">
-              <p className="text-xs font-medium text-green-800">Expediente generado</p>
-              <p className="text-xs text-green-700 mt-1">ID: {medicalRecord.id}</p>
-              <p className="text-xs text-green-700">Fecha: {formatDateTime(medicalRecord.recordDate)}</p>
+            <div className="mt-4 rounded-md border border-green-200 bg-green-50 px-3 py-2 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ClipboardCheck className="h-4 w-4 text-green-700" />
+                <div>
+                  <p className="text-xs font-medium text-green-800">Expediente generado</p>
+                  <p className="text-xs text-green-700">{formatDateTime(medicalRecord.recordDate)}</p>
+                </div>
+              </div>
+              <Link
+                to="/medical-records/$id"
+                params={{ id: medicalRecord.id }}
+                className="text-xs text-green-800 underline hover:text-green-900"
+              >
+                Ver expediente
+              </Link>
             </div>
           )}
           {appointment.invoiceId && appointment.invoiceNumber ? (

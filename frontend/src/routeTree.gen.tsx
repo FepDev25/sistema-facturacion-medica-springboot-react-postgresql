@@ -11,7 +11,7 @@ import { AppointmentDetailPage } from '@/features/appointments/components/Appoin
 import { AppointmentsPage } from '@/features/appointments/components/AppointmentsPage'
 import { LoginPage } from '@/features/auth/components/LoginPage'
 import { ProfilePage } from '@/features/auth/components/ProfilePage'
-import { requireAuth } from '@/features/auth/guards/requireAuth'
+import { requireAuth, requireRole } from '@/features/auth/guards/requireAuth'
 import { isAuthenticated } from '@/features/auth/store/authSessionStore'
 import { DashboardPage } from '@/features/dashboard/components/DashboardPage'
 import { DoctorDetailPage } from '@/features/doctors/components/DoctorDetailPage'
@@ -56,21 +56,21 @@ const indexRoute = createRoute({
 const catalogRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/catalog',
-  beforeLoad: () => requireAuth('/catalog'),
+  beforeLoad: () => requireRole(['ADMIN'], '/catalog'),
   component: CatalogPage,
 })
 
 const patientsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/patients',
-  beforeLoad: () => requireAuth('/patients'),
+  beforeLoad: () => requireRole(['ADMIN', 'RECEPTIONIST'], '/patients'),
   component: PatientsPage,
 })
 
 const doctorsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/doctors',
-  beforeLoad: () => requireAuth('/doctors'),
+  beforeLoad: () => requireRole(['ADMIN'], '/doctors'),
   component: DoctorsPage,
 })
 
@@ -84,28 +84,28 @@ const appointmentsRoute = createRoute({
 const invoicesRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/invoices',
-  beforeLoad: () => requireAuth('/invoices'),
+  beforeLoad: () => requireRole(['ADMIN', 'RECEPTIONIST'], '/invoices'),
   component: InvoicesPage,
 })
 
 const insuranceRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/insurance',
-  beforeLoad: () => requireAuth('/insurance'),
+  beforeLoad: () => requireRole(['ADMIN'], '/insurance'),
   component: InsurancePage,
 })
 
 const patientDetailRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/patients/$id',
-  beforeLoad: () => requireAuth('/patients'),
+  beforeLoad: () => requireRole(['ADMIN', 'RECEPTIONIST'], '/patients'),
   component: PatientDetailPage,
 })
 
 const doctorDetailRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/doctors/$id',
-  beforeLoad: () => requireAuth('/doctors'),
+  beforeLoad: () => requireRole(['ADMIN'], '/doctors'),
   component: DoctorDetailPage,
 })
 
@@ -119,7 +119,7 @@ const appointmentDetailRoute = createRoute({
 const invoiceDetailRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/invoices/$id',
-  beforeLoad: () => requireAuth('/invoices'),
+  beforeLoad: () => requireRole(['ADMIN', 'RECEPTIONIST'], '/invoices'),
   component: InvoiceDetailPage,
 })
 
