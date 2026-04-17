@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import * as patientsApi from '../api/patientsApi'
+import { extractApiErrorMessage } from '@/lib/utils'
 import type { PatientUpdateRequest } from '@/types/patient'
 
 export const patientKeys = {
@@ -48,7 +49,7 @@ export function useCreatePatient() {
       toast.success('Paciente creado')
     },
     onError: (error) => {
-      toast.error(error.message || 'Error al crear el paciente')
+      toast.error(extractApiErrorMessage(error) ?? 'Error al crear el paciente')
     },
   })
 }
@@ -103,8 +104,8 @@ export function useUpdatePatient() {
       void qc.invalidateQueries({ queryKey: patientKeys.all })
       toast.success('Paciente actualizado')
     },
-    onError: () => {
-      toast.error('Error al actualizar el paciente')
+    onError: (error) => {
+      toast.error(extractApiErrorMessage(error) ?? 'Error al actualizar el paciente')
     },
   })
 }

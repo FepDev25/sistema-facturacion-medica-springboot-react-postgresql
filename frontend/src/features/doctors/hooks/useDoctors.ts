@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import * as doctorsApi from '../api/doctorsApi'
+import { extractApiErrorMessage } from '@/lib/utils'
 import type { DoctorUpdateRequest } from '@/types/doctor'
 
 export const doctorKeys = {
@@ -75,7 +76,7 @@ export function useCreateDoctor() {
       toast.success('Médico creado')
     },
     onError: (error) => {
-      toast.error(error.message || 'Error al crear el médico')
+      toast.error(extractApiErrorMessage(error) ?? 'Error al crear el médico')
     },
   })
 }
@@ -90,8 +91,8 @@ export function useUpdateDoctor() {
       void qc.invalidateQueries({ queryKey: doctorKeys.all })
       toast.success('Médico actualizado')
     },
-    onError: () => {
-      toast.error('Error al actualizar el médico')
+    onError: (error) => {
+      toast.error(extractApiErrorMessage(error) ?? 'Error al actualizar el médico')
     },
   })
 }
@@ -105,8 +106,8 @@ export function useDeactivateDoctor() {
       void qc.invalidateQueries({ queryKey: doctorKeys.all })
       toast.success('Médico desactivado')
     },
-    onError: () => {
-      toast.error('Error al desactivar el médico')
+    onError: (error) => {
+      toast.error(extractApiErrorMessage(error) ?? 'Error al desactivar el médico')
     },
   })
 }

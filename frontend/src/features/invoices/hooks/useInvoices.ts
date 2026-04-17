@@ -107,8 +107,8 @@ export function useRegisterPayment(invoiceId: string) {
       void qc.invalidateQueries({ queryKey: invoiceKeys.payments(invoiceId) })
       toast.success('Pago registrado')
     },
-    onError: () => {
-      toast.error('Error al registrar el pago')
+    onError: (error) => {
+      toast.error(extractApiErrorMessage(error) ?? 'Error al registrar el pago')
     },
   })
 }
@@ -123,8 +123,8 @@ export function useAddInvoiceItem(invoiceId: string) {
       void qc.invalidateQueries({ queryKey: invoiceKeys.all })
       toast.success('Item agregado')
     },
-    onError: () => {
-      toast.error('Error al agregar el item')
+    onError: (error) => {
+      toast.error(extractApiErrorMessage(error) ?? 'Error al agregar el item')
     },
   })
 }
@@ -139,8 +139,8 @@ export function useRemoveInvoiceItem(invoiceId: string) {
       void qc.invalidateQueries({ queryKey: invoiceKeys.all })
       toast.success('Item eliminado')
     },
-    onError: () => {
-      toast.error('Error al eliminar el item')
+    onError: (error) => {
+      toast.error(extractApiErrorMessage(error) ?? 'Error al eliminar el item')
     },
   })
 }
@@ -156,8 +156,8 @@ export function useAssignInvoiceInsurancePolicy(invoiceId: string) {
       void qc.invalidateQueries({ queryKey: invoiceKeys.all })
       toast.success('Cobertura actualizada')
     },
-    onError: () => {
-      toast.error('Error al actualizar la cobertura')
+    onError: (error) => {
+      toast.error(extractApiErrorMessage(error) ?? 'Error al actualizar la cobertura')
     },
   })
 }

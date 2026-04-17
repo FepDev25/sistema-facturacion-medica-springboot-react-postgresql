@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import * as catalogApi from '../api/catalogApi'
+import { extractApiErrorMessage } from '@/lib/utils'
 import type { ServiceUpdateRequest, MedicationUpdateRequest } from '@/types/catalog'
 import type { MedicationResponse, ServiceResponse } from '@/types/catalog'
 import type { PageResponse } from '@/types/common'
@@ -86,7 +87,7 @@ export function useCreateService() {
       void qc.invalidateQueries({ queryKey: serviceKeys.all })
       toast.success('Servicio creado')
     },
-    onError: () => toast.error('Error al crear el servicio'),
+    onError: (error) => toast.error(extractApiErrorMessage(error) ?? 'Error al crear el servicio'),
   })
 }
 
@@ -99,7 +100,7 @@ export function useUpdateService() {
       void qc.invalidateQueries({ queryKey: serviceKeys.all })
       toast.success('Servicio actualizado')
     },
-    onError: () => toast.error('Error al actualizar el servicio'),
+    onError: (error) => toast.error(extractApiErrorMessage(error) ?? 'Error al actualizar el servicio'),
   })
 }
 
@@ -111,7 +112,7 @@ export function useToggleServiceActive() {
       void qc.invalidateQueries({ queryKey: serviceKeys.all })
       toast.success(data.isActive ? 'Servicio activado' : 'Servicio desactivado')
     },
-    onError: () => toast.error('Error al cambiar el estado'),
+    onError: (error) => toast.error(extractApiErrorMessage(error) ?? 'Error al cambiar el estado'),
   })
 }
 
@@ -165,7 +166,7 @@ export function useCreateMedication() {
       void qc.invalidateQueries({ queryKey: medicationKeys.all })
       toast.success('Medicamento creado')
     },
-    onError: () => toast.error('Error al crear el medicamento'),
+    onError: (error) => toast.error(extractApiErrorMessage(error) ?? 'Error al crear el medicamento'),
   })
 }
 
@@ -178,7 +179,7 @@ export function useUpdateMedication() {
       void qc.invalidateQueries({ queryKey: medicationKeys.all })
       toast.success('Medicamento actualizado')
     },
-    onError: () => toast.error('Error al actualizar el medicamento'),
+    onError: (error) => toast.error(extractApiErrorMessage(error) ?? 'Error al actualizar el medicamento'),
   })
 }
 
@@ -190,6 +191,6 @@ export function useToggleMedicationActive() {
       void qc.invalidateQueries({ queryKey: medicationKeys.all })
       toast.success(data.isActive ? 'Medicamento activado' : 'Medicamento desactivado')
     },
-    onError: () => toast.error('Error al cambiar el estado'),
+    onError: (error) => toast.error(extractApiErrorMessage(error) ?? 'Error al cambiar el estado'),
   })
 }

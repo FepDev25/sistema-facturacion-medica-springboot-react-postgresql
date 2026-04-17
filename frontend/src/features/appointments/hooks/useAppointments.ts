@@ -1,17 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { AxiosError } from 'axios'
 import { toast } from 'sonner'
 import * as appointmentsApi from '../api/appointmentsApi'
 import type { MedicalRecordCreateRequest } from '@/types/medical-record'
-
-interface ApiErrorPayload {
-  message?: string
-}
-
-function getApiErrorMessage(error: unknown): string | null {
-  const axiosError = error as AxiosError<ApiErrorPayload>
-  return axiosError.response?.data?.message ?? null
-}
+import { extractApiErrorMessage } from '@/lib/utils'
 
 export const appointmentKeys = {
   all: ['appointments'] as const,
@@ -75,7 +66,7 @@ export function useCreateAppointment() {
       toast.success('Cita creada')
     },
     onError: (error) => {
-      toast.error(getApiErrorMessage(error) ?? 'Error al crear la cita')
+      toast.error(extractApiErrorMessage(error) ?? 'Error al crear la cita')
     },
   })
 }
@@ -92,8 +83,8 @@ function useStatusMutation(
       void qc.invalidateQueries({ queryKey: appointmentKeys.all })
       toast.success(successMessage)
     },
-    onError: () => {
-      toast.error(errorMessage)
+    onError: (error) => {
+      toast.error(extractApiErrorMessage(error) ?? errorMessage)
     },
   })
 }
@@ -141,7 +132,7 @@ export function useCompleteAppointment() {
       toast.success('Cita completada')
     },
     onError: (error) => {
-      toast.error((error as Error).message || 'Error al completar la cita')
+      toast.error(extractApiErrorMessage(error) ?? 'Error al completar la cita')
     },
   })
 }

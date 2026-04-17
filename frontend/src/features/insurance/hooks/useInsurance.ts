@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import * as insuranceApi from '../api/insuranceApi'
+import { extractApiErrorMessage } from '@/lib/utils'
 import type {
   InsurancePolicyUpdateRequest,
   InsuranceProviderUpdateRequest,
@@ -51,7 +52,7 @@ export function useCreateProvider() {
       void qc.invalidateQueries({ queryKey: providerKeys.all })
       toast.success('Aseguradora creada')
     },
-    onError: (error) => toast.error(error.message || 'Error al crear la aseguradora'),
+    onError: (error) => toast.error(extractApiErrorMessage(error) ?? 'Error al crear la aseguradora'),
   })
 }
 
@@ -65,7 +66,7 @@ export function useUpdateProvider() {
       void qc.invalidateQueries({ queryKey: policyKeys.all })
       toast.success('Aseguradora actualizada')
     },
-    onError: () => toast.error('Error al actualizar la aseguradora'),
+    onError: (error) => toast.error(extractApiErrorMessage(error) ?? 'Error al actualizar la aseguradora'),
   })
 }
 
@@ -77,7 +78,7 @@ export function useDeactivateProvider() {
       void qc.invalidateQueries({ queryKey: providerKeys.all })
       toast.success('Aseguradora desactivada')
     },
-    onError: () => toast.error('Error al desactivar la aseguradora'),
+    onError: (error) => toast.error(extractApiErrorMessage(error) ?? 'Error al desactivar la aseguradora'),
   })
 }
 
@@ -112,7 +113,7 @@ export function useCreatePolicy() {
       void qc.invalidateQueries({ queryKey: policyKeys.all })
       toast.success('Poliza creada')
     },
-    onError: (error) => toast.error(error.message || 'Error al crear la poliza'),
+    onError: (error) => toast.error(extractApiErrorMessage(error) ?? 'Error al crear la poliza'),
   })
 }
 
@@ -125,6 +126,6 @@ export function useUpdatePolicy() {
       void qc.invalidateQueries({ queryKey: policyKeys.all })
       toast.success('Poliza actualizada')
     },
-    onError: () => toast.error('Error al actualizar la poliza'),
+    onError: (error) => toast.error(extractApiErrorMessage(error) ?? 'Error al actualizar la poliza'),
   })
 }
