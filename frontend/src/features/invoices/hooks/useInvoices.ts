@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import * as invoicesApi from '../api/invoicesApi'
+import { extractApiErrorMessage } from '@/lib/utils'
 import type {
   InvoiceInsurancePolicyRequest,
   InvoiceItemRequest,
@@ -66,8 +67,8 @@ function useInvoiceStatusMutation(
       void qc.invalidateQueries({ queryKey: invoiceKeys.all })
       toast.success(successMessage)
     },
-    onError: () => {
-      toast.error(errorMessage)
+    onError: (error) => {
+      toast.error(extractApiErrorMessage(error) ?? errorMessage)
     },
   })
 }

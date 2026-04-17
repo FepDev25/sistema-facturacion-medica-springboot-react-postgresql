@@ -115,8 +115,12 @@ export function getInvoiceColumns({
               className="h-7 w-7 text-slate-500 hover:text-slate-900"
               aria-label="Confirmar factura"
               onClick={() => onConfirm(invoice)}
-              disabled={!canManage || invoice.status !== 'draft'}
-              title="Confirmar"
+              disabled={!canManage || invoice.status !== 'draft' || invoice.total === 0}
+              title={
+                invoice.status === 'draft' && invoice.total === 0
+                  ? 'Agrega ítems antes de confirmar'
+                  : 'Confirmar'
+              }
             >
               <Check className="h-3.5 w-3.5" />
             </Button>

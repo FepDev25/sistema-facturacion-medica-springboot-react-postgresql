@@ -22,7 +22,7 @@ interface AppShellProps {
   children: ReactNode
 }
 
-const visibleNavItems: Array<{
+const ALL_NAV_ITEMS: Array<{
   to: string
   label: string
   icon: typeof LayoutDashboard
@@ -47,7 +47,7 @@ export function AppShell({ children }: AppShellProps) {
   })
 
   const visibleNavItems = useMemo(
-    () => (session.role ? visibleNavItems.filter((item) => item.roles.includes(session.role)) : []),
+    () => (session.role ? ALL_NAV_ITEMS.filter((item) => item.roles.includes(session.role)) : []),
     [session.role],
   )
 
