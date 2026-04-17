@@ -55,7 +55,7 @@ export function InvoiceDetailPage() {
   const addInvoiceItem = useAddInvoiceItem(id)
 
   const { data: patientPolicies = [] } = usePolicies({
-    patientId: id ? undefined : undefined,
+    patientId: invoiceQuery.data?.patientId,
     onlyActive: true,
   })
 

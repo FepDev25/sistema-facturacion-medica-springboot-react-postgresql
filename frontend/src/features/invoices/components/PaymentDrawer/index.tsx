@@ -33,7 +33,7 @@ import {
   type PaymentFormValues,
   toPaymentCreateRequest,
 } from '../../api/invoicesApi'
-import { useInvoice, useInvoicePayments } from '../../hooks/useInvoices'
+import { useInvoice, useInvoicePayments, useRegisterPayment } from '../../hooks/useInvoices'
 
 function getLocalDateTimeString(): string {
   const now = new Date()

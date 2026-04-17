@@ -133,10 +133,10 @@ export function AppointmentDrawer({ open, onOpenChange }: AppointmentDrawerProps
     return doctors
       .filter(
         (doctor) =>
-          doctor.firstName.toLowerCase().includes(q) ||
-          doctor.lastName.toLowerCase().includes(q) ||
-          doctor.specialty.toLowerCase().includes(q) ||
-          doctor.licenseNumber.toLowerCase().includes(q),
+          doctor.firstName?.toLowerCase().includes(q) ||
+          doctor.lastName?.toLowerCase().includes(q) ||
+          doctor.specialty?.toLowerCase().includes(q) ||
+          doctor.licenseNumber?.toLowerCase().includes(q),
       )
       .slice(0, 8)
   }, [doctorQuery, doctors])
@@ -238,7 +238,7 @@ export function AppointmentDrawer({ open, onOpenChange }: AppointmentDrawerProps
                 name="doctorId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Buscar médico por matrícula</FormLabel>
+                    <FormLabel>Buscar médico</FormLabel>
                     <FormControl>
                       <Input
                         value={doctorQuery}
@@ -246,11 +246,11 @@ export function AppointmentDrawer({ open, onOpenChange }: AppointmentDrawerProps
                           setDoctorQuery(event.target.value)
                           field.onChange('')
                         }}
-                        placeholder="Ej. MED-001-2015"
+                        placeholder="Nombre o especialidad"
                       />
                     </FormControl>
                     <FormDescription>
-                      Escribe al menos 2 caracteres de la matrícula.
+                      Escribe al menos 2 caracteres del nombre o especialidad.
                     </FormDescription>
                     {field.value ? (
                       <p className="text-xs text-green-700 bg-green-50 border border-green-200 rounded px-2 py-1">
@@ -274,7 +274,7 @@ export function AppointmentDrawer({ open, onOpenChange }: AppointmentDrawerProps
                             className="w-full text-left px-3 py-2 text-sm hover:bg-slate-50 border-b border-slate-100 last:border-b-0"
                             onClick={() => {
                               field.onChange(doctor.id)
-                              setDoctorQuery(doctor.licenseNumber)
+                              setDoctorQuery(`${doctor.firstName} ${doctor.lastName}`)
                             }}
                           >
                             Dr. {doctor.firstName} {doctor.lastName} ({doctor.licenseNumber})
