@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { createAllProviders } from '@/test/test-utils'
+import { toast } from 'sonner'
 
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 vi.mock('@/features/doctors/api/doctorsApi', () => ({
@@ -13,7 +14,7 @@ vi.mock('@/features/doctors/api/doctorsApi', () => ({
 }))
 
 import * as doctorsApi from '@/features/doctors/api/doctorsApi'
-import { useDoctors, useDoctorById, useSystemUsers, useCreateDoctor } from '@/features/doctors/hooks/useDoctors'
+import { useDoctors, useDoctorById, useSystemUsers, useCreateDoctor, useUpdateDoctor, useDeactivateDoctor } from '@/features/doctors/hooks/useDoctors'
 import { doctorKeys } from '@/features/doctors/hooks/useDoctors'
 
 beforeEach(() => {
@@ -99,11 +100,58 @@ describe('useSystemUsers', () => {
 })
 
 describe('useCreateDoctor', () => {
-  it('calls createDoctor and invalidates', async () => {
+  it('calls createDoctor and shows success toast', async () => {
     vi.mocked(doctorsApi.createDoctor).mockResolvedValue({ id: 'doc-1' } as never)
     const { result } = renderHook(() => useCreateDoctor(), { wrapper: createAllProviders() })
     result.current.mutate({ licenseNumber: 'MED-1', firstName: 'Maria', lastName: 'Garcia', specialty: 'Cardio', phone: '555', email: 'm@t.com' })
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(doctorsApi.createDoctor).toHaveBeenCalled()
+    expect(toast.success).toHaveBeenCalledWith('Médico creado')
+  })
+
+  it('shows error toast on failure', async () => {
+    vi.mocked(doctorsApi.createDoctor).mockRejectedValue(new Error('conflict'))
+    const { result } = renderHook(() => useCreateDoctor(), { wrapper: createAllProviders() })
+    result.current.mutate({ licenseNumber: 'MED-1', firstName: 'Maria', lastName: 'Garcia', specialty: 'Cardio', phone: '555', email: 'm@t.com' })
+    await waitFor(() => expect(result.current.isError).toBe(true))
+    expect(toast.error).toHaveBeenCalledWith('Error al crear el médico')
+  })
+})
+
+describe('useUpdateDoctor', () => {
+  it('calls updateDoctor with id and data and shows success toast', async () => {
+    vi.mocked(doctorsApi.updateDoctor).mockResolvedValue({ id: 'doc-1' } as never)
+    const { result } = renderHook(() => useUpdateDoctor(), { wrapper: createAllProviders() })
+    result.current.mutate({ id: 'doc-1', data: { firstName: 'New', lastName: 'Name', specialty: 'Cardio', phone: '555', email: 'm@t.com', isActive: true } })
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(doctorsApi.updateDoctor).toHaveBeenCalledWith('doc-1', expect.objectContaining({ firstName: 'New' }))
+    expect(toast.success).toHaveBeenCalledWith('Médico actualizado')
+  })
+
+  it('shows error toast on failure', async () => {
+    vi.mocked(doctorsApi.updateDoctor).mockRejectedValue(new Error('not found'))
+    const { result } = renderHook(() => useUpdateDoctor(), { wrapper: createAllProviders() })
+    result.current.mutate({ id: 'doc-1', data: { firstName: 'New', lastName: 'Name', specialty: 'Cardio', phone: '555', email: 'm@t.com', isActive: true } })
+    await waitFor(() => expect(result.current.isError).toBe(true))
+    expect(toast.error).toHaveBeenCalledWith('Error al actualizar el médico')
+  })
+})
+
+describe('useDeactivateDoctor', () => {
+  it('calls deactivateDoctor and shows success toast', async () => {
+    vi.mocked(doctorsApi.deactivateDoctor).mockResolvedValue(undefined)
+    const { result } = renderHook(() => useDeactivateDoctor(), { wrapper: createAllProviders() })
+    result.current.mutate('doc-1')
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(doctorsApi.deactivateDoctor).toHaveBeenCalledWith('doc-1', expect.anything())
+    expect(toast.success).toHaveBeenCalledWith('Médico desactivado')
+  })
+
+  it('shows error toast on failure', async () => {
+    vi.mocked(doctorsApi.deactivateDoctor).mockRejectedValue(new Error('forbidden'))
+    const { result } = renderHook(() => useDeactivateDoctor(), { wrapper: createAllProviders() })
+    result.current.mutate('doc-1')
+    await waitFor(() => expect(result.current.isError).toBe(true))
+    expect(toast.error).toHaveBeenCalledWith('Error al desactivar el médico')
   })
 })

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { createAllProviders } from '@/test/test-utils'
+import { toast } from 'sonner'
 
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 vi.mock('@/features/patients/api/patientsApi', () => ({
@@ -12,7 +13,7 @@ vi.mock('@/features/patients/api/patientsApi', () => ({
 }))
 
 import * as patientsApi from '@/features/patients/api/patientsApi'
-import { usePatients, usePatient, useSearchPatients, usePatientAppointments, useCreatePatient, useUpdatePatient } from '@/features/patients/hooks/usePatients'
+import { usePatients, usePatient, useSearchPatients, useCreatePatient, useUpdatePatient } from '@/features/patients/hooks/usePatients'
 import { patientKeys } from '@/features/patients/hooks/usePatients'
 
 beforeEach(() => {
@@ -93,7 +94,7 @@ describe('useSearchPatients', () => {
 })
 
 describe('useCreatePatient', () => {
-  it('calls createPatient and invalidates on success', async () => {
+  it('calls createPatient and shows success toast', async () => {
     vi.mocked(patientsApi.createPatient).mockResolvedValue({ id: 'p-1' } as never)
 
     const { result } = renderHook(() => useCreatePatient(), { wrapper: createAllProviders() })
@@ -101,11 +102,22 @@ describe('useCreatePatient', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
     expect(patientsApi.createPatient).toHaveBeenCalled()
+    expect(toast.success).toHaveBeenCalledWith('Paciente creado')
+  })
+
+  it('shows error toast on failure', async () => {
+    vi.mocked(patientsApi.createPatient).mockRejectedValue(new Error('conflict'))
+
+    const { result } = renderHook(() => useCreatePatient(), { wrapper: createAllProviders() })
+    result.current.mutate({ dni: '123', firstName: 'Juan', lastName: 'Perez', birthDate: '1990-01-01', gender: 'male', phone: '555' })
+    await waitFor(() => expect(result.current.isError).toBe(true))
+
+    expect(toast.error).toHaveBeenCalledWith('Error al crear el paciente')
   })
 })
 
 describe('useUpdatePatient', () => {
-  it('calls updatePatient with id and data', async () => {
+  it('calls updatePatient with id and data and shows success toast', async () => {
     vi.mocked(patientsApi.updatePatient).mockResolvedValue({ id: 'p-1' } as never)
 
     const { result } = renderHook(() => useUpdatePatient(), { wrapper: createAllProviders() })
@@ -113,5 +125,16 @@ describe('useUpdatePatient', () => {
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
 
     expect(patientsApi.updatePatient).toHaveBeenCalledWith('p-1', expect.objectContaining({ firstName: 'New' }))
+    expect(toast.success).toHaveBeenCalledWith('Paciente actualizado')
+  })
+
+  it('shows error toast on failure', async () => {
+    vi.mocked(patientsApi.updatePatient).mockRejectedValue(new Error('not found'))
+
+    const { result } = renderHook(() => useUpdatePatient(), { wrapper: createAllProviders() })
+    result.current.mutate({ id: 'p-1', data: { firstName: 'New', lastName: 'Name', birthDate: '1990-01-01', gender: 'male', phone: '555' } })
+    await waitFor(() => expect(result.current.isError).toBe(true))
+
+    expect(toast.error).toHaveBeenCalledWith('Error al actualizar el paciente')
   })
 })

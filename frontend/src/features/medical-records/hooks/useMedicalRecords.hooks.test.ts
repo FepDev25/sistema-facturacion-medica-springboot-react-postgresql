@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { createAllProviders } from '@/test/test-utils'
+import { toast } from 'sonner'
 
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 vi.mock('@/features/medical-records/api/medicalRecordsApi', () => ({
@@ -128,31 +129,58 @@ describe('useMedicalRecordDiagnoses', () => {
 })
 
 describe('useAddDiagnosis', () => {
-  it('calls addDiagnosis with record id and data', async () => {
+  it('calls addDiagnosis with record id and data and shows success toast', async () => {
     vi.mocked(mrApi.addDiagnosis).mockResolvedValue({ id: 'd-1' } as never)
     const { result } = renderHook(() => useAddDiagnosis('mr-1'), { wrapper: createAllProviders() })
     result.current.mutate({ appointmentId: 'apt-1', medicalRecordId: 'mr-1', icd10Code: 'J06.9', description: 'Infeccion', diagnosedAt: '2025-06-20T10:00:00Z' })
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(mrApi.addDiagnosis).toHaveBeenCalledWith('mr-1', expect.objectContaining({ icd10Code: 'J06.9' }))
+    expect(toast.success).toHaveBeenCalledWith('Diagnostico agregado')
+  })
+
+  it('shows error toast on failure', async () => {
+    vi.mocked(mrApi.addDiagnosis).mockRejectedValue(new Error('bad'))
+    const { result } = renderHook(() => useAddDiagnosis('mr-1'), { wrapper: createAllProviders() })
+    result.current.mutate({ appointmentId: 'apt-1', medicalRecordId: 'mr-1', icd10Code: 'J06.9', description: 'Infeccion', diagnosedAt: '2025-06-20T10:00:00Z' })
+    await waitFor(() => expect(result.current.isError).toBe(true))
+    expect(toast.error).toHaveBeenCalledWith('Error al agregar diagnostico')
   })
 })
 
 describe('useAddPrescription', () => {
-  it('calls addPrescription with record id and data', async () => {
+  it('calls addPrescription with record id and data and shows success toast', async () => {
     vi.mocked(mrApi.addPrescription).mockResolvedValue({ id: 'rx-1' } as never)
     const { result } = renderHook(() => useAddPrescription('mr-1'), { wrapper: createAllProviders() })
     result.current.mutate({ appointmentId: 'apt-1', medicalRecordId: 'mr-1', medicationId: 'med-1', dosage: '400mg', frequency: 'Cada 8h', durationDays: 7 })
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(mrApi.addPrescription).toHaveBeenCalledWith('mr-1', expect.objectContaining({ dosage: '400mg' }))
+    expect(toast.success).toHaveBeenCalledWith('Prescripcion agregada')
+  })
+
+  it('shows error toast on failure', async () => {
+    vi.mocked(mrApi.addPrescription).mockRejectedValue(new Error('bad'))
+    const { result } = renderHook(() => useAddPrescription('mr-1'), { wrapper: createAllProviders() })
+    result.current.mutate({ appointmentId: 'apt-1', medicalRecordId: 'mr-1', medicationId: 'med-1', dosage: '400mg', frequency: 'Cada 8h', durationDays: 7 })
+    await waitFor(() => expect(result.current.isError).toBe(true))
+    expect(toast.error).toHaveBeenCalledWith('Error al agregar prescripcion')
   })
 })
 
 describe('useAddProcedure', () => {
-  it('calls addProcedure with record id and data', async () => {
+  it('calls addProcedure with record id and data and shows success toast', async () => {
     vi.mocked(mrApi.addProcedure).mockResolvedValue({ id: 'proc-1' } as never)
     const { result } = renderHook(() => useAddProcedure('mr-1'), { wrapper: createAllProviders() })
     result.current.mutate({ appointmentId: 'apt-1', medicalRecordId: 'mr-1', procedureCode: 'PROC-001', description: 'Extraccion', performedAt: '2025-06-20T10:00:00Z' })
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(mrApi.addProcedure).toHaveBeenCalledWith('mr-1', expect.objectContaining({ procedureCode: 'PROC-001' }))
+    expect(toast.success).toHaveBeenCalledWith('Procedimiento agregado')
+  })
+
+  it('shows error toast on failure', async () => {
+    vi.mocked(mrApi.addProcedure).mockRejectedValue(new Error('bad'))
+    const { result } = renderHook(() => useAddProcedure('mr-1'), { wrapper: createAllProviders() })
+    result.current.mutate({ appointmentId: 'apt-1', medicalRecordId: 'mr-1', procedureCode: 'PROC-001', description: 'Extraccion', performedAt: '2025-06-20T10:00:00Z' })
+    await waitFor(() => expect(result.current.isError).toBe(true))
+    expect(toast.error).toHaveBeenCalledWith('Error al agregar procedimiento')
   })
 })
