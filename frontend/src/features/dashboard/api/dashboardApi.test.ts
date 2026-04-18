@@ -73,14 +73,14 @@ describe('dashboard API', () => {
 
   it('counts appointmentsToday for same-day appointments', async () => {
     const now = new Date()
-    const todayIso = now.toISOString().slice(0, 11) + '10:00:00Z'
+    const localDateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}T12:00:00`
 
     mockGetPatients.mockResolvedValue({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 1, first: true, last: true, empty: true })
     mockGetDoctors.mockResolvedValue({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 1, first: true, last: true, empty: true })
     mockGetAppointments.mockResolvedValue({
       content: [
-        makeAppointment({ scheduledAt: todayIso, status: 'completed' }),
-        makeAppointment({ scheduledAt: '2020-01-01T10:00:00Z', status: 'completed' }),
+        makeAppointment({ scheduledAt: localDateStr, status: 'completed' }),
+        makeAppointment({ scheduledAt: '2020-01-01T12:00:00', status: 'completed' }),
       ], totalElements: 2, totalPages: 1, number: 0, size: 200, first: true, last: true, empty: false,
     })
     mockGetInvoices.mockResolvedValue({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 200, first: true, last: true, empty: true })
