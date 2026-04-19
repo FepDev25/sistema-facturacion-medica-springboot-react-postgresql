@@ -20,6 +20,7 @@ except ImportError:
 
 from seeders.appointments import insert_appointments
 from seeders.catalog import insert_catalog_items
+from seeders.chronic_patients import insert_chronic_cohort
 from seeders.db import load_existing_data, load_json
 from seeders.insurance import insert_insurance_data
 from seeders.invoices import insert_invoices
@@ -119,6 +120,12 @@ def main() -> None:
 
         icd10_data = load_json("icd10_codes.json")
         templates = load_json("clinical_templates.json")
+        try:
+            note_templates = load_json("clinical_note_templates_rich.json")
+            print("  Rich note templates loaded.")
+        except FileNotFoundError:
+            note_templates = None
+            print("  NOTE: clinical_note_templates_rich.json not found, using basic templates.")
 
         policies = insert_insurance_data(conn, new_patient_ids, data, dry_run=args.dry_run)
         data = load_existing_data(conn)
@@ -129,8 +136,11 @@ def main() -> None:
         data["existing_services"] = all_services
 
         appt_info = insert_appointments(conn, 5000, data, dry_run=args.dry_run)
-        insert_medical_records(conn, appt_info, icd10_data, templates, data, dry_run=args.dry_run)
-        insert_invoices(conn, appt_info, policies, all_services, all_meds, dry_run=args.dry_run)
+        _, chronic_appt_info = insert_chronic_cohort(conn, data, dry_run=args.dry_run)
+        all_appt_info = appt_info + chronic_appt_info
+
+        insert_medical_records(conn, all_appt_info, icd10_data, templates, data, dry_run=args.dry_run, note_templates=note_templates)
+        insert_invoices(conn, all_appt_info, policies, all_services, all_meds, dry_run=args.dry_run)
 
         print("\n" + "=" * 60)
         print("SEED GENERATION COMPLETE")

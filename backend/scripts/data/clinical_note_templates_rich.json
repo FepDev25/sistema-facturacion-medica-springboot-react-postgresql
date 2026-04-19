@@ -1,0 +1,156 @@
+{
+  "specialties": {
+    "Medicina General": {
+      "clinical_note_templates": [
+        "Paciente de {age} años acude por {chief_complaint}, reportando {symptoms} con {duration} de evolución. En la valoración encuentro {findings}. He integrado el diagnóstico presuntivo de {presumptive_diagnosis}. Se indica manejo con {treatment_plan}, sugiriendo {rest_days} días de reposo y control en {follow_up} días.",
+        "El paciente, de {age} años, refiere {chief_complaint} caracterizado por {symptoms} de {duration} de evolución. La exploración física revela {findings}. Ante tal cuadro clínico, sugiero el diagnóstico presuntivo de {presumptive_diagnosis}. Indico el tratamiento farmacológico con {treatment_plan}, recomendando {rest_days} días de reposo con seguimiento en {follow_up} días.",
+        "Se atiende a paciente de {age} años quien manifiesta {chief_complaint}, asociado a {symptoms} con {duration} de curso. Observo en la exploración {findings}. Considero como diagnóstico presuntivo {presumptive_diagnosis}. Procedo a indicar {treatment_plan}, estipulando {rest_days} días de reposo y cita en {follow_up} días.",
+        "Paciente de {age} años consulta por {chief_complaint}, describiendo {symptoms} desde hace {duration}. Durante la exploración física destaco {findings}. Establezco diagnóstico presuntivo de {presumptive_diagnosis}. Se instaura esquema terapéutico con {treatment_plan}, requiriendo {rest_days} días de reposo y revaloración en {follow_up} días."
+      ]
+    },
+    "Cardiologia": {
+      "clinical_note_templates": [
+        "Paciente masculino de {age} años que acude a consulta por {chief_complaint}. Refiere {symptoms} con {duration} de evolución. A la exploración física destaca {findings}. Impresión diagnóstica: {presumptive_diagnosis}. Se inicia {treatment_plan} con indicación de reposo relativo por {rest_days} días y cita de seguimiento en {follow_up} días.",
+        "Se evalúa paciente de {age} años debido a {chief_complaint} y {symptoms} de {duration} de curso clínico. Hallazgos cardiovasculares muestran {findings}. Diagnóstico presuntivo: {presumptive_diagnosis}. Indico manejo integral con {treatment_plan}, solicitando {rest_days} días de reposo físico y seguimiento en {follow_up} días.",
+        "Paciente femenina de {age} años reporta {chief_complaint} persistente con {symptoms} de {duration} de evolución. La auscultación revela {findings}. Sospecho de {presumptive_diagnosis}. Se determina iniciar {treatment_plan}, con {rest_days} días de incapacidad y revisión en {follow_up} días.",
+        "Consulta de paciente de {age} años por {chief_complaint} junto con {symptoms} desde hace {duration}. El examen clínico destaca {findings}. El diagnóstico presuntivo es {presumptive_diagnosis}. Se prescribe {treatment_plan}, prescribiendo {rest_days} días de reposo absoluto y control en {follow_up} días."
+      ]
+    },
+    "Neumologia": {
+      "clinical_note_templates": [
+        "Acude paciente de {age} años por {chief_complaint} junto con {symptoms} de {duration} de evolución. A la exploración pulmonar encuentro {findings}. Diagnóstico presuntivo de {presumptive_diagnosis}. Se inicia esquema con {treatment_plan}, indicando {rest_days} días de reposo y control en {follow_up} días.",
+        "Paciente masculino de {age} años refiere {chief_complaint} y {symptoms} desde hace {duration}. En la exploración física destaco {findings}. Sospecho de {presumptive_diagnosis}. Indico el inicio de {treatment_plan}, recomendando {rest_days} días de reposo y seguimiento en {follow_up} días.",
+        "Se valora paciente de {age} años con {chief_complaint} y {symptoms} de {duration} de evolución. Destacan {findings} en la auscultación pulmonar. Impresión clínica: {presumptive_diagnosis}. Se prescribe {treatment_plan} con {rest_days} días de reposo, para revaloración en {follow_up} días.",
+        "Paciente femenina de {age} años manifiesta {chief_complaint} y {symptoms} de {duration} de curso. Durante el examen clínico identifico {findings}. Diagnóstico presuntivo: {presumptive_diagnosis}. Procedo a indicar {treatment_plan}, otorgando {rest_days} días de reposo y cita en {follow_up} días."
+      ]
+    },
+    "Gastroenterologia": {
+      "clinical_note_templates": [
+        "Paciente de {age} años acude por {chief_complaint} y {symptoms} de {duration} de evolución. A la palpación abdominal destaco {findings}. Sospecho de {presumptive_diagnosis}. Se inicia el protocolo terapéutico con {treatment_plan}, con {rest_days} días de reposo y seguimiento en {follow_up} días.",
+        "Refiere paciente de {age} años {chief_complaint} junto con {symptoms} desde hace {duration}. La exploración física muestra {findings}. Impresión diagnóstica: {presumptive_diagnosis}. Se instaura {treatment_plan} con vigilancia estrecha, indicando {rest_days} días de reposo y control en {follow_up} días.",
+        "Se evalúa paciente de {age} años por {chief_complaint} y {symptoms} de {duration} de evolución. Observo {findings} durante el examen. Diagnóstico presuntivo: {presumptive_diagnosis}. Se determina manejo farmacológico con {treatment_plan}, solicitando {rest_days} días de reposo y cita en {follow_up} días.",
+        "Paciente de {age} años manifiesta {chief_complaint} asociado a {symptoms} de {duration} de curso. Hallazgos gastrointestinales reportan {findings}. Considero como diagnóstico presuntivo {presumptive_diagnosis}. Prescribo {treatment_plan}, con {rest_days} días de reposo y seguimiento en {follow_up} días."
+      ]
+    },
+    "Traumatologia": {
+      "clinical_note_templates": [
+        "Paciente de {age} años acude por {chief_complaint} con {symptoms} de {duration} de evolución tras traumatismo. La exploración física muestra {findings}. Diagnóstico presuntivo: {presumptive_diagnosis}. Inicio tratamiento con {treatment_plan}, recomendando {rest_days} días de reposo y cita en {follow_up} días.",
+        "Se atiende paciente de {age} años con {chief_complaint} y {symptoms} desde hace {duration}. En la evaluación física destaco {findings}. Sospecho de {presumptive_diagnosis}. Procedo a inmovilización y {treatment_plan}, con {rest_days} días de reposo y control en {follow_up} días.",
+        "Refiere paciente de {age} años {chief_complaint} y {symptoms} de {duration} de evolución. El examen radiológico destaca {findings}. Impresión clínica: {presumptive_diagnosis}. Indico manejo con {treatment_plan}, requiriendo {rest_days} días de reposo y seguimiento en {follow_up} días.",
+        "Paciente de {age} años consulta por {chief_complaint} y {symptoms} de {duration} de curso. Durante la valoración detecto {findings}. Diagnóstico presuntivo de {presumptive_diagnosis}. Se instaura {treatment_plan}, prescribiendo {rest_days} días de reposo y revaloración en {follow_up} días."
+      ]
+    },
+    "Dermatologia": {
+      "clinical_note_templates": [
+        "Paciente de {age} años refiere {chief_complaint} con {symptoms} de {duration} de evolución. A la inspección cutánea destaco {findings}. Sospecho de {presumptive_diagnosis}. Se inicia tratamiento tópico con {treatment_plan}, indicando {rest_days} días de reposo relativo y control en {follow_up} días.",
+        "Se valora paciente de {age} años por {chief_complaint} y {symptoms} desde hace {duration}. En la evaluación dermatólogica identifico {findings}. Diagnóstico presuntivo: {presumptive_diagnosis}. Procedo a indicar {treatment_plan}, sugiriendo {rest_days} días de reposo y seguimiento en {follow_up} días.",
+        "Paciente de {age} años manifiesta {chief_complaint} con {symptoms} de {duration} de curso. Hallazgos cutáneos muestran {findings}. Considero como diagnóstico presuntivo {presumptive_diagnosis}. Prescribo {treatment_plan}, estipulando {rest_days} días de reposo y cita en {follow_up} días.",
+        "Consulta de paciente de {age} años por {chief_complaint} y {symptoms} de {duration} de evolución. Durante el examen destaco {findings}. Impresión clínica: {presumptive_diagnosis}. Se instaura {treatment_plan}, requiriendo {rest_days} días de reposo y control en {follow_up} días."
+      ]
+    },
+    "Otorrinolaringologia": {
+      "clinical_note_templates": [
+        "Paciente de {age} años presenta {chief_complaint} y {symptoms} de {duration} de evolución. La exploración ORL revela {findings}. Sospecho de {presumptive_diagnosis}. Se inicia {treatment_plan} con indicación de {rest_days} días de reposo y cita de seguimiento en {follow_up} días.",
+        "Se atiende a paciente de {age} años por {chief_complaint} junto con {symptoms} de {duration} de curso. Observo {findings} en el examen físico. Diagnóstico presuntivo: {presumptive_diagnosis}. Procedo a prescribir {treatment_plan}, recomendando {rest_days} días de reposo y control en {follow_up} días.",
+        "Refiere paciente de {age} años {chief_complaint} y {symptoms} desde hace {duration}. Hallazgos otorrinolaringológicos destacan {findings}. Impresión clínica: {presumptive_diagnosis}. Indico el inicio de {treatment_plan}, otorgando {rest_days} días de reposo y seguimiento en {follow_up} días.",
+        "Paciente de {age} años manifiesta {chief_complaint} con {symptoms} de {duration} de evolución. En la valoración encuentro {findings}. Considero como diagnóstico presuntivo {presumptive_diagnosis}. Se instaura {treatment_plan}, estipulando {rest_days} días de reposo y revaloración en {follow_up} días."
+      ]
+    },
+    "Oftalmologia": {
+      "clinical_note_templates": [
+        "Paciente de {age} años acude por {chief_complaint} y {symptoms} de {duration} de evolución. A la exploración oftalmológica destaco {findings}. Sospecho de {presumptive_diagnosis}. Indico manejo con {treatment_plan}, requiriendo {rest_days} días de reposo y cita de control en {follow_up} días.",
+        "Se evalúa paciente de {age} años debido a {chief_complaint} con {symptoms} desde hace {duration}. Hallazgos oculares reportan {findings}. Diagnóstico presuntivo: {presumptive_diagnosis}. Prescribo {treatment_plan}, recomendando {rest_days} días de reposo y seguimiento en {follow_up} días.",
+        "Paciente de {age} años refiere {chief_complaint} y {symptoms} de {duration} de curso clínico. Durante el examen físico observo {findings}. Impresión clínica: {presumptive_diagnosis}. Procedo a instaurar {treatment_plan}, con {rest_days} días de reposo y control en {follow_up} días.",
+        "Consulta de paciente de {age} años por {chief_complaint} junto con {symptoms} de {duration} de evolución. En la valoración visual destaco {findings}. Diagnóstico presuntivo de {presumptive_diagnosis}. Se inicia {treatment_plan}, otorgando {rest_days} días de reposo y seguimiento en {follow_up} días."
+      ]
+    },
+    "Ginecologia": {
+      "clinical_note_templates": [
+        "Paciente de {age} años acude por {chief_complaint}, refiriendo {symptoms} con {duration} de evolución. A la exploración ginecológica destaco {findings}. Diagnóstico presuntivo: {presumptive_diagnosis}. Se instaura {treatment_plan} con seguimiento de respuesta, sugiriendo {rest_days} días de reposo y cita en {follow_up} días.",
+        "Se atiende paciente de {age} años con {chief_complaint} y {symptoms} desde hace {duration}. Durante el examen físico encuentro {findings}. Sospecho de {presumptive_diagnosis}. Indico manejo integral con {treatment_plan}, prescribiendo {rest_days} días de reposo y control en {follow_up} días.",
+        "Paciente de {age} años manifiesta {chief_complaint} asociado a {symptoms} de {duration} de curso clínico. Hallazgos pélvicos muestran {findings}. Considero diagnóstico presuntivo de {presumptive_diagnosis}. Procedo a indicar {treatment_plan}, solicitando {rest_days} días de reposo y seguimiento en {follow_up} días.",
+        "Refiere paciente de {age} años {chief_complaint} y {symptoms} de {duration} de evolución. En la valoración identifico {findings}. Impresión clínica: {presumptive_diagnosis}. Se prescribe {treatment_plan}, requiriendo {rest_days} días de reposo y cita de control en {follow_up} días."
+      ]
+    },
+    "Pediatria": {
+      "clinical_note_templates": [
+        "Paciente pediátrico de {age} años es traído a consulta por {chief_complaint}, manifestando {symptoms} desde hace {duration}. La exploración física revela {findings}. Diagnóstico presuntivo: {presumptive_diagnosis}. Se inicia el esquema con {treatment_plan}, indicando {rest_days} días de cuidados y seguimiento en {follow_up} días.",
+        "Se evalúa paciente de {age} años por {chief_complaint} junto con {symptoms} de {duration} de evolución. Durante el examen destaco {findings}. Sospecho de {presumptive_diagnosis}. Indico tratamiento con {treatment_plan}, sugiriendo {rest_days} días de reposo domiciliario y control en {follow_up} días.",
+        "Paciente de {age} años refiere {chief_complaint} y {symptoms} de {duration} de curso. Hallazgos pediátricos muestran {findings}. Considero como diagnóstico presuntivo {presumptive_diagnosis}. Procedo a prescribir {treatment_plan}, estipulando {rest_days} días de reposo y revaloración en {follow_up} días.",
+        "Consulta de paciente de {age} años por {chief_complaint} asociado a {symptoms} de {duration} de evolución. En la valoración física encuentro {findings}. Impresión clínica: {presumptive_diagnosis}. Se instaura {treatment_plan}, requiriendo {rest_days} días de reposo y cita en {follow_up} días."
+      ]
+    },
+    "Endocrinologia": {
+      "clinical_note_templates": [
+        "Paciente de {age} años acude por {chief_complaint} y {symptoms} de {duration} de evolución. La exploración física muestra {findings}. Diagnóstico presuntivo: {presumptive_diagnosis}. Se inicia manejo endocrino con {treatment_plan}, indicando {rest_days} días de reposo relativo y seguimiento en {follow_up} días.",
+        "Se valora paciente de {age} años con {chief_complaint} y {symptoms} desde hace {duration}. Hallazgos clínicos destacan {findings}. Sospecho de {presumptive_diagnosis}. Procedo a indicar {treatment_plan}, recomendando {rest_days} días de reposo y control en {follow_up} días.",
+        "Paciente de {age} años manifiesta {chief_complaint} con {symptoms} de {duration} de curso. Durante la valoración encuentro {findings}. Considero como diagnóstico presuntivo {presumptive_diagnosis}. Prescribo {treatment_plan}, estipulando {rest_days} días de reposo y revaloración en {follow_up} días.",
+        "Refiere paciente de {age} años {chief_complaint} y {symptoms} de {duration} de evolución. En el examen físico observo {findings}. Impresión clínica: {presumptive_diagnosis}. Se instaura {treatment_plan}, requiriendo {rest_days} días de reposo y seguimiento en {follow_up} días."
+      ]
+    },
+    "Neurologia": {
+      "clinical_note_templates": [
+        "Paciente de {age} años se presenta por {chief_complaint} y {symptoms} de {duration} de evolución. La exploración neurológica muestra {findings}. Diagnóstico presuntivo: {presumptive_diagnosis}. Se indica manejo con {treatment_plan}, sugiriendo {rest_days} días de reposo y cita de control en {follow_up} días.",
+        "Se evalúa paciente de {age} años debido a {chief_complaint} con {symptoms} desde hace {duration}. Durante la exploración identifico {findings}. Sospecho de {presumptive_diagnosis}. Procedo a prescribir {treatment_plan}, recomendando {rest_days} días de reposo y seguimiento en {follow_up} días.",
+        "Paciente de {age} años refiere {chief_complaint} y {symptoms} de {duration} de curso. Hallazgos neurológicos destacan {findings}. Impresión clínica: {presumptive_diagnosis}. Indico el inicio de {treatment_plan}, estipulando {rest_days} días de reposo y control en {follow_up} días.",
+        "Consulta de paciente de {age} años por {chief_complaint} asociado a {symptoms} de {duration} de evolución. En la valoración física destaco {findings}. Considero como diagnóstico presuntivo {presumptive_diagnosis}. Se instaura {treatment_plan}, otorgando {rest_days} días de reposo y revaloración en {follow_up} días."
+      ]
+    },
+    "Psiquiatria": {
+      "clinical_note_templates": [
+        "Paciente de {age} años acude a consulta por {chief_complaint}, manifestando {symptoms} de {duration} de evolución. Durante la entrevista clínica destaco {findings}. Diagnóstico presuntivo: {presumptive_diagnosis}. Se inicia manejo psicofarmacológico con {treatment_plan}, con {rest_days} días de reposo terapéutico y control en {follow_up} días.",
+        "Se evalúa paciente de {age} años por {chief_complaint} y {symptoms} desde hace {duration}. En la exploración del estado mental encuentro {findings}. Sospecho de {presumptive_diagnosis}. Procedo a indicar {treatment_plan}, sugiriendo {rest_days} días de reposo y seguimiento en {follow_up} días.",
+        "Paciente de {age} años manifiesta {chief_complaint} asociado a {symptoms} de {duration} de curso. Observo {findings} en la evaluación. Considero como diagnóstico presuntivo {presumptive_diagnosis}. Prescribo {treatment_plan}, estipulando {rest_days} días de reposo y cita en {follow_up} días.",
+        "Refiere paciente de {age} años {chief_complaint} y {symptoms} de {duration} de evolución. Durante el examen detecto {findings}. Impresión clínica: {presumptive_diagnosis}. Se instaura {treatment_plan}, requiriendo {rest_days} días de reposo y revaloración en {follow_up} días."
+      ]
+    },
+    "Urologia": {
+      "clinical_note_templates": [
+        "Paciente de {age} años consulta por {chief_complaint} y {symptoms} de {duration} de evolución. La exploración física muestra {findings}. Diagnóstico presuntivo: {presumptive_diagnosis}. Se inicia {treatment_plan}, indicando {rest_days} días de reposo relativo y seguimiento en {follow_up} días.",
+        "Se atiende paciente de {age} años con {chief_complaint} y {symptoms} desde hace {duration}. Hallazgos urológicos destacan {findings}. Sospecho de {presumptive_diagnosis}. Procedo a prescribir {treatment_plan}, recomendando {rest_days} días de reposo y control en {follow_up} días.",
+        "Paciente de {age} años manifiesta {chief_complaint} con {symptoms} de {duration} de curso. Durante la valoración encuentro {findings}. Considero como diagnóstico presuntivo {presumptive_diagnosis}. Indico manejo con {treatment_plan}, estipulando {rest_days} días de reposo y cita en {follow_up} días.",
+        "Refiere paciente de {age} años {chief_complaint} y {symptoms} de {duration} de evolución. En el examen físico observo {findings}. Impresión clínica: {presumptive_diagnosis}. Se instaura {treatment_plan}, requiriendo {rest_days} días de reposo y revaloración en {follow_up} días."
+      ]
+    },
+    "Oncologia": {
+      "clinical_note_templates": [
+        "Paciente de {age} años acude por {chief_complaint} y {symptoms} de {duration} de evolución. A la exploración destaco {findings}. Diagnóstico presuntivo: {presumptive_diagnosis}. Se inicia {treatment_plan}, sugiriendo {rest_days} días de reposo y control en {follow_up} días.",
+        "Se valora paciente de {age} años debido a {chief_complaint} con {symptoms} desde hace {duration}. Hallazgos clínicos muestran {findings}. Sospecho de {presumptive_diagnosis}. Procedo a prescribir {treatment_plan}, recomendando {rest_days} días de reposo y seguimiento en {follow_up} días.",
+        "Paciente de {age} años refiere {chief_complaint} y {symptoms} de {duration} de curso clínico. Durante el examen observo {findings}. Impresión clínica: {presumptive_diagnosis}. Indico el inicio de {treatment_plan}, estipulando {rest_days} días de reposo y cita en {follow_up} días.",
+        "Consulta de paciente de {age} años por {chief_complaint} junto con {symptoms} de {duration} de evolución. En la valoración destaco {findings}. Diagnóstico presuntivo de {presumptive_diagnosis}. Se instaura {treatment_plan}, otorgando {rest_days} días de reposo y revaloración en {follow_up} días."
+      ]
+    },
+    "Cirugia General": {
+      "clinical_note_templates": [
+        "Paciente de {age} años acude por {chief_complaint} y {symptoms} de {duration} de evolución. A la palpación abdominal destaco {findings}. Diagnóstico presuntivo: {presumptive_diagnosis}. Se programa {treatment_plan}, indicando {rest_days} días de reposo postoperatorio y cita en {follow_up} días.",
+        "Se atiende paciente de {age} años con {chief_complaint} y {symptoms} desde hace {duration}. Durante la exploración física encuentro {findings}. Sospecho de {presumptive_diagnosis}. Indico el inicio de {treatment_plan}, prescribiendo {rest_days} días de reposo y seguimiento en {follow_up} días.",
+        "Paciente de {age} años manifiesta {chief_complaint} asociado a {symptoms} de {duration} de curso. Hallazgos clínicos muestran {findings}. Considero como diagnóstico presuntivo {presumptive_diagnosis}. Procedo a prescribir {treatment_plan}, estipulando {rest_days} días de reposo y control en {follow_up} días.",
+        "Refiere paciente de {age} años {chief_complaint} y {symptoms} de {duration} de evolución. En la valoración física observo {findings}. Impresión clínica: {presumptive_diagnosis}. Se instaura {treatment_plan}, requiriendo {rest_days} días de reposo y revaloración en {follow_up} días."
+      ]
+    },
+    "Hematologia": {
+      "clinical_note_templates": [
+        "Paciente de {age} años consulta por {chief_complaint} y {symptoms} de {duration} de evolución. La exploración física muestra {findings}. Diagnóstico presuntivo: {presumptive_diagnosis}. Se inicia el protocolo con {treatment_plan}, indicando {rest_days} días de reposo y seguimiento en {follow_up} días.",
+        "Se valora paciente de {age} años con {chief_complaint} y {symptoms} desde hace {duration}. Hallazgos hematológicos destacan {findings}. Sospecho de {presumptive_diagnosis}. Procedo a prescribir {treatment_plan}, recomendando {rest_days} días de reposo y control en {follow_up} días.",
+        "Paciente de {age} años manifiesta {chief_complaint} con {symptoms} de {duration} de curso. Durante la valoración encuentro {findings}. Considero como diagnóstico presuntivo {presumptive_diagnosis}. Indico manejo con {treatment_plan}, estipulando {rest_days} días de reposo y cita en {follow_up} días.",
+        "Refiere paciente de {age} años {chief_complaint} y {symptoms} de {duration} de evolución. En el examen físico observo {findings}. Impresión clínica: {presumptive_diagnosis}. Se instaura {treatment_plan}, requiriendo {rest_days} días de reposo y revaloración en {follow_up} días."
+      ]
+    },
+    "Alergologia": {
+      "clinical_note_templates": [
+        "Paciente de {age} años se presenta por {chief_complaint} y {symptoms} de {duration} de evolución. A la exploración física destaco {findings}. Diagnóstico presuntivo: {presumptive_diagnosis}. Se inicia {treatment_plan}, sugiriendo {rest_days} días de reposo relativo y seguimiento en {follow_up} días.",
+        "Se evalúa paciente de {age} años debido a {chief_complaint} con {symptoms} desde hace {duration}. Durante la valoración identifico {findings}. Sospecho de {presumptive_diagnosis}. Procedo a prescribir {treatment_plan}, recomendando {rest_days} días de reposo y control en {follow_up} días.",
+        "Paciente de {age} años refiere {chief_complaint} y {symptoms} de {duration} de curso. Hallazgos alérgicos destacan {findings}. Impresión clínica: {presumptive_diagnosis}. Indico el inicio de {treatment_plan}, estipulando {rest_days} días de reposo y cita en {follow_up} días.",
+        "Consulta de paciente de {age} años por {chief_complaint} asociado a {symptoms} de {duration} de evolución. En la valoración física observo {findings}. Considero como diagnóstico presuntivo {presumptive_diagnosis}. Se instaura {treatment_plan}, otorgando {rest_days} días de reposo y revaloración en {follow_up} días."
+      ]
+    },
+    "Reumatologia": {
+      "clinical_note_templates": [
+        "Paciente de {age} años acude por {chief_complaint} y {symptoms} de {duration} de evolución. La exploración física muestra {findings}. Diagnóstico presuntivo: {presumptive_diagnosis}. Se inicia tratamiento con {treatment_plan}, indicando {rest_days} días de reposo y seguimiento en {follow_up} días.",
+        "Se valora paciente de {age} años con {chief_complaint} y {symptoms} desde hace {duration}. Hallazgos articulares destacan {findings}. Sospecho de {presumptive_diagnosis}. Procedo a prescribir {treatment_plan}, recomendando {rest_days} días de reposo y control en {follow_up} días.",
+        "Paciente de {age} años manifiesta {chief_complaint} con {symptoms} de {duration} de curso. Durante la valoración encuentro {findings}. Considero como diagnóstico presuntivo {presumptive_diagnosis}. Indico manejo con {treatment_plan}, estipulando {rest_days} días de reposo y cita en {follow_up} días.",
+        "Refiere paciente de {age} años {chief_complaint} y {symptoms} de {duration} de evolución. En el examen físico observo {findings}. Impresión clínica: {presumptive_diagnosis}. Se instaura {treatment_plan}, requiriendo {rest_days} días de reposo y revaloración en {follow_up} días."
+      ]
+    }
+  }
+}

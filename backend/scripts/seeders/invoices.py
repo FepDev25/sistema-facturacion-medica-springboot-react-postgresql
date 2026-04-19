@@ -10,6 +10,23 @@ from .config import TAX_RATE
 _PAYMENT_METHODS = ["cash", "credit_card", "debit_card", "bank_transfer", "check", "insurance"]
 _PAYMENT_WEIGHTS = [40, 25, 15, 12, 5, 3]
 
+# ICD-10 first-letter chapter → preferred service catalog codes
+_CHAPTER_SERVICES = {
+    "A": ["SRV-CONS-PEDIAT"],
+    "B": ["SRV-CONS-PEDIAT"],
+    "C": ["SRV-CONS-ONCO", "SRV-USG-ABD"],
+    "D": ["SRV-CONS-ONCO", "SRV-USG-ABD"],
+    "E": ["SRV-CONS-ENDO"],
+    "F": ["SRV-CONS-PSIQ"],
+    "G": ["SRV-CONS-NEURO"],
+    "I": ["SRV-CONS-CARDIO", "SRV-ECG", "SRV-ECHO"],
+    "J": ["SRV-RX-TORAX"],
+    "K": ["SRV-CONS-GASTRO", "SRV-USG-ABD"],
+    "L": ["SRV-CONS-ALERG"],
+    "M": ["SRV-CONS-REUMA", "SRV-RX-LUMBAR"],
+    "N": ["SRV-USG-ABD"],
+}
+
 
 def insert_invoices(conn, appt_info: list, policies_by_patient: dict, all_services: list, all_meds: list, dry_run: bool = False) -> None:
     print("\n[8/8] Inserting invoices, items, and payments...")
@@ -21,21 +38,30 @@ def insert_invoices(conn, appt_info: list, policies_by_patient: dict, all_servic
 
     cur.execute("SELECT COALESCE(MAX(last_sequence), 0) FROM invoice_sequences WHERE year = %s", [date.today().year])
     last_seq = cur.fetchone()[0]
-    cur.execute("SELECT MAX(CAST(SPLIT_PART(invoice_number, '-', 3) AS INTEGER)) FROM invoices WHERE invoice_number LIKE 'FAC-%'")
+    cur.execute("SELECT MAX(CAST(NULLIF(SPLIT_PART(invoice_number, '-', 3), '') AS INTEGER)) FROM invoices WHERE invoice_number LIKE 'FAC-%'")
     max_num = cur.fetchone()[0] or 0
     seq = max(last_seq, max_num)
 
-    cur.execute("SELECT id, name, price FROM services_catalog WHERE is_active = true")
-    svc_lookup = {r[0]: (r[1], r[2]) for r in cur.fetchall()}
+    cur.execute("SELECT id, code, name, price FROM services_catalog WHERE is_active = true")
+    svc_rows = cur.fetchall()
+    svc_lookup = {r[0]: (r[2], r[3]) for r in svc_rows}
+    svc_by_code = {r[1]: r[0] for r in svc_rows}
     cur.execute("SELECT id, name, price FROM medications_catalog WHERE is_active = true")
     med_lookup = {r[0]: (r[1], r[2]) for r in cur.fetchall()}
+
+    # Bulk-fetch diagnoses for correlation (one query, not N+1)
+    invoice_appt_ids = [a["id"] for a in to_invoice]
+    cur.execute("SELECT appointment_id, icd10_code FROM diagnoses WHERE appointment_id = ANY(%s::uuid[])", [invoice_appt_ids])
+    appt_diagnoses: dict[str, list[str]] = {}
+    for appt_id, code in cur.fetchall():
+        appt_diagnoses.setdefault(appt_id, []).append(code)
 
     invoice_rows, item_rows, payment_rows = [], [], []
 
     for appt in to_invoice:
         seq += 1
         inv_id = str(uuid.uuid4())
-        items = _build_items(svc_lookup, med_lookup)
+        items = _build_items(svc_lookup, med_lookup, appt_diagnoses.get(appt["id"], []), svc_by_code)
         if not items:
             continue
 
@@ -106,9 +132,17 @@ def insert_invoices(conn, appt_info: list, policies_by_patient: dict, all_servic
     print(f"    Updated invoice sequence to {seq}.")
 
 
-def _build_items(svc_lookup: dict, med_lookup: dict) -> list:
+def _build_items(svc_lookup: dict, med_lookup: dict, icd10_codes: list = None, svc_by_code: dict = None) -> list:
     n_items = random.choices([1, 2, 3, 4, 5], weights=[20, 35, 25, 15, 5], k=1)[0]
     items = []
+
+    # First item: prefer a service correlated with the diagnosis (70% of the time)
+    correlated_id = _correlated_service(icd10_codes, svc_lookup, svc_by_code)
+    if correlated_id and random.random() < 0.70:
+        name, price = svc_lookup[correlated_id]
+        items.append(("service", correlated_id, None, name, 1, price))
+        n_items -= 1
+
     for _ in range(n_items):
         if random.random() < 0.6 and svc_lookup:
             svc_id = random.choice(list(svc_lookup.keys()))
@@ -121,6 +155,14 @@ def _build_items(svc_lookup: dict, med_lookup: dict) -> list:
             qty = random.choices([1, 2, 3, 5], weights=[50, 30, 15, 5], k=1)[0]
             items.append(("medication", None, med_id, name, qty, price))
     return items
+
+
+def _correlated_service(icd10_codes: list, svc_lookup: dict, svc_by_code: dict):
+    if not icd10_codes or not svc_by_code:
+        return None
+    chapter = icd10_codes[0][0].upper()
+    preferred = [svc_by_code[c] for c in _CHAPTER_SERVICES.get(chapter, []) if c in svc_by_code and svc_by_code[c] in svc_lookup]
+    return random.choice(preferred) if preferred else None
 
 
 def _apply_policy(pol_info, total: Decimal) -> tuple:

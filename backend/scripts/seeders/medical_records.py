@@ -8,7 +8,7 @@ from .db import load_json
 from .generators import generate_clinical_note, generate_physical_exam, generate_vital_signs, weighted_icd10
 
 
-def insert_medical_records(conn, appt_info: list, icd10_data: list, templates: dict, data: dict, dry_run: bool = False) -> None:
+def insert_medical_records(conn, appt_info: list, icd10_data: list, templates: dict, data: dict, dry_run: bool = False, note_templates: dict = None) -> None:
     print("\n[7/8] Inserting medical records, diagnoses, prescriptions, and procedures...")
     cur = conn.cursor()
 
@@ -17,6 +17,9 @@ def insert_medical_records(conn, appt_info: list, icd10_data: list, templates: d
 
     procedures_data = load_json("procedures.json")
     all_meds = data["existing_medications"]
+
+    cur.execute("SELECT id, name FROM medications_catalog WHERE is_active = true")
+    med_name_map = {r[0]: r[1] for r in cur.fetchall()}
 
     mr_rows, diag_rows, presc_rows, proc_rows = [], [], [], []
 
@@ -27,13 +30,27 @@ def insert_medical_records(conn, appt_info: list, icd10_data: list, templates: d
         icd_entry = weighted_icd10(icd10_data)
         severity = random.choices(["mild", "moderate", "severe", "critical"], weights=[55, 28, 13, 4], k=1)[0]
 
+        # Select medications first so note can embed real drug names
+        selected_meds = []
+        treatment_plan_text = None
+        if random.random() < 0.80:
+            n_rx = random.choices([1, 2, 3, 4], weights=[50, 30, 15, 5], k=1)[0]
+            selected_meds = random.sample(all_meds, min(n_rx, len(all_meds)))
+            names = [med_name_map.get(mid, mid) for mid in selected_meds[:2]]
+            treatment_plan_text = ", ".join(names)
+
         mr_rows.append((
             mr_id,
             appt["patient_id"],
             appt["id"],
             generate_vital_signs(patient_age),
             generate_physical_exam(appt["specialty"], templates),
-            generate_clinical_note(appt["specialty"], appt["chief_complaint"], patient_age, templates, icd_entry, appt["days_ago"]),
+            generate_clinical_note(
+                appt["specialty"], appt["chief_complaint"], patient_age,
+                templates, icd_entry, appt["days_ago"],
+                note_templates=note_templates,
+                treatment_plan=treatment_plan_text,
+            ),
             appt["scheduled_at"],
         ))
 
@@ -44,16 +61,14 @@ def insert_medical_records(conn, appt_info: list, icd10_data: list, templates: d
                 code["code"], code["description"], severity, appt["scheduled_at"],
             ))
 
-        if random.random() < 0.80:
-            n_rx = random.choices([1, 2, 3, 4], weights=[50, 30, 15, 5], k=1)[0]
-            for med_id in random.sample(all_meds, min(n_rx, len(all_meds))):
-                presc_rows.append((
-                    str(uuid.uuid4()), appt["id"], mr_id, med_id,
-                    random.choice(DOSAGE_TEMPLATES),
-                    random.choice(FREQUENCY_TEMPLATES),
-                    random.randint(3, 30),
-                    random.choice(INSTRUCTION_TEMPLATES),
-                ))
+        for med_id in selected_meds:
+            presc_rows.append((
+                str(uuid.uuid4()), appt["id"], mr_id, med_id,
+                random.choice(DOSAGE_TEMPLATES),
+                random.choice(FREQUENCY_TEMPLATES),
+                random.randint(3, 30),
+                random.choice(INSTRUCTION_TEMPLATES),
+            ))
 
         if random.random() < 0.40:
             n_proc = random.choices([1, 2], weights=[80, 20], k=1)[0]

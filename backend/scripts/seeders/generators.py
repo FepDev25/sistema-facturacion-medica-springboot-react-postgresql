@@ -145,15 +145,22 @@ def generate_clinical_note(
     templates: dict,
     icd10_entry: dict,
     days_ago: int,
+    note_templates: dict = None,
+    treatment_plan: str = None,
 ) -> str:
-    specialty_key = specialty if specialty in templates["specialties"] else "Medicina General"
-    tpl = templates["specialties"][specialty_key]
-    note_tpl = random.choice(tpl["clinical_note_templates"])
+    base_key = specialty if specialty in templates["specialties"] else "Medicina General"
+    base_tpl = templates["specialties"][base_key]
+
+    if note_templates:
+        note_key = specialty if specialty in note_templates["specialties"] else "Medicina General"
+        note_tpl = random.choice(note_templates["specialties"][note_key]["clinical_note_templates"])
+    else:
+        note_tpl = random.choice(base_tpl["clinical_note_templates"])
 
     severity_map = {"mild": "leve", "moderate": "moderado", "severe": "severo", "critical": "critico"}
     sev = severity_map.get(icd10_entry.get("severity", "mild"), "leve")
 
-    exam_tpl = random.choice(tpl["physical_exam_templates"])
+    exam_tpl = random.choice(base_tpl["physical_exam_templates"])
     findings = re.sub(r"\{[^{}]+\}", "no especificado", exam_tpl).split(".")[0].strip()
 
     fmt_kwargs = {
@@ -164,7 +171,7 @@ def generate_clinical_note(
         "age": patient_age,
         "findings": findings,
         "presumptive_diagnosis": icd10_entry["description"],
-        "treatment_plan": "medicamentos segun receta",
+        "treatment_plan": treatment_plan or "medicamentos segun receta",
         "rest_days": random.randint(3, 10),
         "follow_up": random.randint(7, 30),
         "studies": "laboratorio general",
