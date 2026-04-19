@@ -1,0 +1,269 @@
+{
+  "specialties": {
+    "Medicina General": {
+      "physical_exam_templates": [
+        "Paciente en buen estado general. Bien hidratado, afebril. Piel y faneras sin alteraciones. No se palpan adenopatias perifericas. Abdomen blando, depresible, no doloroso a la palpacion. Ruidos intestinales presentes.",
+        "Paciente consciente, orientado. Mucosas humedas, conjuntivas rosadas. Cuello movil sin masas. Auscultacion cardiaca: ritmica, sin soplos. Auscultacion pulmonar: murmullo vesicular presente bilateralmente. Abdomen sin particularidades.",
+        "Paciente alerta, cooperador. Facie de dolor. Piel tibia y seca. No se palpan adenopatias. Cuello con movilidad conservada. Campos pulmonares con ventilacion simetrica. Abdomen blando, no doloroso.",
+        "Paciente en regular estado general. Palido, con signos de deshidratacion leve. Mucosas secas. Frecuencia cardiaca ligeramente elevada. Abdomen blando con leve dolor a la palpacion en epigastrio."
+      ],
+      "clinical_note_templates": [
+        "Paciente acude por {chief_complaint}. Refiere inicio hace {days} dias con {symptoms}. Niega fiebre, perdida de peso o sangrado. No alergias conocidas. Tratamiento previo con automedicacion parcial. Al examen fisico se encuentra {findings}. Se solicitan estudios de laboratorio. Se indica tratamiento sintomatico y cita de control.",
+        "Consulta por {chief_complaint}. Paciente refiere {symptoms} de evolucion {duration}. Antecedente de {medical_history}. Al examen: {findings}. Diagnostico presuntivo de {presumptive_diagnosis}. Se inicia tratamiento con {treatment_plan}. Se indica reposo relativo por {rest_days} dias.",
+        "Paciente masculino/femenino de {age} anos consulta por {chief_complaint}. Desde hace {days} dias presenta {symptoms}. Sin improvement con medidas caseras. Al examen fisico: {findings}. Se indican estudios complementarios: {studies}. Se brinda receta y se cita en {follow_up} dias para valoracion.",
+        "Seguimiento de {presumptive_diagnosis}. Paciente refiere {improvement_status} con el tratamiento actual. {symptoms_improved}. Al examen: {findings}. Se continua tratamiento. Se refuerzan medidas higienico-dieteticas. Cita de control en {follow_up} dias."
+      ],
+      "vital_signs_patterns": [
+        {"bp": "120/80", "hr": 72, "temp": 36.5, "spo2": 98, "weight": null, "height": null},
+        {"bp": "130/85", "hr": 78, "temp": 37.0, "spo2": 97, "weight": null, "height": null},
+        {"bp": "110/70", "hr": 68, "temp": 36.8, "spo2": 99, "weight": null, "height": null}
+      ]
+    },
+    "Cardiologia": {
+      "physical_exam_templates": [
+        "Paciente consciente, orientado, en buen estado general. Auscultacion cardiaca: ritmo regular, no se auscultan soplos. Frecuencia cardiaca dentro de parametros normales. Pulsos perifericos presentes y simetricos. No hay signos de insuficiencia cardiaca. No edema periferico.",
+        "Paciente con facie de ansiedad. Auscultacion cardiaca: ritmo sinusal, {heart_sound_finding}. PA elevada. No ingurgitacion yugular. Campana toracica sin deformidades. Murmullo vesicular conservado.",
+        "Paciente en regular estado general. Disnea a minimos esfuerzos. Auscultacion cardiaca: ritmo irregular con {arrhythmia_finding}. Crepitantes bibasales. Edema bilateral en miembros inferiores ++/{edema_grade}. Ingurgitacion yugular presente."
+      ],
+      "clinical_note_templates": [
+        "Paciente de {age} anos con antecedente de {cardio_history} acude por {chief_complaint}. Refiere {symptoms} desde hace {days} dias. Al examen: {findings}. ECG en reposo muestra {ecg_finding}. Se solicita ecocardiograma y perfil lipidico. Se ajusta tratamiento farmacologico.",
+        "Control cardiovascular. Paciente con hipertension arterial en tratamiento. Refiere {symptoms}. PA actual: {bp_reading}. Al examen: {findings}. Se optimiza esquema antihipertensivo. Se solicitan estudios de laboratorio.",
+        "Paciente con diagnostico previo de {cardio_history}. Acude por {chief_complaint}. {symptoms}. Al examen: {findings}. Se interpreta como {presumptive_diagnosis}. Se hospitaliza para estudio y tratamiento."
+      ],
+      "vital_signs_patterns": [
+        {"bp": "140/90", "hr": 82, "temp": 36.6, "spo2": 96, "weight": null, "height": null},
+        {"bp": "160/100", "hr": 88, "temp": 36.5, "spo2": 95, "weight": null, "height": null},
+        {"bp": "125/82", "hr": 70, "temp": 36.8, "spo2": 97, "weight": null, "height": null}
+      ]
+    },
+    "Neumologia": {
+      "physical_exam_templates": [
+        "Paciente consciente, sin dificultad respiratoria en reposo. Auscultacion pulmonar: murmullo vesicular presente bilateralmente, sin ruidos agregados. No uso de musculatura accesoria. Frecuencia respiratoria dentro de parametros normales.",
+        "Paciente con tiraje intercostal leve. Auscultacion pulmonar: {lung_finding}. Sibilancias espiratorias bilaterales. Frecuencia respiratoria aumentada a {rr} rpm. Saturacion de O2: {spo2}%.",
+        "Paciente en regular estado general. Cianosis peribucal leve. Auscultacion pulmonar: {lung_finding} en campo {lung_field}. Abdomen con involucion respiratoria normal. Se indica oxigenoterapia suplementaria."
+      ],
+      "clinical_note_templates": [
+        "Paciente de {age} anos con antecedente de {pulmo_history} consulta por {chief_complaint}. Refiere {symptoms} de {duration}. Al examen: {findings}. Se solicita radiografia de torax y espirometria. Se indica tratamiento broncodilatador y esteroidal inhalado.",
+        "Seguimiento de paciente con asma/EPOC. Refiere {improvement_status}. Uso de inhalador {inhaler_use}. Al examen: {findings}. Se ajusta esquema de mantenimiento. Se refuerza tecnica de inhalacion.",
+        "Paciente acude por infeccion respiratoria de vias inferiores. {symptoms}. Radiografia de torax: {xray_finding}. Se indica antibioterapia y control en 72 horas."
+      ],
+      "vital_signs_patterns": [
+        {"bp": "120/80", "hr": 76, "temp": 37.2, "spo2": 96, "weight": null, "height": null},
+        {"bp": "115/75", "hr": 90, "temp": 37.5, "spo2": 93, "weight": null, "height": null},
+        {"bp": "130/85", "hr": 84, "temp": 38.0, "spo2": 91, "weight": null, "height": null}
+      ]
+    },
+    "Gastroenterologia": {
+      "physical_exam_templates": [
+        "Paciente en buen estado general. Abdomen blando, depresible, no doloroso a la palpacion superficial ni profunda. No se palpan masas ni visceromegalovirus. Ruidos intestinales fisiologicos. No signos de irritacion peritoneal.",
+        "Paciente con dolor a la palpacion en {abdominal_region}. Abdomen {abdomen_consistency}. {peritoneal_signs}. Ruidos intestinales {bowel_sounds}. No se palpan hernias.",
+        "Paciente con ictericia leve. Abdomen distendido. A la palpacion: {abdominal_findings}. Signo de Murphy {murphy_sign}. Hepatomegalia {hepatomegaly_findings}. Ruidos intestinales disminuidos."
+      ],
+      "clinical_note_templates": [
+        "Paciente de {age} anos con antecedente de {gi_history} consulta por {chief_complaint}. {symptoms} de {duration}. Al examen: {findings}. Se solicita panel hepatico, ultrasonido abdominal y endoscopia. Se indica tratamiento con {treatment_plan} y dieta {diet_type}.",
+        "Control de paciente con {gi_history}. Refiere {improvement_status}. Al examen: {findings}. Se continua tratamiento. Se solicitan laboratorios de control. Cita en {follow_up} semanas.",
+        "Paciente acude por cuadro de {presumptive_diagnosis}. {symptoms}. Al examen: {findings}. Se indica reposo dietico, hidratacion oral y farmacoterapia. Se solicitan estudios complementarios."
+      ],
+      "vital_signs_patterns": [
+        {"bp": "120/80", "hr": 70, "temp": 36.5, "spo2": 98, "weight": null, "height": null},
+        {"bp": "110/70", "hr": 80, "temp": 37.8, "spo2": 98, "weight": null, "height": null}
+      ]
+    },
+    "Traumatologia": {
+      "physical_exam_templates": [
+        "Paciente acude con dolor en {joint_region}. A la inspeccion: {inspection_findings}. A la palpacion: {palpation_findings}. Rango de movilidad {rom_findings}. No hay signos de fractura. Estrecha relacion con {activity_context}.",
+        "Paciente post-trauma en {injury_region}. {inspection_findings}. Edema {edema_grade}. Dolor a la palpacion local en {pain_point}. Movilidad {rom_findings}. Pruebas especiales: {special_tests}. Se solicitan estudios de imagen.",
+        "Paciente con antecedente de {ortho_history}. Dolor {pain_character} en {joint_region} de {duration}. {inspection_findings}. {palpation_findings}. Se indica radiografia y valoracion para posible {presumptive_diagnosis}."
+      ],
+      "clinical_note_templates": [
+        "Paciente de {age} anos acude por {chief_complaint}. {symptoms} de {duration}. Relacionado con {activity_context}. Al examen: {findings}. Se solicita radiografia de {imaging_region}. Indicaciones: {treatment_plan}. Cita de control en {follow_up} dias con estudios.",
+        "Seguimiento de {presumptive_diagnosis} en {joint_region}. {improvement_status}. Al examen: {findings}. Se continua fisioterapia. Se indica {treatment_plan}. Cita en {follow_up} semanas.",
+        "Paciente post-lesion deportiva en {injury_region}. Mecanismo de lesion: {injury_mechanism}. {symptoms}. Al examen: {findings}. Se solicita resonancia magnetica. Se indica inmovilizacion y analgesia."
+      ],
+      "vital_signs_patterns": [
+        {"bp": "120/80", "hr": 72, "temp": 36.6, "spo2": 98, "weight": null, "height": null}
+      ]
+    },
+    "Dermatologia": {
+      "physical_exam_templates": [
+        "Lesion(es) cutanea(s) localizada(s) en {skin_location}. A la inspeccion: {lesion_description}. No hay signos de infeccion secundaria. Resto de piel y faneras sin hallazgos relevantes.",
+        "Paciente con dermatosis {distribution_pattern} en {skin_location}. Las lesiones consisten en {lesion_morphology}. Al dermascopio: {dermoscopy_findings}. No se palpan adenopatias regionales.",
+        "Paciente con lesiones {lesion_type} de {duration} de evolucion. Distribucion: {distribution_pattern}. Consistencia: {consistency}. Se toma muestra para estudio histopatologico."
+      ],
+      "clinical_note_templates": [
+        "Paciente de {age} anos consulta por {chief_complaint}. Lesion(es) de {duration} en {skin_location}. {symptoms}. Al examen: {findings}. Diagnostico clinico: {presumptive_diagnosis}. Se indica tratamiento topico con {topical_treatment} y oral con {oral_treatment}. Cita de control en 2 semanas.",
+        "Control dermatologico. Paciente con {presumptive_diagnosis} en tratamiento. {improvement_status}. {findings}. Se ajusta tratamiento. Se indica medidas de proteccion solar e hidratacion.",
+        "Paciente consulta por {chief_complaint}. {symptoms} desde hace {days} dias. Al examen: {findings}. Se solicitan estudios de laboratorio: {studies}. Se indica tratamiento y se cita en {follow_up} dias."
+      ],
+      "vital_signs_patterns": [
+        {"bp": "120/80", "hr": 70, "temp": 36.5, "spo2": 98, "weight": null, "height": null}
+      ]
+    },
+    "Otorrinolaringologia": {
+      "physical_exam_templates": [
+        "Rinoscopia anterior: mucosa nasal {nasal_mucosa}, {nasal_finding}. Orofaringe: {oropharynx_finding}. No adenopatias cervicales. Otoscopia bilateral: membranas timpanicas integras. Conductos auditivos externos sin secrecion.",
+        "Paciente con congestion nasal bilateral. Rinoscopia: {nasal_finding}. Faringe: hiperemia de amigdalas {tonsil_grade}. Otoscopia: {ear_findings}. Adenopatias submandibulares {lymph_finding}.",
+        "A la evaluacion: {exam_findings}. Faringe hiperemica. Amigdalas con exudado {exudate_description}. Audiometria: {audiometry_finding}. Se solicita estudio audiologico completo."
+      ],
+      "clinical_note_templates": [
+        "Paciente acude por {chief_complaint}. Refiere {symptoms} de {duration}. Al examen: {findings}. Diagnostico: {presumptive_diagnosis}. Se indica tratamiento con {treatment_plan}. Medidas generales: lavado nasal, hidratacion. Cita en 7 dias.",
+        "Control de rinusitis/otitis. {improvement_status}. Al examen: {findings}. Se continua tratamiento. Se indica lavados nasales con solucion salina. Cita en {follow_up} dias.",
+        "Paciente con {chief_complaint}. {symptoms}. Al examen: {findings}. Se solicita audiometria tonal y timpanometria. Se diagnostica {presumptive_diagnosis}. Se indica tratamiento."
+      ],
+      "vital_signs_patterns": [
+        {"bp": "120/80", "hr": 72, "temp": 36.8, "spo2": 98, "weight": null, "height": null}
+      ]
+    },
+    "Oftalmologia": {
+      "physical_exam_templates": [
+        "Agudeza visual sin correccion: OD 20/{od_vision} - OI 20/{oi_vision}. Presion intraocular: OD {od_pressure} mmHg - OI {oi_pressure} mmHg. Segmento anterior: {anterior_segment}. Fondo de ojo: {fundus_findings}. Motilidad ocular conservada.",
+        "Paciente con {chief_complaint}. Biomicroscopia: {slit_lamp_findings}. Prueba de Schirmer: {schirmer_result}. Test de fluoresceina: {fluorescein_result}. No hay signos de infeccion activa.",
+        "Examen oftalmologico completo. Pupila isocoricas y fotorreactivas. Segmento anterior sin alteraciones. PIO dentro de parametros normales. Fondo de ojo: {fundus_findings}. Se solicita campimetria visual."
+      ],
+      "clinical_note_templates": [
+        "Paciente de {age} anos consulta por {chief_complaint}. {symptoms} de {duration}. Al examen: {findings}. Diagnostico: {presumptive_diagnosis}. Se indica tratamiento con {treatment_plan}. Cita de control en {follow_up} dias.",
+        "Control oftalmologico. {improvement_status}. Al examen: {findings}. Se continua tratamiento. Se solicita OCT de macula. Cita en {follow_up} semanas.",
+        "Paciente con disminucion de agudeza visual. {symptoms}. Al examen: {findings}. Se solicita estudios complementarios: {studies}. Se diagnostica {presumptive_diagnosis}."
+      ],
+      "vital_signs_patterns": [
+        {"bp": "120/80", "hr": 70, "temp": 36.5, "spo2": 98, "weight": null, "height": null}
+      ]
+    },
+    "Ginecologia": {
+      "physical_exam_templates": [
+        "Paciente en buen estado general. Abdomen blando, no doloroso. Exploracion ginecologica: {gyn_exam_findings}. Cuello uterino {cervix_findings}. No se palpan masas anexiales.",
+        "Paciente con {gyn_history}. Al examen ginecologico: {gyn_exam_findings}. Se realiza colposcopia: {colposcopy_findings}. Se toma Papanicolaou y citologia vaginal.",
+        "Exploracion ginecologica: {gyn_exam_findings}. {uterus_findings}. {adnexa_findings}. Se solicita ultrasonido ginecologico."
+      ],
+      "clinical_note_templates": [
+        "Paciente de {age} anos consulta por {chief_complaint}. {symptoms} de {duration}. Fecha de ultima menstruacion: {lmp}. Al examen: {findings}. Se solicitan estudios: {studies}. Se indica tratamiento y cita de control.",
+        "Control ginecologico anual. Paciente asintomatica. Al examen: {findings}. Se realizan estudios de rutina. Se refuerzan medidas de salud reproductiva.",
+        "Paciente con {presumptive_diagnosis}. {symptoms}. Al examen: {findings}. Se indica tratamiento con {treatment_plan}. Se solicitan estudios complementarios y cita en {follow_up} semanas."
+      ],
+      "vital_signs_patterns": [
+        {"bp": "115/75", "hr": 75, "temp": 36.6, "spo2": 98, "weight": null, "height": null}
+      ]
+    },
+    "Pediatria": {
+      "physical_exam_templates": [
+        "Nino de {age} en buen estado general. Activo, reactivo, hidratado. Piel sin lesiones. Fontanela {fontanel_findings}. Auscultacion cardiaca y pulmonar sin hallazgos. Abdomen blando. Reflejos osteotendinosos presentes.",
+        "Nino de {age} anos con {chief_complaint}. Estado de alerta y orientacion adecuada para la edad. {examination_findings}. Peso y talla en percentiles {percentile_range}. Se realiza valoracion completa.",
+        "Lactante/nino de {age}. Alimentacion {feeding_pattern}. {examination_findings}. Desarrollo psicomotor {development_status}. Se brinda orientacion a padres sobre {parental_guidance}."
+      ],
+      "clinical_note_templates": [
+        "Nino de {age} anos acude por {chief_complaint}. Padre/madre refiere {symptoms} de {duration}. {feeding_pattern}. Al examen: {findings}. Diagnostico: {presumptive_diagnosis}. Se indica tratamiento con {treatment_plan}. Cita de control en {follow_up} dias.",
+        "Control de nino sano. {age} anos. Peso: {weight} kg, Talla: {height} cm. Percentiles {percentile_range}. {examination_findings}. Esquema de vacunacion {vaccination_status}. Se brinda orientacion sobre nutricion y desarrollo.",
+        "Nino con cuadro de {presumptive_diagnosis}. {symptoms} de {duration}. Al examen: {findings}. Se solicitan estudios: {studies}. Se indica tratamiento y medidas generales. Cita de control en 48-72 horas."
+      ],
+      "vital_signs_patterns": [
+        {"bp": "100/65", "hr": 100, "temp": 37.0, "spo2": 98, "weight": null, "height": null},
+        {"bp": "95/60", "hr": 110, "temp": 37.5, "spo2": 97, "weight": null, "height": null},
+        {"bp": "90/55", "hr": 120, "temp": 38.2, "spo2": 96, "weight": null, "height": null}
+      ]
+    },
+    "Endocrinologia": {
+      "physical_exam_templates": [
+        "Paciente en buen estado general. IMC calculado: {bmi}. {thyroid_findings}. Piel sin lesiones. No hay signos de hipotiroidismo ni hipertiroidismo evidentes. Resto del examen sin particularidades.",
+        "Paciente con {endocrine_finding}. Cuello: {thyroid_findings}. {skin_findings}. {neuro_findings}. Auscultacion cardiaca sin hallazgos. Se solicitan estudios tiroideos y metabolicos.",
+        "Paciente con antecedente de {endocrine_history}. Al examen: {examination_findings}. Se valora control metabolico. Se solicitan: {studies}."
+      ],
+      "clinical_note_templates": [
+        "Paciente de {age} anos con diagnostico de {endocrine_history}. Acude para control. {symptoms}. Al examen: {findings}. Se solicitan: {studies}. Se ajusta tratamiento con {treatment_plan}. Cita en {follow_up} semanas.",
+        "Paciente consulta por {chief_complaint}. {symptoms}. Al examen: {findings}. Se solicitan estudios de funcion tiroidea, glucosa y perfil lipidico. Se diagnostica {presumptive_diagnosis}. Se indica tratamiento.",
+        "Seguimiento de diabetes tipo 2. Hemoglobina glicosilada: {hba1c}. {symptoms}. Al examen: {findings}. Se ajusta esquema de hipoglucemiantes. Se refuerzan medidas dieteticas y de ejercicio."
+      ],
+      "vital_signs_patterns": [
+        {"bp": "130/85", "hr": 76, "temp": 36.5, "spo2": 98, "weight": null, "height": null}
+      ]
+    },
+    "Neurologia": {
+      "physical_exam_templates": [
+        "Paciente consciente, orientado en las tres esferas. Craneos normales, sin signos de hipertension endocraneana. Pupilas isocoricas y fotorreactivas. Pares craneales normales. Fuerza muscular 5/5 en cuatro extremidades. Sensibilidad conservada. Marcha estable.",
+        "Examen neurologico: {neuro_finding}. {motor_findings}. {sensory_findings}. Reflejos osteotendinosos {reflex_findings}. Marcha {gait_findings}. Romberg: {romberg_sign}.",
+        "Paciente con {neuro_finding}. Al examen neurologico: {examination_findings}. Se solicita resonancia magnetica cerebral y electroencefalograma. Se indica tratamiento sintomatico."
+      ],
+      "clinical_note_templates": [
+        "Paciente de {age} anos consulta por {chief_complaint}. {symptoms} de {duration}. Al examen: {findings}. Se solicita {studies}. Diagnostico: {presumptive_diagnosis}. Se indica tratamiento con {treatment_plan}. Cita en {follow_up} semanas.",
+        "Control neurologico de {presumptive_diagnosis}. {improvement_status}. Al examen: {findings}. Se continua tratamiento. Se solicitan estudios de control. Cita en {follow_up} meses.",
+        "Paciente acude por episodio de {chief_complaint}. {symptoms}. Al examen: {findings}. Se solicita {studies}. Se diagnostica {presumptive_diagnosis} y se indica tratamiento preventivo."
+      ],
+      "vital_signs_patterns": [
+        {"bp": "125/80", "hr": 72, "temp": 36.5, "spo2": 98, "weight": null, "height": null}
+      ]
+    },
+    "Psiquiatria": {
+      "physical_exam_templates": [
+        "Paciente consciente, orientado. Facie {affect_description}. Psicomotricidad {psychomotor_findings}. Lenguaje fluido y coherente. Pensamiento {thought_pattern}. No ideacion suicida ni homicida al interrogatorio directo. Sueño y apetito {sleep_appetite}.",
+        "Examen mental: Paciente colaborador. Apariencia {appearance_findings}. Conducta {behavior_findings}. Humor y afecto {mood_findings}. Percepciones sin alteraciones. Procesos cognitivos {cognitive_findings}.",
+        "Paciente en examen mental: {mental_status_findings}. Funciones cognitivas {cognitive_status}. Juicio y razonamiento {judgment_findings}. No riesgo inmediato."
+      ],
+      "clinical_note_templates": [
+        "Paciente de {age} anos consulta por {chief_complaint}. {symptoms} de {duration}. Antecedente de {psychiatric_history}. Al examen mental: {findings}. Se diagnostica {presumptive_diagnosis}. Se indica farmacoterapia con {treatment_plan} y psicoterapia. Cita en {follow_up} semanas.",
+        "Seguimiento de {presumptive_diagnosis}. {improvement_status}. Al examen mental: {findings}. Se ajusta tratamiento farmacologico. Se continua psicoterapia. Escala de Hamilton: {hamilton_score}. Cita en {follow_up} semanas.",
+        "Primera consulta psiquiatrica. {symptoms}. Al examen: {findings}. Se solicitan estudios de laboratorio base. Se inicia tratamiento con {treatment_plan}. Se brinda psicoeducacion al paciente y familiar."
+      ],
+      "vital_signs_patterns": [
+        {"bp": "120/80", "hr": 72, "temp": 36.5, "spo2": 98, "weight": null, "height": null}
+      ]
+    },
+    "Urologia": {
+      "physical_exam_templates": [
+        "Paciente en buen estado general. Abdomen blando, no doloroso. No se palpan masas en fosas renales. Genitales externos sin alteraciones. Tacto rectal: prostata {prostate_findings}. No hernias inguinales.",
+        "Examen urologico: Abdomen con {abdominal_findings}. {genital_findings}. Tacto rectal: {prostate_findings}. Se solicita ultrasonido renal y vesical, uroanalisis y PSA.",
+        "Paciente con {chief_complaint}. Al examen: {findings}. Se solicita estudio de imagen: {studies}. Se valora manejo ambulatorio vs quirurgico."
+      ],
+      "clinical_note_templates": [
+        "Paciente de {age} anos consulta por {chief_complaint}. {symptoms} de {duration}. Al examen: {findings}. Se solicitan estudios: {studies}. Diagnostico: {presumptive_diagnosis}. Se indica tratamiento con {treatment_plan}. Cita en {follow_up} dias.",
+        "Control urologico de {presumptive_diagnosis}. {improvement_status}. Al examen: {findings}. Se continua tratamiento. Se solicitan estudios de control. Cita en {follow_up} meses.",
+        "Paciente acude por {chief_complaint}. {symptoms}. Al examen: {findings}. Se solicita ultrasonido y laboratorios. Se diagnostica {presumptive_diagnosis}. Se indica tratamiento."
+      ],
+      "vital_signs_patterns": [
+        {"bp": "125/82", "hr": 72, "temp": 36.6, "spo2": 98, "weight": null, "height": null}
+      ]
+    },
+    "Oncologia": {
+      "physical_exam_templates": [
+        "Paciente en regular estado general. Performance status ECOG {ecog_status}. Piel palida. {organ_findings}. No adenopatias perifericas significativas. Abdomen blando. Resto del examen sin particularidades relevantes para la patologia de base.",
+        "Paciente con {cancer_type}. Al examen: {examination_findings}. Se evalua respuesta al tratamiento: {treatment_response}. Se solicitan estudios de extensión y marcadores tumorales.",
+        "Examen fisico orientado: {exam_findings}. No signos de progresion. Se revisan resultados de estudios de imagen previos."
+      ],
+      "clinical_note_templates": [
+        "Paciente de {age} anos con diagnostico de {cancer_type} en tratamiento. {symptoms}. Al examen: {findings}. Se solicitan estudios: {studies}. Se revisa esquema de quimioterapia. Cita en {follow_up} semanas.",
+        "Control oncologico post-tratamiento. {improvement_status}. Al examen: {findings}. Se solicitan marcadores tumorales y estudios de imagen. Se discute plan de seguimiento.",
+        "Paciente con sospecha de {cancer_type}. {symptoms}. Al examen: {findings}. Se solicitan estudios de laboratorio, imagen y biopsia. Se brinda informacion y soporte emocional."
+      ],
+      "vital_signs_patterns": [
+        {"bp": "115/75", "hr": 78, "temp": 36.8, "spo2": 97, "weight": null, "height": null}
+      ]
+    },
+    "Cirugia General": {
+      "physical_exam_templates": [
+        "Paciente en buen estado general. Abdomen {abdomen_findings}. No signos de irritacion peritoneal. No hernias palpables. Ruidos intestinales presentes. Se solicitan estudios preoperatorios.",
+        "Paciente post-quirurgico. Herida quirurgica {wound_findings}. {abdomen_findings}. No signos de infeccion. Deambulando con asistencia. Tolerancia oral {oral_tolerance}.",
+        "Paciente con cuadro agudo abdominal. A la inspeccion: {inspection_findings}. Palpacion: {palpation_findings}. {peritoneal_signs}. Se solicitan estudios de urgencia."
+      ],
+      "clinical_note_templates": [
+        "Paciente de {age} anos candidato a cirugia de {surgery_type}. {symptoms}. Al examen: {findings}. Estudios preoperatorios: {studies}. Se programa procedimiento quirurgico.",
+        "Valoracion postoperatoria de {surgery_type}. {postop_findings}. Se retira puntos de {suture_site}. Se indican cuidados de la herida. Cita en {follow_up} dias.",
+        "Paciente acude por {chief_complaint}. {symptoms}. Al examen: {findings}. Se diagnostica {presumptive_diagnosis}. Se indica tratamiento quirurgico. Se solicitan estudios preoperatorios."
+      ],
+      "vital_signs_patterns": [
+        {"bp": "120/80", "hr": 76, "temp": 37.0, "spo2": 97, "weight": null, "height": null}
+      ]
+    },
+    "Hematologia": {
+      "physical_exam_templates": [
+        "Paciente en regular estado general. Palidez mucocutanea {pallor_grade}. No se palpan adenopatias ni hepatoesplenomegalia. Resto del examen fisico sin particularidades. Se solicitan biometria hemtica y estudios hematologicos.",
+        "Examen fisico: {examination_findings}. No adenopatias significativas. No hepatoesplenomegalia. Se solicita hemograma completo, extendido periferico y estudios de coagulacion.",
+        "Paciente con antecedente de {hematology_history}. Al examen: {findings}. Se solicitan estudios de seguimiento."
+      ],
+      "clinical_note_templates": [
+        "Paciente de {age} anos consulta por {chief_complaint}. {symptoms} de {duration}. Al examen: {findings}. Se solicitan estudios: {studies}. Se diagnostica {presumptive_diagnosis}. Se indica tratamiento y seguimiento.",
+        "Control hematologico de {presumptive_diagnosis}. {improvement_status}. Al examen: {findings}. Se solicitan laboratorios de control. Se ajusta tratamiento si necesario. Cita en {follow_up} semanas."
+      ],
+      "vital_signs_patterns": [
+        {"bp": "110/70", "hr": 80, "temp": 36.6, "spo2": 97, "weight": null, "height": null}
+      ]
+    }
+  }
+}
