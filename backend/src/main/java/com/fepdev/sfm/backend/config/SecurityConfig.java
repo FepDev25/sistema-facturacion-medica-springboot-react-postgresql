@@ -46,6 +46,7 @@ public class SecurityConfig {
                         // Publicos
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
+                        .requestMatchers("/error").permitAll()
                         .requestMatchers(
                                 "/swagger-ui/**", "/swagger-ui.html",
                                 "/api-docs/**", "/v3/api-docs/**").permitAll()
