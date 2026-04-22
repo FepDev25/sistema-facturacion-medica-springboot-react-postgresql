@@ -10,6 +10,14 @@ spring:
       connection-timeout: 30000
       pool-name: HikariPool-SFM-Dev
 
+  # Spring AI
+  ai:
+    anthropic:
+      api-key: ${ANTHROPIC_API_KEY}
+      chat:
+        options:
+          model: claude-haiku-4-5-20251001
+
   # En dev se muestran las queries SQL para facilitar el desarrollo
   jpa:
     show-sql: true
@@ -26,6 +34,7 @@ spring:
     redis:
       host: localhost
       port: 6379
+  
 
 # Logs mas detallados en desarrollo
 logging:

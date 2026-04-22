@@ -24,6 +24,16 @@ spring:
     redis:
       timeout: 2000ms
 
+  # Spring AI — configuración base
+  ai:
+    anthropic:
+      api-key: ${ANTHROPIC_API_KEY:}
+      chat:
+        options:
+          model: claude-haiku-4-5-20251001
+          temperature: 0.7
+          max-tokens: 2048
+
 # JWT - propiedades custom del proyecto
 app:
   jwt:
@@ -31,6 +41,8 @@ app:
     secret: c2ZtLXNlY3JldC1rZXktZm9yLWRldmVsb3BtZW50LXVzZS1vbmx5LTI1NmJpdHM=
     access-token-expiration: 900000      # 15 minutos en milisegundos
     refresh-token-expiration: 604800000  # 7 dias en milisegundos
+
+  
 
 # Actuator
 management:
