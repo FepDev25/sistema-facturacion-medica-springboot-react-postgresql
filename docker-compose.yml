@@ -1,7 +1,7 @@
 services:
 
   postgres:
-    image: postgres:15-alpine
+    image: pgvector/pgvector:pg15
     container_name: sfm-postgres
     environment:
       POSTGRES_DB: fac_med_db

@@ -126,6 +126,23 @@
 			<artifactId>spring-ai-starter-model-anthropic</artifactId>
 			<version>${spring-ai.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.ai</groupId>
+			<artifactId>spring-ai-starter-model-ollama</artifactId>
+			<version>${spring-ai.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.ai</groupId>
+			<artifactId>spring-ai-starter-vector-store-pgvector</artifactId>
+			<version>${spring-ai.version}</version>
+		</dependency>
+
+		<!-- CSV parser para carga de CIE-10 -->
+		<dependency>
+			<groupId>com.opencsv</groupId>
+			<artifactId>opencsv</artifactId>
+			<version>5.9</version>
+		</dependency>
 
 		<!-- AOP - para auditoría con @Aspect. spring-aop ya viene incluido via spring-context; solo se necesita el runtime de AspectJ para los pointcuts -->
 		<dependency>
