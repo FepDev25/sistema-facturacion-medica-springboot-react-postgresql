@@ -1,5 +1,7 @@
 package com.fepdev.sfm.backend.ai.history;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -53,6 +55,86 @@ public class PatientHistoryIndexer {
                 "SELECT COUNT(*) FROM vector_store WHERE metadata->>'patientId' = ?",
                 Integer.class, patientId.toString());
         return count != null && count > 0;
+    }
+
+    // topK dinámico: escala con el número de expedientes indexados para no perder
+    // registros relevantes en historiales amplios, con techo de 15 para evitar ruido.
+    public int resolveTopK(UUID patientId) {
+        Integer indexed = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM vector_store WHERE metadata->>'patientId' = ?",
+                Integer.class, patientId.toString());
+        if (indexed == null || indexed <= 8) return 6;
+        if (indexed <= 15) return 10;
+        return 15;
+    }
+
+    // Construye un contexto estructurado con el historial completo del paciente desde BD.
+    // Se usa cuando la query es de resumen — garantiza cobertura total independientemente de topK.
+    public String buildSummaryContext(UUID patientId) {
+        List<MedicalRecord> records = medicalRecordRepository.findByPatientIdEager(patientId);
+        if (records.isEmpty()) return "";
+
+        List<Diagnosis> allDiagnoses = diagnosisRepository.findAllByPatientId(patientId);
+        List<Prescription> allPrescriptions = prescriptionRepository.findAllByPatientIdEager(patientId);
+        List<Procedure> allProcedures = procedureRepository.findAllByPatientId(patientId);
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("Historial clínico completo del paciente (")
+          .append(records.size()).append(" expedientes):\n\n");
+
+        // Diagnósticos deduplicados por código ICD-10, con conteo de recurrencias
+        if (!allDiagnoses.isEmpty()) {
+            Map<String, long[]> byCode = new LinkedHashMap<>();
+            for (Diagnosis d : allDiagnoses) {
+                byCode.computeIfAbsent(d.getIcd10Code() + "|" + d.getDescription(),
+                        k -> new long[]{0})[0]++;
+            }
+            sb.append("## Diagnósticos registrados (").append(byCode.size()).append(" únicos):\n");
+            byCode.forEach((key, count) -> {
+                String[] parts = key.split("\\|", 2);
+                sb.append("- ").append(parts[0]).append(": ").append(parts[1]);
+                if (count[0] > 1) sb.append(" (").append(count[0]).append(" consultas)");
+                sb.append("\n");
+            });
+            sb.append("\n");
+        }
+
+        // Medicamentos deduplicados por nombre, con conteo de prescripciones
+        if (!allPrescriptions.isEmpty()) {
+            Map<String, long[]> byName = new LinkedHashMap<>();
+            for (Prescription p : allPrescriptions) {
+                byName.computeIfAbsent(p.getMedication().getName(), k -> new long[]{0})[0]++;
+            }
+            sb.append("## Medicamentos prescritos (").append(byName.size()).append(" únicos):\n");
+            byName.forEach((name, count) -> {
+                sb.append("- ").append(name);
+                if (count[0] > 1) sb.append(" (").append(count[0]).append(" prescripciones)");
+                sb.append("\n");
+            });
+            sb.append("\n");
+        }
+
+        // Procedimientos (sin deduplicar — cada realización es relevante)
+        if (!allProcedures.isEmpty()) {
+            // Deduplicar por descripción para no listar duplicados del seed
+            List<String> seen = new ArrayList<>();
+            sb.append("## Procedimientos realizados:\n");
+            for (Procedure p : allProcedures) {
+                if (!seen.contains(p.getDescription())) {
+                    seen.add(p.getDescription());
+                    sb.append("- ").append(p.getDescription()).append("\n");
+                }
+            }
+            sb.append("\n");
+        }
+
+        // Período del historial
+        sb.append("Período del historial: ")
+          .append(records.get(records.size() - 1).getRecordDate().toLocalDate())
+          .append(" — ")
+          .append(records.get(0).getRecordDate().toLocalDate());
+
+        return sb.toString();
     }
 
     // Indexa todos los expedientes de un paciente. Cada repositorio abre su propia transacción

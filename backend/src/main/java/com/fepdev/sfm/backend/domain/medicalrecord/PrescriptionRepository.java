@@ -26,6 +26,9 @@ public interface PrescriptionRepository extends JpaRepository<Prescription, UUID
     @Query("SELECT p FROM Prescription p JOIN FETCH p.medication WHERE p.medicalRecord.id = :medicalRecordId ORDER BY p.createdAt DESC")
     List<Prescription> findAllByMedicalRecordIdEager(@Param("medicalRecordId") UUID medicalRecordId);
 
+    @Query("SELECT p FROM Prescription p JOIN FETCH p.medication WHERE p.medicalRecord.patient.id = :patientId ORDER BY p.createdAt DESC")
+    List<Prescription> findAllByPatientIdEager(@Param("patientId") UUID patientId);
+
     // verificar si existe prescripción para un medicamento en una cita (usado por facturación)
     boolean existsByAppointmentIdAndMedicationId(UUID appointmentId, UUID medicationId);
 }

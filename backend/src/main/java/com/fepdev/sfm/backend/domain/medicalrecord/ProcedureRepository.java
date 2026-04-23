@@ -18,4 +18,7 @@ public interface ProcedureRepository extends JpaRepository<Procedure, UUID> {
 
     @Query("SELECT p FROM Procedure p WHERE p.medicalRecord.id = :medicalRecordId ORDER BY p.createdAt DESC")
     List<Procedure> findAllByMedicalRecordId(@Param("medicalRecordId") UUID medicalRecordId);
+
+    @Query("SELECT p FROM Procedure p WHERE p.medicalRecord.patient.id = :patientId ORDER BY p.performedAt DESC")
+    List<Procedure> findAllByPatientId(@Param("patientId") UUID patientId);
 }
