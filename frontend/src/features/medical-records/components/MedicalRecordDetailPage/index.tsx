@@ -33,6 +33,7 @@ import { AllergyAlert } from '@/components/AllergyAlert'
 import { formatDateTime } from '@/lib/utils'
 import { useMedications } from '@/features/catalog/hooks/useCatalog'
 import { usePatient } from '@/features/patients/hooks/usePatients'
+import { Icd10Suggester } from '@/features/ai/components/Icd10Suggester'
 import {
   DiagnosisFormSchema,
   type DiagnosisFormValues,
@@ -185,6 +186,12 @@ export function MedicalRecordDetailPage() {
                       })
                     })}
                   >
+                    <Icd10Suggester
+                      onSelect={(code, description) => {
+                        diagnosisForm.setValue('icd10Code', code)
+                        diagnosisForm.setValue('description', description)
+                      }}
+                    />
                     <FormField
                       control={diagnosisForm.control}
                       name="icd10Code"

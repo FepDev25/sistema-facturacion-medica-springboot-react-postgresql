@@ -1,5 +1,7 @@
 export type { PageResponse, ApiError, FieldError } from './common'
 
+export * from './ai'
+
 export type {
   Gender,
   AppointmentStatus,
