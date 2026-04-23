@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fepdev.sfm.backend.ai.history.PatientHistoryIndexer;
 import com.fepdev.sfm.backend.domain.appointment.Appointment;
 import com.fepdev.sfm.backend.domain.appointment.Status;
 import com.fepdev.sfm.backend.domain.catalog.MedicationsCatalog;
@@ -24,13 +25,16 @@ public class PrescriptionService {
     private final PrescriptionMapper prescriptionMapper;
     private final MedicalRecordRepository medicalRecordRepository;
     private final MedicationsCatalogRepository medicationRepository;
+    private final PatientHistoryIndexer historyIndexer;
 
     public PrescriptionService(PrescriptionRepository prescriptionRepository, PrescriptionMapper prescriptionMapper,
-            MedicalRecordRepository medicalRecordRepository, MedicationsCatalogRepository medicationRepository) {
+            MedicalRecordRepository medicalRecordRepository, MedicationsCatalogRepository medicationRepository,
+            PatientHistoryIndexer historyIndexer) {
         this.prescriptionRepository = prescriptionRepository;
         this.prescriptionMapper = prescriptionMapper;
         this.medicalRecordRepository = medicalRecordRepository;
         this.medicationRepository = medicationRepository;
+        this.historyIndexer = historyIndexer;
     }
 
     // agregar prescripción a un expediente existente
@@ -63,7 +67,9 @@ public class PrescriptionService {
         prescription.setAppointment(appointment);
         prescription.setMedication(medication);
 
-        return prescriptionMapper.toResponse(prescriptionRepository.save(prescription));
+        PrescriptionResponse response = prescriptionMapper.toResponse(prescriptionRepository.save(prescription));
+        historyIndexer.scheduleReindex(medicalRecord.getId());
+        return response;
     }
 
     // listar prescripciones de un expediente clínico

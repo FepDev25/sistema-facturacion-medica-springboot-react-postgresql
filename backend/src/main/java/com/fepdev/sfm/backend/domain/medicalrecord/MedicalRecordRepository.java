@@ -1,5 +1,6 @@
 package com.fepdev.sfm.backend.domain.medicalrecord;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -22,4 +23,11 @@ public interface MedicalRecordRepository extends JpaRepository<MedicalRecord, UU
         WHERE m.patient.id = :patientId
         ORDER BY m.recordDate DESC""")
     Page<MedicalRecord> findByPatientId(@Param("patientId") UUID patientId, Pageable pageable);
+
+    // carga eagerly la asociación patient para evitar LazyInitializationException fuera de sesión JPA
+    @Query("SELECT m FROM MedicalRecord m JOIN FETCH m.patient WHERE m.patient.id = :patientId ORDER BY m.recordDate DESC")
+    List<MedicalRecord> findByPatientIdEager(@Param("patientId") UUID patientId);
+
+    @Query("SELECT m FROM MedicalRecord m JOIN FETCH m.patient WHERE m.id = :id")
+    Optional<MedicalRecord> findByIdWithPatient(@Param("id") UUID id);
 }

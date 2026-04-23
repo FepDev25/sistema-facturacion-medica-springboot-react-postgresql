@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fepdev.sfm.backend.ai.history.PatientHistoryIndexer;
 import com.fepdev.sfm.backend.domain.appointment.Appointment;
 import com.fepdev.sfm.backend.domain.appointment.Status;
 import com.fepdev.sfm.backend.domain.medicalrecord.dto.DiagnosisCreateRequest;
@@ -21,12 +22,14 @@ public class DiagnosisService {
     private final DiagnosisRepository diagnosisRepository;
     private final DiagnosisMapper diagnosisMapper;
     private final MedicalRecordRepository medicalRecordRepository;
+    private final PatientHistoryIndexer historyIndexer;
 
     public DiagnosisService(DiagnosisRepository diagnosisRepository, DiagnosisMapper diagnosisMapper,
-            MedicalRecordRepository medicalRecordRepository) {
+            MedicalRecordRepository medicalRecordRepository, PatientHistoryIndexer historyIndexer) {
         this.diagnosisRepository = diagnosisRepository;
         this.diagnosisMapper = diagnosisMapper;
         this.medicalRecordRepository = medicalRecordRepository;
+        this.historyIndexer = historyIndexer;
     }
 
     // agregar diagnóstico a un expediente existente
@@ -55,7 +58,9 @@ public class DiagnosisService {
         diagnosis.setAppointment(appointment);
         diagnosis.setMedicalRecord(medicalRecord);
 
-        return diagnosisMapper.toResponse(diagnosisRepository.save(diagnosis));
+        DiagnosisResponse response = diagnosisMapper.toResponse(diagnosisRepository.save(diagnosis));
+        historyIndexer.scheduleReindex(medicalRecord.getId());
+        return response;
     }
 
     // listar diagnósticos de un expediente clínico

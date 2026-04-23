@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fepdev.sfm.backend.ai.history.PatientHistoryIndexer;
 import com.fepdev.sfm.backend.domain.appointment.Appointment;
 import com.fepdev.sfm.backend.domain.medicalrecord.dto.ProcedureCreateRequest;
 import com.fepdev.sfm.backend.domain.medicalrecord.dto.ProcedureResponse;
@@ -16,15 +17,18 @@ import jakarta.persistence.EntityNotFoundException;
 
 @Service
 public class ProcedureService {
-    
+
     private final ProcedureRepository procedureRepository;
     private final ProcedureMapper procedureMapper;
     private final MedicalRecordRepository medicalRecordRepository;
+    private final PatientHistoryIndexer historyIndexer;
 
-    public ProcedureService(ProcedureRepository procedureRepository, ProcedureMapper procedureMapper, MedicalRecordRepository medicalRecordRepository) {
+    public ProcedureService(ProcedureRepository procedureRepository, ProcedureMapper procedureMapper,
+            MedicalRecordRepository medicalRecordRepository, PatientHistoryIndexer historyIndexer) {
         this.procedureRepository = procedureRepository;
         this.procedureMapper = procedureMapper;
         this.medicalRecordRepository = medicalRecordRepository;
+        this.historyIndexer = historyIndexer;
     }
 
     // agregar procedimiento a un expediente existente
@@ -46,6 +50,7 @@ public class ProcedureService {
         procedure.setAppointment(appointment);
 
         Procedure savedProcedure = procedureRepository.save(procedure);
+        historyIndexer.scheduleReindex(medicalRecord.getId());
         return procedureMapper.toResponse(savedProcedure);
     }
 

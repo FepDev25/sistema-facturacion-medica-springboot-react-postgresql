@@ -54,7 +54,10 @@ public class Icd10DataLoader {
     }
 
     private boolean alreadyLoaded() {
-        Integer count = jdbc.queryForObject("SELECT COUNT(*) FROM vector_store", Integer.class);
+        // filtra por presencia del campo 'code' en metadata para no confundir
+        // registros de historial de pacientes (que tienen 'patientId') con ICD-10
+        Integer count = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM vector_store WHERE metadata->>'code' IS NOT NULL", Integer.class);
         return count != null && count > 0;
     }
 
