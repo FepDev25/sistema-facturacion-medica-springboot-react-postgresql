@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useParams } from '@tanstack/react-router'
+import { Loader2, Sparkles } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { BackToListButton } from '@/components/BackToListButton'
@@ -34,6 +35,8 @@ import { formatDateTime } from '@/lib/utils'
 import { useMedications } from '@/features/catalog/hooks/useCatalog'
 import { usePatient } from '@/features/patients/hooks/usePatients'
 import { Icd10Suggester } from '@/features/ai/components/Icd10Suggester'
+import { ExtractionPanel } from '@/features/ai/components/ExtractionPanel'
+import { useExtractRecord } from '@/features/ai/hooks/useAi'
 import {
   DiagnosisFormSchema,
   type DiagnosisFormValues,
@@ -68,6 +71,9 @@ export function MedicalRecordDetailPage() {
   const addProcedure = useAddProcedure(id)
   const { data: medications = [] } = useMedications()
   const patientQuery = usePatient(medicalRecordQuery.data?.patientId ?? '')
+
+  const extractRecord = useExtractRecord()
+  const [extractionOpen, setExtractionOpen] = useState(false)
 
   const [diagnosisOpen, setDiagnosisOpen] = useState(false)
   const [prescriptionOpen, setPrescriptionOpen] = useState(false)
@@ -127,7 +133,36 @@ export function MedicalRecordDetailPage() {
             <h1 className="text-lg font-semibold text-slate-900">Expediente clinico</h1>
             <p className="text-sm text-slate-500 mt-0.5">Registro {record.id}</p>
           </div>
-          <BackToListButton fallbackTo="/patients" label="Volver a pacientes" />
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={!record.clinicalNotes || extractRecord.isPending}
+              onClick={() =>
+                extractRecord.mutate(
+                  {
+                    medicalRecordId: id,
+                    appointmentId: record.appointmentId,
+                    clinicalNotes: record.clinicalNotes,
+                  },
+                  { onSuccess: () => setExtractionOpen(true) },
+                )
+              }
+            >
+              {extractRecord.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />
+                  Analizando...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4 mr-1.5" />
+                  Extraer con IA
+                </>
+              )}
+            </Button>
+            <BackToListButton fallbackTo="/patients" label="Volver a pacientes" />
+          </div>
         </div>
       </div>
 
@@ -534,6 +569,16 @@ export function MedicalRecordDetailPage() {
           />
         </section>
       </div>
+
+      {extractRecord.data && (
+        <ExtractionPanel
+          result={extractRecord.data}
+          open={extractionOpen}
+          onOpenChange={setExtractionOpen}
+          medicalRecordId={id}
+          appointmentId={record.appointmentId}
+        />
+      )}
     </div>
   )
 }
