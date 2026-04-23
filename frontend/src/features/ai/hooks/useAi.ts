@@ -22,6 +22,16 @@ export function useExtractRecord() {
   })
 }
 
+export function useQueryHistory() {
+  return useMutation({
+    mutationFn: ({ patientId, question }: { patientId: string; question: string }) =>
+      aiApi.queryHistory(patientId, question),
+    onError: () => {
+      toast.error('Error al consultar el historial. Intente de nuevo.')
+    },
+  })
+}
+
 export function useSuggestItems() {
   return useMutation({
     mutationFn: (invoiceId: string) => aiApi.suggestItems(invoiceId),

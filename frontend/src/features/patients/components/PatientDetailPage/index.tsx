@@ -12,6 +12,7 @@ import {
   usePatientPolicies,
 } from '../../hooks/usePatients'
 import { usePatientMedicalRecords } from '@/features/medical-records/hooks/useMedicalRecords'
+import { PatientHistoryChat } from '@/features/ai/components/PatientHistoryChat'
 import { getPatientAppointmentColumns } from '../patientAppointmentColumns'
 import { getPatientInvoiceColumns } from '../patientInvoiceColumns'
 import { getPatientMedicalRecordColumns } from '../patientMedicalRecordColumns'
@@ -168,6 +169,8 @@ export function PatientDetailPage() {
             emptyMessage="Sin expedientes registrados para este paciente."
           />
         </section>
+
+        <PatientHistoryChat patientId={id} />
       </div>
     </div>
   )
