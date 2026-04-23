@@ -17,6 +17,18 @@ spring:
       chat:
         options:
           model: claude-haiku-4-5-20251001
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        enabled: false        # Solo Anthropic para chat; Ollama solo para embeddings
+      embedding:
+        model: nomic-embed-text
+    vectorstore:
+      pgvector:
+        initialize-schema: false  # La tabla la gestiona Flyway (V11)
+        dimensions: 768
+        index-type: HNSW
+        distance-type: COSINE_DISTANCE
 
   # En dev se muestran las queries SQL para facilitar el desarrollo
   jpa:
