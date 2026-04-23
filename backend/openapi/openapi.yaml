@@ -1826,6 +1826,46 @@ paths:
         '400': { $ref: '#/components/responses/BadRequestError' }
         '401': { $ref: '#/components/responses/UnauthorizedError' }
 
+  /api/v1/ai/patients/{patientId}/query:
+    post:
+      tags: [AI]
+      operationId: ai_patients_query_history
+      summary: Consultar el historial clinico de un paciente en lenguaje natural
+      description: |
+        Pipeline RAG sobre el historial clinico del paciente. En el primer query indexa
+        automaticamente todos los expedientes del paciente en el vector store (on-demand).
+        Queries subsiguientes usan el indice existente; re-indexacion automatica post-commit
+        tras cualquier modificacion al expediente.
+
+        Segun la intencion detectada en la pregunta, el sistema enruta a una de dos rutas:
+        - **Ruta A (vector search):** busqueda semantica con topK dinamico segun el tamano
+          del historial (<=8 expedientes: topK=6, 9-15: topK=10, >15: topK=15).
+        - **Ruta B (contexto estructurado):** bypass del vector store para queries de resumen
+          o listado completo; construye el contexto directamente desde BD con cobertura total.
+      parameters:
+        - name: patientId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatientHistoryQuery'
+      responses:
+        '200':
+          description: Respuesta generada a partir del historial clinico
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PatientHistoryAnswer'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+
 components:
   securitySchemes:
     bearerAuth:
@@ -3038,6 +3078,36 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Icd10Suggestion'
+
+    PatientHistoryQuery:
+      type: object
+      required: [question]
+      properties:
+        question:
+          type: string
+          minLength: 1
+
+    HistorySource:
+      type: object
+      properties:
+        medicalRecordId:
+          type: string
+          format: uuid
+        recordDate:
+          type: string
+          format: date
+
+    PatientHistoryAnswer:
+      type: object
+      properties:
+        answer:
+          type: string
+          description: Respuesta generada por Claude basada en los expedientes del historial
+        sources:
+          type: array
+          description: Expedientes clinicos usados como contexto para la respuesta
+          items:
+            $ref: '#/components/schemas/HistorySource'
 
   responses:
     BadRequestError:

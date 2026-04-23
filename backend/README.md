@@ -207,6 +207,16 @@ Pipeline RAG de tres pasos para resolver el vocabulary mismatch entre lenguaje c
 
 El catalogo completo de 14,268 codigos CIE-10 nivel 2-5 se indexa asincronomante al iniciar la aplicacion (si el vector store esta vacio).
 
+#### P3 — Consulta en Lenguaje Natural sobre Historial del Paciente (`POST /api/v1/ai/patients/{patientId}/query`)
+
+Pipeline RAG sobre el historial clinico completo del paciente. El medico formula una pregunta en lenguaje natural y el sistema responde basandose unicamente en los expedientes registrados en la BD.
+
+- **Indexacion on-demand:** el primer query por paciente indexa automaticamente todos sus expedientes (notas, diagnosticos, prescripciones, procedimientos). Los queries subsiguientes usan el vector store.
+- **Re-indexacion automatica post-commit:** cada modificacion al expediente (nuevo diagnostico, prescripcion o procedimiento) dispara re-indexacion asincrona del expediente afectado via `TransactionSynchronizationManager`.
+- **Arquitectura dual de recuperacion:**
+  - **Ruta A — vector search:** topK dinamico segun el tamano del historial (<=8: topK=6, 9-15: topK=10, >15: topK=15). Para queries especificas sobre condiciones, medicamentos o fechas concretas.
+  - **Ruta B — contexto estructurado desde BD:** bypass del vector store para queries de resumen o listado completo; garantiza cobertura total independientemente del topK. Clasificacion por 44 patrones de intencion con normalizacion Unicode NFD (sin acentos).
+
 ---
 
 ## Autenticacion y Autorizacion
@@ -257,6 +267,7 @@ sequenceDiagram
 | `/api/v1/appointments/*/complete` | -- | DOCTOR |
 | `/api/v1/medical-records/**` | Autenticado | Autenticado |
 | `/api/v1/invoices/**` | Autenticado | Autenticado |
+| `/api/v1/ai/**` | Autenticado | Autenticado |
 
 ### Usuarios por Defecto
 
@@ -492,6 +503,7 @@ backend/
       extraction/                   # P2: extraccion de notas clinicas (Tool Calling)
       suggestion/                   # P4: sugerencia de items de factura (Tool Calling)
       icd10/                        # P1: sugerencia ICD-10 (RAG: normalize + vector search + rerank)
+      history/                      # P3: consulta en lenguaje natural sobre historial del paciente (RAG dual)
   src/main/resources/
     application.yml
     application-dev.yml
