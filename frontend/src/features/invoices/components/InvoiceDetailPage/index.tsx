@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from '@tanstack/react-router'
-import { ClipboardList, CreditCard, FileText, Plus, Shield, Trash2, UserRound } from 'lucide-react'
+import { ClipboardList, CreditCard, FileText, Loader2, Plus, Shield, Sparkles, Trash2, UserRound } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -20,6 +20,8 @@ import { INVOICE_STATUS_LABELS, PAYMENT_METHOD_LABELS } from '@/types/enums'
 import { formatCurrency, formatDate, formatDateTime } from '@/lib/utils'
 import { toast } from 'sonner'
 import { useAppointmentMedicalRecord } from '@/features/appointments/hooks/useAppointments'
+import { ItemSuggestionPanel } from '@/features/ai/components/ItemSuggestionPanel'
+import { useSuggestItems } from '@/features/ai/hooks/useAi'
 import {
   useAddInvoiceItem,
   useAssignInvoiceInsurancePolicy,
@@ -48,6 +50,9 @@ export function InvoiceDetailPage() {
   const [paymentDrawerOpen, setPaymentDrawerOpen] = useState(false)
   const [itemDrawerOpen, setItemDrawerOpen] = useState(false)
   const [selectedPolicyId, setSelectedPolicyId] = useState('')
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false)
+
+  const suggestItems = useSuggestItems()
 
   const invoiceQuery = useInvoice(id)
   const paymentsQuery = useInvoicePayments(id)
@@ -280,24 +285,51 @@ export function InvoiceDetailPage() {
           <div className="flex items-center gap-2 mb-3">
             <FileText className="h-4 w-4 text-slate-500" />
             <h2 className="text-sm font-semibold text-slate-900">Items facturados</h2>
-            {isDraft ? (
-              <Button
-                size="sm"
-                variant="outline"
-                className="ml-auto"
-                disabled={!canManageInvoices || addInvoiceItem.isPending}
-                onClick={() => {
-                  if (!canManageInvoices) {
-                    toast.error(NO_PERMISSION_MESSAGE)
-                    return
-                  }
-                  setItemDrawerOpen(true)
-                }}
-              >
-                <Plus className="h-3.5 w-3.5 mr-1" />
-                Agregar item
-              </Button>
-            ) : null}
+            {isDraft && (
+              <div className="ml-auto flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={!canManageInvoices || suggestItems.isPending}
+                  onClick={() => {
+                    if (!canManageInvoices) {
+                      toast.error(NO_PERMISSION_MESSAGE)
+                      return
+                    }
+                    suggestItems.mutate(invoice.id, {
+                      onSuccess: () => setSuggestionsOpen(true),
+                    })
+                  }}
+                >
+                  {suggestItems.isPending ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
+                      Analizando...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-3.5 w-3.5 mr-1" />
+                      Sugerir items
+                    </>
+                  )}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={!canManageInvoices || addInvoiceItem.isPending}
+                  onClick={() => {
+                    if (!canManageInvoices) {
+                      toast.error(NO_PERMISSION_MESSAGE)
+                      return
+                    }
+                    setItemDrawerOpen(true)
+                  }}
+                >
+                  <Plus className="h-3.5 w-3.5 mr-1" />
+                  Agregar item
+                </Button>
+              </div>
+            )}
           </div>
           <div className="space-y-2">
             {invoice.items.map((item) => (
@@ -377,6 +409,15 @@ export function InvoiceDetailPage() {
         open={itemDrawerOpen}
         onOpenChange={setItemDrawerOpen}
       />
+
+      {suggestItems.data && (
+        <ItemSuggestionPanel
+          invoiceId={invoice.id}
+          result={suggestItems.data}
+          open={suggestionsOpen}
+          onOpenChange={setSuggestionsOpen}
+        />
+      )}
     </div>
   )
 }
