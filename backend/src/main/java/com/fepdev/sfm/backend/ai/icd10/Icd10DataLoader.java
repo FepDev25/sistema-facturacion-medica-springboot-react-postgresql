@@ -42,7 +42,7 @@ public class Icd10DataLoader {
                     log.info("CIE-10 ya indexado en el vector store — omitiendo carga.");
                     return;
                 }
-                log.info("Iniciando indexación de CIE-10 en el vector store...");
+                log.info("Iniciando indexación de CIE-10...");
                 long start = System.currentTimeMillis();
                 int total = loadCsv();
                 long elapsed = (System.currentTimeMillis() - start) / 1000;
@@ -102,7 +102,6 @@ public class Icd10DataLoader {
         return total;
     }
 
-    // G130 → G13.0 | H90 → H90 (sin cambio si len <= 3)
     private static String formatCode(String raw) {
         if (raw.length() <= 3) return raw;
         return raw.substring(0, 3) + "." + raw.substring(3);
