@@ -17,6 +17,9 @@ Backend RESTful para la gestion integral de una clinica medica: agendamiento de 
 | Validacion | Jakarta Bean Validation |
 | Auditoria | Spring Data Auditing, AOP (AspectJ) |
 | Monitoreo | Spring Boot Actuator |
+| IA — LLM | Spring AI 2.0.0-M4, Anthropic Claude (claude-sonnet-4-6) |
+| IA — Embeddings | Ollama (nomic-embed-text, 768 dims, local) |
+| IA — Vector store | pgvector (HNSW, cosine distance) |
 | Testing | JUnit 5, Mockito, MockMvc, Testcontainers, JaCoCo |
 
 ---
@@ -175,6 +178,35 @@ Catalogos maestros de servicios y medicamentos con:
 - Historial de precios (`catalog_price_history`) con registro automatico de cambios.
 - Cache en Redis con TTL de 2 horas.
 
+### 9. Integraciones AI (`/api/v1/ai`)
+
+Tres endpoints de asistencia clinica potenciados por Claude (Anthropic) y un pipeline RAG local:
+
+#### P2 — Extraccion de notas clinicas (`POST /api/v1/ai/records/extract`)
+
+Analiza las notas de una consulta y extrae estructuradamente:
+- **Diagnosticos** con codigo ICD-10 sugerido y severidad.
+- **Prescripciones** con medicacion, dosis, frecuencia y duracion; resuelve el `matchedMedicationId` contra el catalogo activo via Tool Calling.
+- **Procedimientos** con codigo y descripcion.
+
+Patron: Structured Output (`entity()`) + Tool Calling para lookup de catalogo.
+
+#### P4 — Sugerencia de items de factura (`POST /api/v1/ai/invoices/{id}/suggest-items`)
+
+A partir del expediente medico de la cita asociada a la factura (diagnosticos, prescripciones, procedimientos ya guardados), sugiere servicios y medicamentos del catalogo para agregar como items de facturacion. Cada sugerencia incluye `matchedCatalogId`, precio unitario y justificacion clinica.
+
+Patron: Tool Calling para consultar el catalogo + Structured Output.
+
+#### P1 — Sugerencia de codigos ICD-10 (`POST /api/v1/ai/icd10/suggest`)
+
+Pipeline RAG de tres pasos para resolver el vocabulary mismatch entre lenguaje coloquial medico y terminologia CIE-10 formal:
+
+1. **Query expansion** — Claude normaliza la descripcion coloquial a terminologia CIE-10 formal.
+2. **Vector search** — busqueda semantica en pgvector (topK=20) con embeddings de `nomic-embed-text` (Ollama local, 768 dims, HNSW cosine).
+3. **Reranking** — Claude selecciona los 5 codigos mas apropiados del pool de candidatos.
+
+El catalogo completo de 14,268 codigos CIE-10 nivel 2-5 se indexa asincronomante al iniciar la aplicacion (si el vector store esta vacio).
+
 ---
 
 ## Autenticacion y Autorizacion
@@ -252,6 +284,9 @@ PostgreSQL 15 con extensiones `uuid-ossp`, `pgcrypto`, `btree_gist`.
 | V6 | `audit_fields_and_audit_log.sql` | Campos `created_by`/`updated_by` en todas las entidades + tabla `audit_log` |
 | V7 | `seeds.sql` (dev) | Datos de desarrollo: pacientes, doctores, seguros, citas, facturas, pagos |
 | V8 | `seed_system_users_roles.sql` | Seed usuarios doctor1 y recep1 |
+| V9 | `link_doctors_system_users.sql` | Vinculacion de system_users con doctors |
+| V10 | `pgvector_extension.sql` | Habilita la extension `vector` en PostgreSQL (requiere imagen `pgvector/pgvector:pg15`) |
+| V11 | `vector_store_table.sql` | Tabla `vector_store` con columna `embedding vector(768)` e indice HNSW cosine para RAG |
 
 ### Auditoria Dual
 
@@ -452,13 +487,19 @@ backend/
       insurance/                    # Proveedores y polizas de seguros
       catalog/                      # Catalogos de servicios y medicamentos
       auth/                         # Login, refresh, logout
+    ai/
+      config/                       # AiConfig: ChatClient (AnthropicChatModel)
+      extraction/                   # P2: extraccion de notas clinicas (Tool Calling)
+      suggestion/                   # P4: sugerencia de items de factura (Tool Calling)
+      icd10/                        # P1: sugerencia ICD-10 (RAG: normalize + vector search + rerank)
   src/main/resources/
     application.yml
     application-dev.yml
     application-docker.yml
     application-test.yml
-    db/migration/                   # Flyway migrations (V1-V8)
+    db/migration/                   # Flyway migrations (V1-V11)
     db/seeds/                       # Datos de desarrollo (V7)
+    data/cie-10.csv                 # Catalogo CIE-10 en espanol (14,268 codigos nivel 2-5)
   src/test/java/com/fepdev/sfm/backend/
     domain/                         # Tests unitarios de servicios, mappers, DTOs
     web/                            # Tests WebMvc de controladores

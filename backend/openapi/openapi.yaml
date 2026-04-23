@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Sistema de Facturacion Medica API
-  version: 0.6.0-draft
+  version: 0.7.0-draft
   description: |
     Contrato API contract-first en construccion por lotes.
     Lote 1 implementado: auth + base global.
@@ -9,6 +9,7 @@ info:
     Lote 3 implementado: appointments + medical-records.
     Lote 4 implementado: invoices + payments.
     Lote 5 implementado: catalog.
+    Lote 6 implementado: AI — extraccion de notas clinicas, sugerencia de items de factura, sugerencia de codigos ICD-10.
 servers:
   - url: http://localhost:8080
     description: Local dev
@@ -24,6 +25,7 @@ tags:
   - name: Doctors
   - name: Insurance Providers
   - name: Insurance Policies
+  - name: AI
 paths:
   /api/v1/auth/login:
     post:
@@ -1751,6 +1753,79 @@ paths:
         '403': { $ref: '#/components/responses/ForbiddenError' }
         '404': { $ref: '#/components/responses/NotFoundError' }
 
+  /api/v1/ai/records/extract:
+    post:
+      tags: [AI]
+      operationId: ai_records_extract
+      summary: Extraer diagnosticos, prescripciones y procedimientos de notas clinicas
+      description: |
+        Analiza las notas clinicas de una consulta con Claude y extrae estructuradamente
+        diagnosticos (con codigo ICD-10 sugerido), prescripciones de medicamentos y procedimientos.
+        Los medicamentos se resuelven contra el catalogo activo (matchedMedicationId).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecordExtractionRequest'
+      responses:
+        '200':
+          description: Extraccion completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExtractionResult'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '422': { $ref: '#/components/responses/UnprocessableError' }
+
+  /api/v1/ai/invoices/{id}/suggest-items:
+    post:
+      tags: [AI]
+      operationId: ai_invoices_suggest_items
+      summary: Sugerir items de facturacion para una cita
+      description: |
+        A partir del expediente medico asociado a la factura (diagnosticos, prescripciones,
+        procedimientos), sugiere servicios y medicamentos del catalogo activo para agregar
+        como items a la factura.
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Sugerencias generadas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ItemSuggestionResult'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '422': { $ref: '#/components/responses/UnprocessableError' }
+
+  /api/v1/ai/icd10/suggest:
+    post:
+      tags: [AI]
+      operationId: ai_icd10_suggest
+      summary: Sugerir codigos ICD-10 desde descripcion clinica en lenguaje libre
+      description: |
+        Pipeline RAG: normaliza la descripcion con Claude, realiza busqueda semantica
+        en el vector store (pgvector + nomic-embed-text), y rerankea los candidatos con Claude.
+        Devuelve hasta 5 codigos ICD-10 ordenados por relevancia clinica.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Icd10Query'
+      responses:
+        '200':
+          description: Sugerencias de codigos ICD-10
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Icd10SuggestionResult'
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+
 components:
   securitySchemes:
     bearerAuth:
@@ -2857,6 +2932,112 @@ components:
         totalPages: { type: integer }
         size: { type: integer }
         number: { type: integer }
+
+    RecordExtractionRequest:
+      type: object
+      required: [appointmentId, medicalRecordId, clinicalNotes]
+      properties:
+        appointmentId:
+          type: string
+          format: uuid
+        medicalRecordId:
+          type: string
+          format: uuid
+        clinicalNotes:
+          type: string
+        physicalExam:
+          type: string
+          nullable: true
+        chiefComplaint:
+          type: string
+          nullable: true
+
+    ExtractedDiagnosis:
+      type: object
+      properties:
+        icd10Code: { type: string, nullable: true }
+        description: { type: string }
+        severity:
+          type: string
+          enum: [mild, moderate, severe, critical]
+          nullable: true
+
+    ExtractedPrescription:
+      type: object
+      properties:
+        medicationName: { type: string }
+        matchedMedicationId: { type: string, format: uuid, nullable: true }
+        dosage: { type: string }
+        frequency: { type: string }
+        durationDays: { type: integer, nullable: true }
+        instructions: { type: string, nullable: true }
+
+    ExtractedProcedure:
+      type: object
+      properties:
+        procedureCode: { type: string, nullable: true }
+        description: { type: string }
+        notes: { type: string, nullable: true }
+
+    ExtractionResult:
+      type: object
+      properties:
+        diagnoses:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExtractedDiagnosis'
+        prescriptions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExtractedPrescription'
+        procedures:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExtractedProcedure'
+
+    SuggestedItem:
+      type: object
+      properties:
+        itemType:
+          type: string
+          enum: [service, medication, procedure, other]
+        name: { type: string }
+        matchedCatalogId: { type: string, format: uuid, nullable: true }
+        unitPrice: { type: number, nullable: true }
+        justification: { type: string }
+
+    ItemSuggestionResult:
+      type: object
+      properties:
+        suggestedItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/SuggestedItem'
+
+    Icd10Query:
+      type: object
+      required: [query]
+      properties:
+        query:
+          type: string
+          minLength: 1
+
+    Icd10Suggestion:
+      type: object
+      properties:
+        code: { type: string }
+        description: { type: string }
+        score:
+          type: number
+          format: double
+
+    Icd10SuggestionResult:
+      type: object
+      properties:
+        suggestions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Icd10Suggestion'
 
   responses:
     BadRequestError:
