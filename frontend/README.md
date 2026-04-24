@@ -20,6 +20,7 @@ Interfaz backoffice para la gestión integral de una clínica: agendamiento de c
 | HTTP Client | Axios | 1.13 |
 | Notificaciones | Sonner | 2.0 |
 | Iconos | Lucide React | 0.577 |
+| Renderizado Markdown | react-markdown + remark-gfm | 9.x |
 | Tipografía | Geist Variable | — |
 | Testing unitario | Vitest + React Testing Library | 4.1 + 16.3 |
 | Testing E2E | Playwright | 1.59 |
@@ -41,7 +42,8 @@ src/
 │   ├── invoices/
 │   ├── insurance/
 │   ├── catalog/
-│   └── dashboard/
+│   ├── dashboard/
+│   └── ai/
 ├── components/         # Componentes compartidos (AppShell, DataTable, AllergyAlert, etc.)
 ├── lib/                # axios instance con interceptors JWT, queryClient, utils
 ├── types/              # Tipos TypeScript espejo exacto de los DTOs del backend
@@ -77,7 +79,7 @@ Login, logout y refresh de JWT. El `authSessionStore` mantiene `accessToken`, `r
 
 ### Pacientes (`/features/patients`)
 
-CRUD con búsqueda por DNI en tiempo real. El detalle incluye historial de citas, facturas, pólizas de seguro y expedientes médicos, cada sección como tabla densa con paginación independiente.
+CRUD con búsqueda por DNI en tiempo real. El detalle incluye historial de citas, facturas, pólizas de seguro y expedientes médicos, cada sección como tabla densa con paginación independiente. Al final del detalle se encuentra el componente `PatientHistoryChat` para consultas en lenguaje natural sobre el historial clínico completo del paciente.
 
 ### Médicos (`/features/doctors`)
 
@@ -91,9 +93,13 @@ Máquina de estados: `SCHEDULED → CONFIRMED → IN_PROGRESS → COMPLETED`. La
 
 Expediente médico con tres secciones: diagnósticos (ICD-10), prescripciones de medicamentos y procedimientos. Se crea automáticamente al completar una cita. Las prescripciones son prerequisito para facturar medicamentos con `requiresPrescription = true`.
 
+Integra dos asistentes AI: el `Icd10Suggester` sugiere códigos mientras el médico escribe en lenguaje coloquial dentro del dialog de diagnóstico; el `ExtractionPanel` analiza las notas clínicas completas y propone diagnósticos, prescripciones y procedimientos en un Sheet con selección por checkbox.
+
 ### Facturas (`/features/invoices`)
 
 Máquina de estados `DRAFT → PENDING → PAID / PARTIAL_PAID / OVERDUE / CANCELLED`. El detalle permite agregar/eliminar ítems del catálogo, asignar póliza de seguro con recálculo automático de cobertura, confirmar y registrar pagos. `InvoiceCoverageBar` es el componente showcase que visualiza la proporción cobertura de seguro / responsabilidad del paciente.
+
+En estado `draft`, el botón "Sugerir items" llama al asistente AI que lee el expediente asociado a la factura y propone ítems facturables. Cada sugerencia se agrega individualmente con loading state independiente.
 
 ### Seguros (`/features/insurance`)
 
@@ -106,6 +112,31 @@ Tablas maestras de servicios médicos y medicamentos con borrado lógico. Los me
 ### Dashboard (`/features/dashboard`)
 
 Métricas operativas: pacientes totales, médicos activos, citas del día, citas próximas, facturas pendientes/vencidas, acumulado cobrado y saldo pendiente. Los accesos rápidos se filtran dinámicamente por rol.
+
+### Integraciones AI (`/features/ai`)
+
+Cuatro asistentes Claude conectados a las páginas de dominio. Siguen el mismo patrón `api/ → hooks/ → components/` del resto del sistema. No tienen datos mock — todas las llamadas van directamente al backend real.
+
+| Integración | Endpoint backend | Página | Componente |
+|---|---|---|---|
+| Sugerencia ICD-10 | `POST /ai/icd10/suggest` | `MedicalRecordDetailPage` | `Icd10Suggester` |
+| Extracción de notas clínicas | `POST /ai/records/extract` | `MedicalRecordDetailPage` | `ExtractionPanel` |
+| Consulta de historial | `POST /ai/patients/{id}/query` | `PatientDetailPage` | `PatientHistoryChat` |
+| Sugerencia de ítems | `POST /ai/invoices/{id}/suggest-items` | `InvoiceDetailPage` | `ItemSuggestionPanel` |
+
+**`Icd10Suggester`** — Busca códigos ICD-10 por texto libre dentro del dialog de diagnóstico. Muestra hasta 5 sugerencias con código y descripción; al hacer clic rellena automáticamente los campos del formulario.
+
+**`ExtractionPanel`** — Sheet lateral que analiza las notas clínicas del expediente y extrae diagnósticos, prescripciones y procedimientos candidatos. Presenta checkboxes por ítem (todos pre-seleccionados); los ítems con medicamento no resuelto en catálogo quedan deshabilitados. Guarda los seleccionados en paralelo con `Promise.allSettled` e invalida los query keys correspondientes.
+
+**`PatientHistoryChat`** — Interfaz de conversación sobre el historial clínico completo del paciente. El backend es stateless (cada query es independiente); el historial de la sesión vive en estado local del componente. Respuestas renderizadas con `react-markdown + remark-gfm`. Las fuentes aparecen como chips clickeables que navegan al expediente médico correspondiente. El primer query puede tardar hasta 10 s adicionales por indexación on-demand.
+
+**`ItemSuggestionPanel`** — Sheet con ítems de factura sugeridos a partir del expediente médico asociado. Solo disponible en estado `draft`. Cada ítem se agrega individualmente con loading state propio; los ítems sin `matchedCatalogId` se muestran deshabilitados.
+
+**Patrones transversales:**
+- `useMutation` con `isPending` para todos los estados de carga — ninguna operación bloquea la UI
+- Validación Zod en el frontend antes de enviar (queries vacías rechazadas sin llamada HTTP)
+- Manejo de errores diferenciado: el hook de sugerencia de ítems lee el status 422 del backend para mostrar el mensaje correcto ("La factura no tiene un expediente médico asociado")
+- Latencias esperadas: 2–4 s (ICD-10), 3–6 s (extracción), 3–5 s (ítems), 3–10 s (historial)
 
 ---
 
