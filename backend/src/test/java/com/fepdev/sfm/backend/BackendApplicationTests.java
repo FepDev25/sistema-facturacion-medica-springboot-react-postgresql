@@ -15,7 +15,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 class BackendApplicationTests {
 
     @Container
-    static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:15-alpine")
+    static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("pgvector/pgvector:pg16")
             .withDatabaseName("sfm_context_db")
             .withUsername("sfm")
             .withPassword("sfm");

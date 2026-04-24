@@ -60,7 +60,7 @@ public abstract class AbstractPostgresFlowE2ETest {
     }
 
     @Container
-    static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:15-alpine")
+    static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("pgvector/pgvector:pg16")
             .withDatabaseName("sfm_e2e_db")
             .withUsername("sfm")
             .withPassword("sfm");

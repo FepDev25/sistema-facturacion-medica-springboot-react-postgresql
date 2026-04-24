@@ -21,6 +21,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import com.fepdev.sfm.backend.domain.appointment.Appointment;
 import com.fepdev.sfm.backend.domain.medicalrecord.dto.ProcedureCreateRequest;
 import com.fepdev.sfm.backend.domain.medicalrecord.dto.ProcedureResponse;
+import com.fepdev.sfm.backend.ai.history.PatientHistoryIndexer;
 import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -36,6 +37,9 @@ class ProcedureServiceTest {
 
     @Mock
     MedicalRecordRepository medicalRecordRepository;
+
+    @Mock
+    PatientHistoryIndexer historyIndexer;
 
     @InjectMocks
     ProcedureService procedureService;

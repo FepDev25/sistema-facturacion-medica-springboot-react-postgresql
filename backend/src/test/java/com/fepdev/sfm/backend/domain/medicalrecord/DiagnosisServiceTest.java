@@ -21,6 +21,7 @@ import com.fepdev.sfm.backend.domain.appointment.Appointment;
 import com.fepdev.sfm.backend.domain.appointment.Status;
 import com.fepdev.sfm.backend.domain.medicalrecord.dto.DiagnosisCreateRequest;
 import com.fepdev.sfm.backend.domain.medicalrecord.dto.DiagnosisResponse;
+import com.fepdev.sfm.backend.ai.history.PatientHistoryIndexer;
 import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -36,6 +37,9 @@ class DiagnosisServiceTest {
 
     @Mock
     MedicalRecordRepository medicalRecordRepository;
+
+    @Mock
+    PatientHistoryIndexer historyIndexer;
 
     @InjectMocks
     DiagnosisService diagnosisService;

@@ -21,7 +21,7 @@ public abstract class AbstractPostgresDataJpaTest {
 
     @Container
     @ServiceConnection
-    static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:15-alpine")
+    static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("pgvector/pgvector:pg16")
             .withDatabaseName("fac_med_db_test")
             .withUsername("medisys")
             .withPassword("medisys_dev");

@@ -23,6 +23,7 @@ import com.fepdev.sfm.backend.domain.catalog.MedicationsCatalog;
 import com.fepdev.sfm.backend.domain.catalog.MedicationsCatalogRepository;
 import com.fepdev.sfm.backend.domain.medicalrecord.dto.PrescriptionCreateRequest;
 import com.fepdev.sfm.backend.domain.medicalrecord.dto.PrescriptionResponse;
+import com.fepdev.sfm.backend.ai.history.PatientHistoryIndexer;
 import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
 
 import jakarta.persistence.EntityNotFoundException;
@@ -41,6 +42,9 @@ class PrescriptionServiceTest {
 
     @Mock
     MedicationsCatalogRepository medicationRepository;
+
+    @Mock
+    PatientHistoryIndexer historyIndexer;
 
     @InjectMocks
     PrescriptionService prescriptionService;
