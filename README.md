@@ -1,6 +1,6 @@
 # Sistema de Facturación Médica (SFM)
 
-Sistema clínico fullstack con cuatro asistentes AI integrados: desde RAG sobre embeddings locales hasta Tool Calling y Structured Output con Claude. El backend es una API RESTful en Spring Boot 4 con máquinas de estados explícitas, auditoría dual y 370 tests. El frontend es un backoffice React 19 con routing type-safe, estado del servidor con TanStack Query y una suite de 740 tests.
+Sistema clínico fullstack con cuatro asistentes AI integrados: desde RAG con embeddings de Google Gemini hasta Tool Calling y Structured Output con Claude. El backend es una API RESTful en Spring Boot 4 con máquinas de estados explícitas, auditoría dual y 370 tests. El frontend es un backoffice React 19 con routing type-safe, estado del servidor con TanStack Query y una suite de 740 tests.
 
 ---
 
@@ -23,7 +23,7 @@ graph TB
     subgraph INFRA["Infraestructura"]
         PG[("PostgreSQL 15<br/>pgvector — HNSW")]
         RD[("Redis 7<br/>JWT blacklist + Cache")]
-        OL[("Ollama — local<br/>nomic-embed-text 768d")]
+        GG[("Google AI Studio<br/>gemini-embedding-001 768d")]
     end
 
     subgraph LLM["LLM (Anthropic)"]
@@ -38,7 +38,7 @@ graph TB
     AUDIT -.->|audit_log JSONB| PG
     SEC <-->|token blacklist| RD
     SVC <-->|catálogo TTL 2h| RD
-    AI -->|embeddings| OL
+    AI -->|embeddings| GG
     AI -->|vector search| PG
     AI <-->|LLM calls| CL
 ```
@@ -109,14 +109,14 @@ stateDiagram-v2
 
 ## Integraciones AI
 
-Cuatro asistentes clínicos construidos con **Claude claude-sonnet-4-6** via **Spring AI 2.0**, con patrones avanzados de RAG, Tool Calling y Structured Output. Los embeddings los genera **Ollama** con `nomic-embed-text` (768 dims) corriendo localmente; el índice vectorial vive en **PostgreSQL** con `pgvector` (HNSW, distancia coseno).
+Cuatro asistentes clínicos construidos con **Claude claude-sonnet-4-6** via **Spring AI 2.0**, con patrones avanzados de RAG, Tool Calling y Structured Output. Los embeddings los genera **Google AI Studio** con `gemini-embedding-001` (768 dims); el índice vectorial vive en **PostgreSQL** con `pgvector` (HNSW, distancia coseno).
 
 ### Stack de IA
 
 | Componente | Tecnología |
 |---|---|
 | LLM | Claude claude-sonnet-4-6 (Anthropic) via Spring AI 2.0.0-M4 |
-| Embeddings | nomic-embed-text 768 dims — Ollama local |
+| Embeddings | gemini-embedding-001 768 dims — Google AI Studio |
 | Vector store | pgvector — índice HNSW, distancia coseno, PostgreSQL 15 |
 | Patrones | RAG · Tool Calling · Structured Output · Query Expansion · Dual Retrieval |
 
@@ -139,7 +139,7 @@ graph TB
     end
 
     subgraph "Infraestructura AI"
-        EMB["Ollama — nomic-embed-text<br/>768 dims, local"]
+        EMB["Google AI Studio<br/>gemini-embedding-001 768d"]
         VEC["pgvector — HNSW<br/>14 268 códigos ICD-10<br/>+ expedientes de pacientes"]
         LLM["Claude claude-sonnet-4-6"]
     end
@@ -173,7 +173,7 @@ sequenceDiagram
     M->>BE: "dolor en el pecho al respirar"
     BE->>C: Query expansion — normalizar a terminología CIE-10
     C-->>BE: "pleuritis · dolor pleurítico · pleurodinia"
-    BE->>V: Vector search — topK=20 (nomic-embed-text)
+    BE->>V: Vector search — topK=20
     V-->>BE: 20 candidatos ICD-10
     BE->>C: Reranking — seleccionar top 5 más apropiados
     C-->>BE: [R09.1, J90, R07.3, J94.8, R09.89]
@@ -271,7 +271,7 @@ sequenceDiagram
 | Mapeo DTO | MapStruct 1.6 | — |
 | Auditoría | JPA Auditing + AOP AspectJ | — |
 | **IA — LLM** | **Spring AI 2.0 · Claude claude-sonnet-4-6** | **react-markdown + remark-gfm** |
-| **IA — Embeddings** | **Ollama · nomic-embed-text (768 dims)** | — |
+| **IA — Embeddings** | **Google AI Studio · gemini-embedding-001 (768 dims)** | — |
 | **IA — Vector store** | **pgvector (HNSW, cosine)** | — |
 | Testing | JUnit 5 + Mockito + Testcontainers + JaCoCo | Vitest 4 + RTL 16 + Playwright 1.59 |
 
@@ -343,7 +343,7 @@ Los permisos se aplican en tres niveles independientes: backend (`@PreAuthorize`
 
 ## Testing
 
-### Backend — 370 tests, cobertura JaCoCo
+### Backend — 412 tests, cobertura JaCoCo
 
 ```mermaid
 graph TB
@@ -429,12 +429,16 @@ docker compose up -d
 # PostgreSQL en :5434 — Redis en :6379
 ```
 
-### 2. Ollama (embeddings locales para AI)
+### 2. Variables de entorno
 
-```bash
-ollama pull nomic-embed-text
-# Servidor disponible en http://localhost:11434
+Crea un `.env` en la raíz del repositorio (ya está en `.gitignore`) con las claves de API:
+
 ```
+GOOGLE_API_KEY=tu_clave_de_google_ai_studio
+ANTHROPIC_API_KEY=tu_clave_de_anthropic
+```
+
+El perfil `dev` del backend las carga automáticamente al arrancar.
 
 ### 3. Backend
 

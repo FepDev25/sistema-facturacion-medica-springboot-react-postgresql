@@ -18,7 +18,7 @@ Backend RESTful para la gestion integral de una clinica medica: agendamiento de 
 | Auditoria | Spring Data Auditing, AOP (AspectJ) |
 | Monitoreo | Spring Boot Actuator |
 | IA — LLM | Spring AI 2.0.0-M4, Anthropic Claude (claude-sonnet-4-6) |
-| IA — Embeddings | Ollama (nomic-embed-text, 768 dims, local) |
+| IA — Embeddings | Google AI Studio (gemini-embedding-001, 768 dims) |
 | IA — Vector store | pgvector (HNSW, cosine distance) |
 | Testing | JUnit 5, Mockito, MockMvc, Testcontainers, JaCoCo |
 
@@ -180,7 +180,7 @@ Catalogos maestros de servicios y medicamentos con:
 
 ### 9. Integraciones AI (`/api/v1/ai`)
 
-Tres endpoints de asistencia clinica potenciados por Claude (Anthropic) y un pipeline RAG local:
+Cuatro endpoints de asistencia clinica potenciados por Claude (Anthropic) y Google Gemini Embeddings:
 
 #### P2 — Extraccion de notas clinicas (`POST /api/v1/ai/records/extract`)
 
@@ -202,7 +202,7 @@ Patron: Tool Calling para consultar el catalogo + Structured Output.
 Pipeline RAG de tres pasos para resolver el vocabulary mismatch entre lenguaje coloquial medico y terminologia CIE-10 formal:
 
 1. **Query expansion** — Claude normaliza la descripcion coloquial a terminologia CIE-10 formal.
-2. **Vector search** — busqueda semantica en pgvector (topK=20) con embeddings de `nomic-embed-text` (Ollama local, 768 dims, HNSW cosine).
+2. **Vector search** — busqueda semantica en pgvector (topK=20) con embeddings de `gemini-embedding-001` (Google AI Studio, 768 dims, HNSW cosine).
 3. **Reranking** — Claude selecciona los 5 codigos mas apropiados del pool de candidatos.
 
 El catalogo completo de 14,268 codigos CIE-10 nivel 2-5 se indexa asincronomante al iniciar la aplicacion (si el vector store esta vacio).
@@ -392,7 +392,14 @@ graph TB
 
 ### Variables de entorno (produccion)
 
-Las credenciales y URLs de produccion se configuran mediante variables de entorno o un `application-prod.yml` que no esta versionado. Variables clave:
+Las credenciales y URLs se configuran mediante variables de entorno. En desarrollo, crea un `.env` en la raíz del repositorio (git-ignorado) — el perfil `dev` lo carga automaticamente via `spring.config.import`.
+
+Variables de API (requeridas):
+
+- `GOOGLE_API_KEY` — Google AI Studio (embeddings `gemini-embedding-001`)
+- `ANTHROPIC_API_KEY` — Anthropic (LLM Claude)
+
+Variables de infraestructura (produccion):
 
 - `SPRING_DATASOURCE_URL`
 - `SPRING_DATASOURCE_USERNAME`
