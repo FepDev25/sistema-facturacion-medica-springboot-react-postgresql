@@ -3,8 +3,10 @@ package com.fepdev.sfm.backend.ai.icd10;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import org.slf4j.Logger;
@@ -24,6 +26,9 @@ public class Icd10DataLoader {
 
     private static final Logger log = LoggerFactory.getLogger(Icd10DataLoader.class);
     private static final int BATCH_SIZE = 50;
+    static final int EXPECTED_COUNT = 14_208;
+    // 50 docs/batch × ~42 batches/min = ~2100 llamadas/min (bajo el límite de 3000)
+    private static final long BATCH_DELAY_MS = 1_400;
     private static final String CSV_PATH = "data/cie-10.csv";
 
     private final VectorStore vectorStore;
@@ -39,32 +44,45 @@ public class Icd10DataLoader {
         CompletableFuture.runAsync(() -> {
             try {
                 if (alreadyLoaded()) {
-                    log.info("CIE-10 ya indexado en el vector store — omitiendo carga.");
+                    log.info("CIE-10 ya indexado en el vector store ({} códigos) — omitiendo carga.", EXPECTED_COUNT);
                     return;
                 }
-                log.info("Iniciando indexación de CIE-10...");
-                long start = System.currentTimeMillis();
-                int total = loadCsv();
-                long elapsed = (System.currentTimeMillis() - start) / 1000;
-                log.info("CIE-10 indexado: {} códigos en {}s.", total, elapsed);
+                int indexed = loadCsv();
+                if (indexed == 0) {
+                    log.info("CIE-10: ningún código nuevo que indexar.");
+                } else {
+                    log.info("CIE-10: {} códigos nuevos indexados en esta sesión.", indexed);
+                }
             } catch (Exception e) {
-                log.error("Error indexando CIE-10", e);
+                log.error("Error indexando CIE-10 — se puede reiniciar para reanudar desde el punto de interrupción", e);
             }
         });
     }
 
     private boolean alreadyLoaded() {
-        // filtra por presencia del campo 'code' en metadata para no confundir
-        // registros de historial de pacientes (que tienen 'patientId') con ICD-10
         Integer count = jdbc.queryForObject(
                 "SELECT COUNT(*) FROM vector_store WHERE metadata->>'code' IS NOT NULL", Integer.class);
-        return count != null && count > 0;
+        return count != null && count >= EXPECTED_COUNT;
+    }
+
+    private Set<String> loadIndexedCodes() {
+        return new HashSet<>(jdbc.queryForList(
+                "SELECT metadata->>'code' FROM vector_store WHERE metadata->>'code' IS NOT NULL",
+                String.class));
     }
 
     private int loadCsv() throws Exception {
+        Set<String> alreadyIndexed = loadIndexedCodes();
+        if (!alreadyIndexed.isEmpty()) {
+            log.info("CIE-10: reanudando — {} códigos ya indexados, continuando desde ahí.",
+                    alreadyIndexed.size());
+        } else {
+            log.info("Iniciando indexación de CIE-10 desde cero...");
+        }
+
         ClassPathResource resource = new ClassPathResource(CSV_PATH);
         List<Document> batch = new ArrayList<>();
-        int total = 0;
+        int newlyIndexed = 0;
 
         try (CSVReader reader = new CSVReader(
                 new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8))) {
@@ -86,23 +104,26 @@ public class Icd10DataLoader {
                 String description = row[6].trim();
                 if (description.isEmpty()) continue;
 
+                if (alreadyIndexed.contains(code)) continue;
+
                 batch.add(new Document(description, Map.of("code", code)));
 
                 if (batch.size() >= BATCH_SIZE) {
                     vectorStore.add(batch);
-                    total += batch.size();
+                    newlyIndexed += batch.size();
                     batch.clear();
-                    log.debug("CIE-10: {} códigos indexados...", total);
+                    log.debug("CIE-10: {} nuevos códigos indexados en esta sesión...", newlyIndexed);
+                    Thread.sleep(BATCH_DELAY_MS);
                 }
             }
         }
 
         if (!batch.isEmpty()) {
             vectorStore.add(batch);
-            total += batch.size();
+            newlyIndexed += batch.size();
         }
 
-        return total;
+        return newlyIndexed;
     }
 
     private static String formatCode(String raw) {
