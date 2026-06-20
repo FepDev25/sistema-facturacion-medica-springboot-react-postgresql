@@ -18,7 +18,11 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Value;
 
 import com.fepdev.sfm.backend.security.JwtAuthenticationFilter;
 
@@ -28,6 +32,9 @@ import com.fepdev.sfm.backend.security.JwtAuthenticationFilter;
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
+
+    @Value("${app.cors.allowed-origins:http://localhost:5173,http://localhost:4173}")
+    private String allowedOriginsConfig;
 
     // Configura las reglas de seguridad HTTP, deshabilita CSRF, establece la politica de 
     // sesiones a stateless y agrega el filtro de autenticacion JWT.
@@ -89,12 +96,10 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOriginPatterns(List.of(
-                "http://localhost:5173",
-                "http://127.0.0.1:5173",
-                "http://localhost:4173",
-                "http://127.0.0.1:4173"
-        ));
+        List<String> origins = Arrays.stream(allowedOriginsConfig.split(","))
+                .map(String::trim)
+                .collect(Collectors.toList());
+        configuration.setAllowedOriginPatterns(origins);
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
