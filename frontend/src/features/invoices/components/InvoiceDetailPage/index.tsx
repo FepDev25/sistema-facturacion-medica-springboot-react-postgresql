@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from '@tanstack/react-router'
-import { ClipboardList, CreditCard, FileText, Loader2, Plus, Shield, Sparkles, Trash2, UserRound } from 'lucide-react'
+import { ClipboardList, CreditCard, FileText, Loader2, Plus, Sparkles, Trash2, UserRound } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {

@@ -223,8 +223,8 @@ export function AppointmentDetailPage() {
                 </div>
               </div>
               <Link
-                to="/invoices/$invoiceId"
-                params={{ invoiceId: appointment.invoiceId }}
+                to="/invoices/$id"
+                params={{ id: appointment.invoiceId }}
                 className="text-xs text-cyan-800 underline hover:text-cyan-900"
               >
                 Ver factura

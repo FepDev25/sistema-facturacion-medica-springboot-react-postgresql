@@ -93,6 +93,7 @@ interface ApiInvoiceViewResponse {
   patientLastName: string
   patientDni: string
   patientAllergies: string | null
+  invoiceNumber: string
   appointmentId: string | null
   appointmentScheduledAt: string | null
   appointmentStatus: string | null

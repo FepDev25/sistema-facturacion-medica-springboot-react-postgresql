@@ -7,7 +7,7 @@ export interface AppointmentCreateRequest {
   doctorId: string
   scheduledAt: string          // OffsetDateTime → ISO string
   durationMinutes: number      // 1–480
-  chiefComplaint: string
+  chiefComplaint: string | null
   notes?: string | null
 }
 

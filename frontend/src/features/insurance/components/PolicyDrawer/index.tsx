@@ -68,11 +68,6 @@ export function PolicyDrawer({ open, onOpenChange, item }: PolicyDrawerProps) {
   const updatePolicy = useUpdatePolicy()
   const isPending = createPolicy.isPending || updatePolicy.isPending
 
-  const patients = patientResults.map((patient) => ({
-    id: patient.id,
-    label: `${patient.firstName} ${patient.lastName} (${patient.dni})`,
-  }))
-
   useEffect(() => {
     if (open) {
       form.reset(

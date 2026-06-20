@@ -47,7 +47,7 @@ export function AppShell({ children }: AppShellProps) {
   })
 
   const visibleNavItems = useMemo(
-    () => (session.role ? ALL_NAV_ITEMS.filter((item) => item.roles.includes(session.role)) : []),
+    () => (session.role ? ALL_NAV_ITEMS.filter((item) => item.roles.includes(session.role!)) : []),
     [session.role],
   )
 

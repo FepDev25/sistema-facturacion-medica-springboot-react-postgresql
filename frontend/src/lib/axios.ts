@@ -12,6 +12,8 @@ interface RefreshTokenResponse {
   refreshToken: string | null
   tokenType: 'Bearer'
   role: 'ADMIN' | 'DOCTOR' | 'RECEPTIONIST'
+  userId: string
+  username: string
 }
 
 const API_BASE_URL =

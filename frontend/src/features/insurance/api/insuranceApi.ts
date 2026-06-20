@@ -104,41 +104,27 @@ interface ApiInsuranceProviderDetail {
   code: string
 }
 
-function mapPolicy(
-  item: ApiInsurancePolicyResponse,
-  patient: ApiPatientDetail,
-  provider: ApiInsuranceProviderDetail,
-): InsurancePolicyResponse {
+function mapPolicy(item: ApiInsurancePolicyResponse): InsurancePolicyResponse {
   return {
     id: item.id,
-    patient: {
-      id: patient.id,
-      dni: patient.dni,
-      firstName: patient.firstName,
-      lastName: patient.lastName,
-      allergies: patient.allergies,
-    },
-    provider: {
-      id: provider.id,
-      name: provider.name,
-      code: provider.code,
-    },
+    patientId: item.patientId,
+    patientFirstName: item.patientFirstName,
+    patientLastName: item.patientLastName,
+    providerId: item.providerId,
+    providerName: item.providerName,
     policyNumber: item.policyNumber,
     coveragePercentage: item.coveragePercentage,
     deductible: item.deductible,
     startDate: item.startDate,
     endDate: item.endDate,
     isActive: item.isActive,
+    createdAt: null,
+    updatedAt: null,
   }
 }
 
 async function enrichPolicy(item: ApiInsurancePolicyResponse): Promise<InsurancePolicyResponse> {
-  const [patientResponse, providerResponse] = await Promise.all([
-    apiClient.get<ApiPatientDetail>(`/patients/${item.patientId}`),
-    apiClient.get<ApiInsuranceProviderDetail>(`/insurance/providers/${item.providerId}`),
-  ])
-
-  return mapPolicy(item, patientResponse.data, providerResponse.data)
+  return mapPolicy(item)
 }
 
 export async function getProviders(

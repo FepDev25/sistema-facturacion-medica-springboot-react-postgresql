@@ -40,6 +40,7 @@ export interface DoctorResponse {
 // Paginated list projection (flat fields from backend)
 export interface DoctorSummaryResponse {
   id: string
+  licenseNumber: string
   firstName: string
   lastName: string
   specialty: string
