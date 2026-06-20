@@ -2,6 +2,14 @@
 
 Sistema clínico fullstack con cuatro asistentes AI integrados: desde RAG con embeddings de Google Gemini hasta Tool Calling y Structured Output con Claude. El backend es una API RESTful en Spring Boot 4 con máquinas de estados explícitas, auditoría dual y 370 tests. El frontend es un backoffice React 19 con routing type-safe, estado del servidor con TanStack Query y una suite de 740 tests.
 
+**Demo en producción:** https://sistema-facturacion-medica-springbo.vercel.app
+
+| Usuario | Contraseña | Rol |
+|---|---|---|
+| `admin` | `admin123` | ADMIN |
+| `doctor1` | `doctor123` | DOCTOR |
+| `recep1` | `recep123` | RECEPTIONIST |
+
 ---
 
 ## Arquitectura General
