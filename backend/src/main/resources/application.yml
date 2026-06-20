@@ -33,6 +33,15 @@ spring:
           model: claude-haiku-4-5-20251001
           temperature: 0.7
           max-tokens: 2048
+    google:
+      genai:
+        embedding:
+          api-key: ${GOOGLE_API_KEY:}
+          text:
+            options:
+              model: gemini-embedding-001
+              task-type: RETRIEVAL_DOCUMENT
+              dimensions: 768
 
 # JWT - propiedades custom del proyecto
 app:

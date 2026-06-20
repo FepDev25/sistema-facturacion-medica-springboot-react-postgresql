@@ -9,9 +9,10 @@ import org.springframework.ai.chat.client.ChatClient;
 
 class AiConfigTest {
 
+    private final AiConfig config = new AiConfig();
+
     @Test
     void chatClient_creates_bean() {
-        AiConfig config = new AiConfig();
         AnthropicChatModel mockModel = mock(AnthropicChatModel.class);
 
         ChatClient client = config.chatClient(mockModel);

@@ -1,4 +1,7 @@
 spring:
+  config:
+    import: optional:file:../.env[.properties]
+
   # Base de datos - apunta al contenedor Docker del docker-compose.yml
   datasource:
     url: jdbc:postgresql://localhost:5434/fac_med_db
@@ -17,12 +20,10 @@ spring:
       chat:
         options:
           model: claude-haiku-4-5-20251001
-    ollama:
-      base-url: http://localhost:11434
-      chat:
-        enabled: false        # Solo Anthropic para chat; Ollama solo para embeddings
-      embedding:
-        model: nomic-embed-text
+    google:
+      genai:
+        embedding:
+          api-key: ${GOOGLE_API_KEY}
     vectorstore:
       pgvector:
         initialize-schema: false  # La tabla la gestiona Flyway (V11)

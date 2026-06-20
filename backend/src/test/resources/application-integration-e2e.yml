@@ -1,4 +1,10 @@
 spring:
+  ai:
+    google:
+      genai:
+        embedding:
+          api-key: test-key
+
   flyway:
     enabled: true
     locations: classpath:db/migration
