@@ -74,7 +74,7 @@ describe('insurance API', () => {
   describe('updateProvider', () => {
     it('puts provider data', async () => {
       mockPut.mockResolvedValue({ data: mockProvider })
-      const result = await updateProvider('prov-1', { name: 'Seguros ABC', phone: '555-1111', isActive: true })
+      await updateProvider('prov-1', { name: 'Seguros ABC', phone: '555-1111', isActive: true })
       expect(mockPut).toHaveBeenCalledWith('/insurance/providers/prov-1', expect.objectContaining({ name: 'Seguros ABC' }))
     })
   })
@@ -83,51 +83,46 @@ describe('insurance API', () => {
     it('deletes then refetches', async () => {
       mockDelete.mockResolvedValue({ data: undefined })
       mockGet.mockResolvedValue({ data: mockProvider })
-      const result = await deactivateProvider('prov-1')
+      await deactivateProvider('prov-1')
       expect(mockDelete).toHaveBeenCalledWith('/insurance/providers/prov-1')
       expect(mockGet).toHaveBeenCalledWith('/insurance/providers/prov-1')
     })
   })
 
   describe('getPolicies', () => {
-    it('fetches policies and enriches each with patient+provider data', async () => {
+    it('maps each policy with flat patient+provider fields', async () => {
       mockGet.mockResolvedValueOnce({
         data: { content: [apiPolicy], totalElements: 1, totalPages: 1, number: 0, size: 20, first: true, last: true, empty: false },
-      }).mockResolvedValueOnce({ data: { id: 'p-1', dni: '123', firstName: 'Juan', lastName: 'Perez', allergies: null } })
-      .mockResolvedValueOnce({ data: { id: 'prov-1', name: 'Seguros ABC', code: 'ABC-001' } })
+      })
 
       const result = await getPolicies()
       expect(result.content).toHaveLength(1)
-      expect(result.content[0].patient.firstName).toBe('Juan')
-      expect(result.content[0].provider.name).toBe('Seguros ABC')
+      expect(result.content[0].patientFirstName).toBe('Juan')
+      expect(result.content[0].providerName).toBe('Seguros ABC')
     })
   })
 
   describe('createPolicy', () => {
-    it('posts and enriches policy', async () => {
+    it('posts and maps policy', async () => {
       mockPost.mockResolvedValueOnce({ data: apiPolicy })
-      mockGet.mockResolvedValueOnce({ data: { id: 'p-1', dni: '123', firstName: 'Juan', lastName: 'Perez', allergies: null } })
-      .mockResolvedValueOnce({ data: { id: 'prov-1', name: 'Seguros ABC', code: 'ABC-001' } })
 
       const result = await createPolicy({
         patientId: 'p-1', providerId: 'prov-1', policyNumber: 'POL-001',
         coveragePercentage: 80, deductible: 500, startDate: '2025-01-01', endDate: '2025-12-31',
       })
       expect(mockPost).toHaveBeenCalledWith('/insurance/policies', expect.objectContaining({ policyNumber: 'POL-001' }))
-      expect(result.patient.firstName).toBe('Juan')
+      expect(result.patientFirstName).toBe('Juan')
     })
   })
 
   describe('updatePolicy', () => {
-    it('puts and enriches policy', async () => {
+    it('puts and maps policy', async () => {
       mockPut.mockResolvedValueOnce({ data: apiPolicy })
-      mockGet.mockResolvedValueOnce({ data: { id: 'p-1', dni: '123', firstName: 'Juan', lastName: 'Perez', allergies: null } })
-      .mockResolvedValueOnce({ data: { id: 'prov-1', name: 'Seguros ABC', code: 'ABC-001' } })
 
       const result = await updatePolicy('pol-1', {
         coveragePercentage: 90, deductible: 300, startDate: '2025-01-01', endDate: '2025-12-31', isActive: true,
       })
-      expect(result.provider.name).toBe('Seguros ABC')
+      expect(result.providerName).toBe('Seguros ABC')
     })
   })
 })
