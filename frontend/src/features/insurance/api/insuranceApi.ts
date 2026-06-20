@@ -90,20 +90,6 @@ interface ApiInsurancePolicyResponse {
   isActive: boolean
 }
 
-interface ApiPatientDetail {
-  id: string
-  dni: string
-  firstName: string
-  lastName: string
-  allergies: string | null
-}
-
-interface ApiInsuranceProviderDetail {
-  id: string
-  name: string
-  code: string
-}
-
 function mapPolicy(item: ApiInsurancePolicyResponse): InsurancePolicyResponse {
   return {
     id: item.id,
