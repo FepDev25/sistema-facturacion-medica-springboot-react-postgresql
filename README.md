@@ -53,211 +53,97 @@ graph TB
 
 ---
 
-## Dominios de Negocio
+## Demo del Sistema
 
-El sistema modela el ciclo operativo completo de una clínica: desde el registro del paciente hasta el cobro final, pasando por la consulta médica.
+### Autenticación y Dashboard
 
-```mermaid
-graph LR
-    PAC[Paciente<br/>+ Póliza de Seguro]
-    DOC[Médico<br/>+ Disponibilidad]
-    CIT[Cita]
-    EXP[Historia Clínica<br/>Diagnósticos · Prescripciones<br/>Procedimientos]
-    FAC[Factura<br/>Servicios · Medicamentos]
-    PAG[Pagos]
-    SEG[Seguro<br/>Cobertura %]
-
-    PAC --> CIT
-    DOC --> CIT
-    CIT -->|completar| EXP
-    CIT -->|auto-genera| FAC
-    EXP -->|prescripciones| FAC
-    SEG -->|cobertura| FAC
-    FAC --> PAG
-```
-
-### Máquina de estados — Citas
-
-```mermaid
-stateDiagram-v2
-    [*] --> SCHEDULED : crear
-    SCHEDULED --> CONFIRMED : confirmar
-    SCHEDULED --> CANCELLED : cancelar
-    SCHEDULED --> NO_SHOW : no-show
-    CONFIRMED --> IN_PROGRESS : iniciar
-    CONFIRMED --> CANCELLED : cancelar
-    CONFIRMED --> NO_SHOW : no-show
-    IN_PROGRESS --> COMPLETED : completar (DOCTOR)
-    COMPLETED --> [*]
-    CANCELLED --> [*]
-    NO_SHOW --> [*]
-```
-
-`complete` es la operación crítica: en una sola transacción crea la historia clínica, genera la factura en borrador con número secuencial y actualiza el estado de la cita.
-
-### Máquina de estados — Facturas
-
-```mermaid
-stateDiagram-v2
-    [*] --> DRAFT : auto al completar cita
-    DRAFT --> PENDING : confirmar (requiere ≥ 1 ítem)
-    DRAFT --> CANCELLED : cancelar
-    PENDING --> PAID : pagos cubren total
-    PENDING --> PARTIAL_PAID : pago parcial
-    PENDING --> OVERDUE : vencer
-    PENDING --> CANCELLED : cancelar (sin pagos)
-    PARTIAL_PAID --> PAID : pago restante
-    PARTIAL_PAID --> OVERDUE : vencer
-    PAID --> [*]
-    OVERDUE --> [*]
-    CANCELLED --> [*]
-```
-
----
-
-## Integraciones AI
-
-Cuatro asistentes clínicos construidos con **Claude claude-sonnet-4-6** via **Spring AI 2.0**, con patrones avanzados de RAG, Tool Calling y Structured Output. Los embeddings los genera **Google AI Studio** con `gemini-embedding-001` (768 dims); el índice vectorial vive en **PostgreSQL** con `pgvector` (HNSW, distancia coseno).
-
-### Stack de IA
-
-| Componente | Tecnología |
+| Login | Dashboard |
 |---|---|
-| LLM | Claude claude-sonnet-4-6 (Anthropic) via Spring AI 2.0.0-M4 |
-| Embeddings | gemini-embedding-001 768 dims — Google AI Studio |
-| Vector store | pgvector — índice HNSW, distancia coseno, PostgreSQL 15 |
-| Patrones | RAG · Tool Calling · Structured Output · Query Expansion · Dual Retrieval |
-
-### Arquitectura de IA
-
-```mermaid
-graph TB
-    subgraph "Endpoints AI — /api/v1/ai"
-        P1["P1 — ICD-10<br/>POST /icd10/suggest"]
-        P2["P2 — Extracción clínica<br/>POST /records/extract"]
-        P3["P3 — Historial paciente<br/>POST /patients/{id}/query"]
-        P4["P4 — Ítems factura<br/>POST /invoices/{id}/suggest-items"]
-    end
-
-    subgraph "Patrones"
-        RAG["RAG Pipeline<br/>Query Expansion → Vector Search → Reranking"]
-        TC["Tool Calling<br/>Lookup catálogo en tiempo real"]
-        SO["Structured Output<br/>entity() → DTO tipado"]
-        DUAL["Dual Retrieval<br/>Vector search + Contexto estructurado BD"]
-    end
-
-    subgraph "Infraestructura AI"
-        EMB["Google AI Studio<br/>gemini-embedding-001 768d"]
-        VEC["pgvector — HNSW<br/>14 268 códigos ICD-10<br/>+ expedientes de pacientes"]
-        LLM["Claude claude-sonnet-4-6"]
-    end
-
-    P1 --> RAG
-    P2 --> TC & SO
-    P3 --> DUAL
-    P4 --> TC & SO
-
-    RAG --> EMB & VEC & LLM
-    TC --> LLM
-    SO --> LLM
-    DUAL --> EMB & VEC & LLM
-```
+| ![Login](docs/img/01.png) | ![Dashboard](docs/img/02.png) |
 
 ---
 
-### P1 — RAG: Sugerencia de códigos ICD-10
+### Gestión de Pacientes
 
-> **Página:** Historia Clínica · **Componente:** `Icd10Suggester` · **Latencia:** 2–4 s
+| Lista de pacientes | Detalle con alerta de alergias |
+|---|---|
+| ![Pacientes](docs/img/03.png) | ![Alerta alergias](docs/img/04.png) |
 
-Pipeline RAG de tres pasos para resolver el *vocabulary mismatch* entre el lenguaje coloquial médico y la terminología CIE-10 formal. El catálogo completo de 14 268 códigos CIE-10 (nivel 2–5) se indexa asincrónamente al iniciar la aplicación.
-
-```mermaid
-sequenceDiagram
-    participant M as Médico
-    participant BE as Backend
-    participant C as Claude
-    participant V as pgvector
-
-    M->>BE: "dolor en el pecho al respirar"
-    BE->>C: Query expansion — normalizar a terminología CIE-10
-    C-->>BE: "pleuritis · dolor pleurítico · pleurodinia"
-    BE->>V: Vector search — topK=20
-    V-->>BE: 20 candidatos ICD-10
-    BE->>C: Reranking — seleccionar top 5 más apropiados
-    C-->>BE: [R09.1, J90, R07.3, J94.8, R09.89]
-    BE-->>M: 5 códigos con descripción
-```
-
-**Técnicas:** Query Expansion → Semantic Search → LLM Reranking
+El sistema detecta automáticamente pacientes con alergias registradas y muestra un banner de advertencia en cada punto de contacto clínico para evitar prescripciones peligrosas.
 
 ---
 
-### P2 — Tool Calling + Structured Output: Extracción de notas clínicas
+### Citas Médicas
 
-> **Página:** Historia Clínica · **Componente:** `ExtractionPanel` · **Latencia:** 3–6 s
+| Lista de citas | Nueva cita |
+|---|---|
+| ![Citas](docs/img/06.png) | ![Nueva cita](docs/img/07.png) |
 
-Analiza las notas libres de una consulta y extrae estructuradamente diagnósticos, prescripciones y procedimientos. El Tool Calling resuelve el `matchedMedicationId` consultando el catálogo activo en tiempo real, evitando alucinaciones de IDs.
+| Detalle de cita | Completar cita — datos clínicos |
+|---|---|
+| ![Detalle cita](docs/img/08.png) | ![Completar cita](docs/img/09.png) |
 
-```mermaid
-sequenceDiagram
-    participant M as Médico
-    participant BE as Backend
-    participant C as Claude
-
-    M->>BE: Notas clínicas (texto libre)
-    BE->>C: Structured Output — extraer diagnósticos, prescripciones, procedimientos
-    C->>BE: Tool Call → lookupMedication("amoxicilina 500mg")
-    BE-->>C: { matchedMedicationId: "uuid", name: "Amoxicilina 500mg" }
-    C-->>BE: ExtractionResult { diagnoses[], prescriptions[], procedures[] }
-    BE-->>M: Sheet con ítems para confirmar (checkboxes)
-```
-
-**Resultado:** El médico revisa y aplica los ítems con un click; los medicamentos sin match en catálogo quedan deshabilitados.
+Al completar una cita, el médico registra signos vitales y notas clínicas. En una sola transacción el sistema crea el expediente médico y genera la factura en borrador automáticamente.
 
 ---
 
-### P3 — RAG Dual: Consulta en lenguaje natural sobre historial del paciente
+### Historia Clínica
 
-> **Página:** Detalle de Paciente · **Componente:** `PatientHistoryChat` · **Latencia:** 3–10 s
-
-El médico formula preguntas en lenguaje natural sobre el historial clínico completo de un paciente. La arquitectura dual de recuperación garantiza cobertura total independientemente del tamaño del historial.
-
-```mermaid
-graph LR
-    Q["Pregunta del médico"] --> CLS["Clasificación de intención<br/>44 patrones · Unicode NFD"]
-    CLS -->|"query específica<br/>(condición, medicamento, fecha)"| VA["Ruta A — Vector Search<br/>topK dinámico: ≤8 → 6, 9-15 → 10, >15 → 15"]
-    CLS -->|"resumen o listado<br/>completo"| VB["Ruta B — Contexto estructurado BD<br/>bypass vector store, cobertura total"]
-    VA & VB --> C["Claude claude-sonnet-4-6<br/>responde basado en expediente"]
-    C --> R["Respuesta + fuentes<br/>(chips → navegan al expediente)"]
-```
-
-**Indexación:** On-demand en el primer query del paciente. Re-indexación asíncrona post-commit con `TransactionSynchronizationManager` tras cada modificación al expediente.
+| Expediente con alerta de alergias | Expediente guardado con diagnósticos |
+|---|---|
+| ![Alerta en expediente](docs/img/10.png) | ![Expediente guardado](docs/img/13.png) |
 
 ---
 
-### P4 — Tool Calling + Structured Output: Sugerencia de ítems de factura
+### IA — Extracción de Notas Clínicas (P2)
 
-> **Página:** Detalle de Factura · **Componente:** `ItemSuggestionPanel` · **Latencia:** 3–5 s
+![Extracción IA](docs/img/11.png)
 
-A partir del expediente médico asociado a la factura (diagnósticos, prescripciones, procedimientos ya guardados), Claude consulta el catálogo activo via Tool Calling y propone ítems de facturación justificados clínicamente.
+El médico escribe notas en lenguaje libre y Claude extrae estructuradamente diagnósticos, prescripciones y procedimientos mediante **Tool Calling + Structured Output**. Los medicamentos se resuelven contra el catálogo activo en tiempo real para evitar alucinaciones de IDs.
 
-```mermaid
-sequenceDiagram
-    participant R as Recepcionista
-    participant BE as Backend
-    participant C as Claude
+---
 
-    R->>BE: "Sugerir ítems" (factura en DRAFT)
-    BE->>C: Expediente médico de la cita
-    C->>BE: Tool Call → getCatalogServices()
-    BE-->>C: Catálogo de servicios activos
-    C->>BE: Tool Call → getCatalogMedications()
-    BE-->>C: Catálogo de medicamentos activos
-    C-->>BE: SuggestionResult[] { matchedCatalogId, unitPrice, justificación }
-    BE-->>R: Sheet con sugerencias — agregar individualmente
-```
+### IA — Sugerencia de Códigos ICD-10 (P1)
 
-**Resultado:** Cada ítem se agrega con loading state independiente; sugerencias sin `matchedCatalogId` quedan deshabilitadas.
+![ICD-10 RAG](docs/img/12.png)
+
+Pipeline **RAG** de tres pasos: Query Expansion normaliza el lenguaje coloquial a terminología CIE-10, Vector Search recupera 20 candidatos de los 14.268 códigos indexados en pgvector, y Claude hace Reranking para devolver los 5 más apropiados.
+
+---
+
+### IA — Consulta de Historial en Lenguaje Natural (P3)
+
+![Historial IA](docs/img/05.png)
+
+El médico formula preguntas en lenguaje natural sobre el historial completo del paciente. La arquitectura **Dual Retrieval** clasifica la intención: queries específicas van por vector search, resúmenes completos van por contexto estructurado de base de datos. La respuesta incluye chips que navegan directamente al expediente fuente.
+
+---
+
+### Facturación
+
+| Factura draft generada | Cobertura de seguro aplicada |
+|---|---|
+| ![Factura draft](docs/img/14.png) | ![Cobertura seguro](docs/img/16.png) |
+
+| Registrar pago | Factura pagada |
+|---|---|
+| ![Registrar pago](docs/img/17.png) | ![Factura pagada](docs/img/18.png) |
+
+---
+
+### IA — Sugerencia de Ítems de Factura (P4)
+
+![Sugerencia ítems](docs/img/15.png)
+
+A partir del expediente clínico asociado, Claude sugiere servicios y medicamentos del catálogo mediante **Tool Calling**, con justificación clínica por ítem. Cada sugerencia se agrega individualmente con loading state independiente.
+
+---
+
+### Módulos de Soporte
+
+| Gestión de Seguros | Catálogo de Servicios y Medicamentos |
+|---|---|
+| ![Seguros](docs/img/19.png) | ![Catálogo](docs/img/20.png) |
 
 ---
 
@@ -287,33 +173,7 @@ sequenceDiagram
 
 ## Seguridad y Autorización
 
-### Flujo JWT
-
-```mermaid
-sequenceDiagram
-    participant C as Cliente (SPA)
-    participant F as JwtFilter
-    participant A as AuthController
-    participant R as Redis
-
-    C->>A: POST /auth/login
-    A-->>C: accessToken (15 min) + refreshToken (7 días)
-
-    Note over C,F: Requests autenticadas
-    C->>F: Authorization: Bearer accessToken
-    F->>F: Validar firma + expiración + blacklist Redis
-
-    Note over C,A: Renovación silenciosa
-    C->>A: POST /auth/refresh (refreshToken)
-    A->>R: Verificar JTI no revocado
-    A-->>C: nuevo accessToken
-
-    Note over C,A: Logout
-    C->>A: POST /auth/logout
-    A->>R: JTI en blacklist con TTL restante
-```
-
-El frontend implementa un mutex `refreshInFlight` en el interceptor de respuesta: si múltiples requests reciben 401 simultáneamente, solo se lanza una llamada al endpoint de refresh y todas esperan la misma promesa.
+Autenticación **JWT stateless**: access token (15 min) + refresh token (7 días). El logout revoca el refresh token en Redis con TTL igual a la vida restante del token. El frontend implementa un mutex `refreshInFlight` para que múltiples requests concurrentes con 401 compartan una sola llamada de renovación.
 
 ### Matriz de Permisos
 
@@ -353,29 +213,12 @@ Los permisos se aplican en tres niveles independientes: backend (`@PreAuthorize`
 
 ### Backend — 412 tests, cobertura JaCoCo
 
-```mermaid
-graph TB
-    subgraph "E2E — Testcontainers + SpringBootTest"
-        E2E["5 flujos de negocio completos<br/>PostgreSQL real en Docker"]
-    end
-    subgraph "Slice — MockMvc / DataJPA"
-        WEB["12 WebMvc — controllers, security, validación"]
-        JPA["9 DataJPA — repositorios, constraints, queries nativas"]
-    end
-    subgraph "Unit — JUnit 5 + Mockito"
-        SVC["30 Service — lógica de negocio, máquinas de estado"]
-        MAP["16 Mapper/DTO — MapStruct, records"]
-        SEC["5 Security — JWT, filtros"]
-        AUD["1 Audit — AOP aspect"]
-    end
-```
-
 | Alcance | Líneas | Branches |
 |---|---|---|
 | Global | ≥ 80 % | ≥ 65 % |
 | `invoice*`, `payment*`, `appointment*` | ≥ 90 % | ≥ 75 % |
 
-Flujos E2E verificados con base de datos real:
+Flujos E2E verificados con base de datos real (Testcontainers):
 
 - `AppointmentCompletionFlowE2ETest` — cita → completar → historia clínica + factura draft
 - `InvoiceLifecyclePaymentFlowE2ETest` — draft → ítems → confirmar → pago parcial → pago total → PAID
@@ -389,8 +232,6 @@ Flujos E2E verificados con base de datos real:
 |---|---|---|
 | Unit / componentes | 614 (49 archivos) | Vitest 4 + React Testing Library 16 |
 | E2E | 126 (5 archivos) | Playwright 1.59 + Chromium |
-
-Los E2E cubren los flujos críticos de usuario completos: auth por rol, CRUD de pacientes, ciclo de vida de citas, ciclo de facturación y matriz de permisos por rol.
 
 ---
 
@@ -423,7 +264,10 @@ Los E2E cubren los flujos críticos de usuario completos: auth por rol, CRUD de 
 │   ├── e2e/                 # Playwright specs
 │   └── docs/                # Documentación técnica (testing, etc.)
 │
-└── docker-compose.yml       # PostgreSQL 15 (pgvector) + Redis 7
+├── docs/img/                # Capturas de pantalla del sistema
+├── docker-compose.yml       # PostgreSQL 15 (pgvector) + Redis 7
+├── DIAGRAMAS.md             # Diagramas de flujo, máquinas de estado y secuencia
+└── DEPLOY.md                # Proceso de despliegue en la nube
 ```
 
 ---
@@ -446,8 +290,6 @@ GOOGLE_API_KEY=tu_clave_de_google_ai_studio
 ANTHROPIC_API_KEY=tu_clave_de_anthropic
 ```
 
-El perfil `dev` del backend las carga automáticamente al arrancar.
-
 ### 3. Backend
 
 ```bash
@@ -466,20 +308,13 @@ npm run dev
 # SPA disponible en http://localhost:5173
 ```
 
-### Usuarios de desarrollo
-
-| Usuario | Contraseña | Rol |
-|---|---|---|
-| `admin` | `admin123` | ADMIN |
-| `doctor1` | `doctor123` | DOCTOR |
-| `recep1` | `recep123` | RECEPTIONIST |
-
 ---
 
-## Documentación por Módulo
+## Documentación
 
-| Módulo | README |
+| Archivo | Contenido |
 |---|---|
-| Backend | [`backend/README.md`](backend/README.md) |
-| Frontend | [`frontend/README.md`](frontend/README.md) |
-| Testing frontend | [`frontend/docs/02-testing.md`](frontend/docs/02-testing.md) |
+| [`DIAGRAMAS.md`](DIAGRAMAS.md) | Diagramas de flujo, máquinas de estado, secuencias JWT y IA |
+| [`DEPLOY.md`](DEPLOY.md) | Proceso completo de despliegue en la nube (Heroku, Vercel, Neon, Upstash) |
+| [`backend/README.md`](backend/README.md) | Documentación técnica del backend |
+| [`frontend/README.md`](frontend/README.md) | Documentación técnica del frontend |
