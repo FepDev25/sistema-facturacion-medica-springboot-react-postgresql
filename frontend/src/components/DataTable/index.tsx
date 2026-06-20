@@ -5,7 +5,7 @@ import {
   useReactTable,
   type ColumnDef,
 } from '@tanstack/react-table'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Inbox } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
@@ -47,16 +47,16 @@ export function DataTable<T>({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="rounded-md border border-border bg-white overflow-hidden" aria-busy={isLoading}>
+      <div className="rounded-xl border border-border bg-card overflow-hidden shadow-card" aria-busy={isLoading}>
         <div className="overflow-x-auto">
           <Table className="min-w-[720px]">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="bg-slate-50 hover:bg-slate-50">
+              <TableRow key={headerGroup.id} className="bg-muted/60 hover:bg-muted/60">
                 {headerGroup.headers.map((header) => (
                   <TableHead
                     key={header.id}
-                    className="text-xs font-semibold text-slate-600 uppercase tracking-wide h-9"
+                    className="text-xs font-semibold text-muted-foreground uppercase tracking-wide h-10"
                   >
                     {header.isPlaceholder
                       ? null
@@ -81,7 +81,7 @@ export function DataTable<T>({
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  className="h-10 hover:bg-slate-50/60 border-slate-100"
+                  className="h-12 hover:bg-muted/40"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id} className="py-2 text-sm">
@@ -91,12 +91,14 @@ export function DataTable<T>({
                 </TableRow>
               ))
             ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center text-slate-500 text-sm"
-                >
-                  {emptyMessage}
+              <TableRow className="hover:bg-transparent">
+                <TableCell colSpan={columns.length} className="h-40">
+                  <div className="flex flex-col items-center justify-center gap-2 text-center">
+                    <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                      <Inbox className="h-5 w-5" />
+                    </span>
+                    <p className="text-sm text-muted-foreground">{emptyMessage}</p>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
@@ -107,7 +109,7 @@ export function DataTable<T>({
 
       {!isLoading && pageCount > 1 && (
         <div className="flex items-center justify-between px-1">
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-muted-foreground">
             {totalRows === 0
               ? 'Sin resultados'
               : `Mostrando ${pageIndex * pageSize + 1}–${Math.min((pageIndex + 1) * pageSize, totalRows)} de ${totalRows}`}
@@ -123,7 +125,7 @@ export function DataTable<T>({
             >
               <ChevronLeft className="h-3.5 w-3.5" />
             </Button>
-            <span className="text-xs text-slate-600 px-2">
+            <span className="text-xs text-muted-foreground px-2">
               {pageIndex + 1} / {pageCount}
             </span>
             <Button
