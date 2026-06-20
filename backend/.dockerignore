@@ -1,0 +1,7 @@
+target/
+.git/
+src/test/
+*.md
+HELP.md
+docs/
+openapi/
