@@ -3,51 +3,98 @@ import { Link } from '@tanstack/react-router'
 import {
   Activity,
   CalendarDays,
+  ChevronRight,
+  ClipboardList,
   CreditCard,
   FileWarning,
+  Shield,
   Stethoscope,
   Users,
 } from 'lucide-react'
-import { formatCurrency } from '@/lib/utils'
+import { Card } from '@/components/ui/card'
+import { PageHeader } from '@/components/layout/PageHeader'
+import { cn, formatCurrency } from '@/lib/utils'
 import { useRolePermissions } from '@/features/auth/hooks/useRolePermissions'
 import { useDashboardMetrics } from '../../hooks/useDashboard'
+import { DashboardGuide } from '../DashboardGuide'
+
+type MetricTone = 'primary' | 'neutral' | 'success' | 'warning'
+
+const TONE_ICON: Record<MetricTone, string> = {
+  primary: 'bg-primary/10 text-primary',
+  neutral: 'bg-slate-100 text-slate-600',
+  success: 'bg-emerald-50 text-emerald-600',
+  warning: 'bg-amber-50 text-amber-600',
+}
 
 interface MetricCardProps {
   label: string
   value: string
   helper: string
   icon: ComponentType<{ className?: string }>
+  tone?: MetricTone
 }
 
-function MetricCard({ label, value, helper, icon: Icon }: MetricCardProps) {
+function MetricCard({ label, value, helper, icon: Icon, tone = 'neutral' }: MetricCardProps) {
   return (
-    <div className="rounded-md border border-border bg-white p-4">
+    <Card className="p-4 transition-shadow hover:shadow-card-hover">
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-xs text-slate-500 uppercase tracking-wide">{label}</p>
-          <p className="mt-1 text-2xl font-semibold text-slate-900">{value}</p>
-          <p className="mt-1 text-xs text-slate-500">{helper}</p>
+        <div className="min-w-0">
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            {label}
+          </p>
+          <p className="mt-1.5 text-2xl font-semibold tracking-tight text-foreground">{value}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{helper}</p>
         </div>
-        <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-slate-100 text-slate-600">
-          <Icon className="h-4 w-4" />
+        <span
+          className={cn(
+            'inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg',
+            TONE_ICON[tone],
+          )}
+        >
+          <Icon className="h-4.5 w-4.5" />
         </span>
       </div>
-    </div>
+    </Card>
+  )
+}
+
+interface QuickLinkProps {
+  to: string
+  label: string
+  icon: ComponentType<{ className?: string }>
+}
+
+function QuickLink({ to, label, icon: Icon }: QuickLinkProps) {
+  return (
+    <Link
+      to={to}
+      className="group flex items-center gap-3 rounded-lg border border-border bg-card px-3.5 py-3 text-sm font-medium text-foreground transition-colors hover:border-primary/30 hover:bg-primary/5"
+    >
+      <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-muted text-muted-foreground transition-colors group-hover:bg-primary/10 group-hover:text-primary">
+        <Icon className="h-4 w-4" />
+      </span>
+      <span className="flex-1">{label}</span>
+      <ChevronRight className="h-4 w-4 text-muted-foreground/60 transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
+    </Link>
   )
 }
 
 export function DashboardPage() {
   const { data, isLoading } = useDashboardMetrics()
-  const { canManagePatients, canManageDoctors, canManageInvoices, canManageInsurance, canManageCatalog, canRegisterPayments } = useRolePermissions()
+  const {
+    role,
+    canManagePatients,
+    canManageDoctors,
+    canManageInvoices,
+    canManageInsurance,
+    canManageCatalog,
+    canRegisterPayments,
+  } = useRolePermissions()
 
   return (
     <div className="flex flex-col h-full">
-      <div className="border-b bg-white px-6 py-4">
-        <h1 className="text-lg font-semibold text-slate-900">Dashboard</h1>
-        <p className="text-sm text-slate-500 mt-0.5">
-          Panorama operativo diario de facturación médica
-        </p>
-      </div>
+      <PageHeader title="Dashboard" subtitle="Panorama operativo diario de facturación médica" />
 
       <div className="flex-1 px-6 py-5 overflow-auto space-y-6">
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -56,84 +103,82 @@ export function DashboardPage() {
             value={isLoading ? '...' : String(data?.totalPatients ?? 0)}
             helper="Total registrados"
             icon={Users}
+            tone="primary"
           />
           <MetricCard
             label="Medicos activos"
             value={isLoading ? '...' : String(data?.activeDoctors ?? 0)}
             helper="Disponibles en agenda"
             icon={Stethoscope}
+            tone="neutral"
           />
           <MetricCard
             label="Citas hoy"
             value={isLoading ? '...' : String(data?.appointmentsToday ?? 0)}
             helper="Programadas para hoy"
             icon={CalendarDays}
+            tone="neutral"
           />
           <MetricCard
             label="Proximas citas"
             value={isLoading ? '...' : String(data?.upcomingAppointments ?? 0)}
             helper="Pendientes por atender"
             icon={Activity}
+            tone="neutral"
           />
           <MetricCard
             label="Facturas pendientes"
             value={isLoading ? '...' : String(data?.pendingInvoices ?? 0)}
             helper="Pendiente o pago parcial"
             icon={CreditCard}
+            tone="warning"
           />
           <MetricCard
             label="Facturas vencidas"
             value={isLoading ? '...' : String(data?.overdueInvoices ?? 0)}
             helper="Requieren seguimiento"
             icon={FileWarning}
+            tone="warning"
           />
           <MetricCard
             label="Cobrado"
             value={isLoading ? '...' : formatCurrency(data?.totalCollected ?? 0)}
             helper="Acumulado de pagos"
             icon={CreditCard}
+            tone="success"
           />
           <MetricCard
             label="Por cobrar"
             value={isLoading ? '...' : formatCurrency(data?.pendingCollection ?? 0)}
             helper="Saldo pendiente total"
             icon={FileWarning}
+            tone="warning"
           />
         </section>
 
-        <section className="rounded-md border border-border bg-white p-4">
-          <h2 className="text-sm font-semibold text-slate-900 mb-3">Accesos rápidos</h2>
-          <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
+        <section>
+          <h2 className="mb-3 text-sm font-semibold text-foreground">Accesos rápidos</h2>
+          <div className="grid gap-2.5 md:grid-cols-2 lg:grid-cols-3">
             {canManagePatients && (
-              <Link to="/patients" className="text-sm text-primary underline-offset-4 hover:underline">
-                Gestionar pacientes
-              </Link>
+              <QuickLink to="/patients" label="Gestionar pacientes" icon={Users} />
             )}
             {canManageDoctors && (
-              <Link to="/doctors" className="text-sm text-primary underline-offset-4 hover:underline">
-                Gestionar médicos
-              </Link>
+              <QuickLink to="/doctors" label="Gestionar médicos" icon={Stethoscope} />
             )}
-            <Link to="/appointments" className="text-sm text-primary underline-offset-4 hover:underline">
-              Ver agenda de citas
-            </Link>
+            <QuickLink to="/appointments" label="Ver agenda de citas" icon={CalendarDays} />
             {(canManageInvoices || canRegisterPayments) && (
-              <Link to="/invoices" className="text-sm text-primary underline-offset-4 hover:underline">
-                Revisar facturas
-              </Link>
+              <QuickLink to="/invoices" label="Revisar facturas" icon={CreditCard} />
             )}
             {canManageInsurance && (
-              <Link to="/insurance" className="text-sm text-primary underline-offset-4 hover:underline">
-                Administrar seguros
-              </Link>
+              <QuickLink to="/insurance" label="Administrar seguros" icon={Shield} />
             )}
             {canManageCatalog && (
-              <Link to="/catalog" className="text-sm text-primary underline-offset-4 hover:underline">
-                Abrir catálogo clínico
-              </Link>
+              <QuickLink to="/catalog" label="Abrir catálogo clínico" icon={ClipboardList} />
             )}
           </div>
         </section>
+
+        <DashboardGuide role={role} />
       </div>
     </div>
   )
