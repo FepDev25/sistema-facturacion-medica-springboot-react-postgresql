@@ -2,6 +2,7 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { Eye, Pencil, UserX } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
+import { AvatarInitials } from '@/components/ui/avatar-initials'
 import type { DoctorSummaryResponse } from '@/types/doctor'
 
 interface DoctorColumnsOptions {
@@ -20,15 +21,21 @@ export function getDoctorColumns({
       id: 'fullName',
       header: 'Nombre completo',
       cell: ({ row }) => (
-        <p className="font-medium text-slate-900">
-          {row.original.firstName} {row.original.lastName}
-        </p>
+        <div className="flex items-center gap-2.5">
+          <AvatarInitials
+            firstName={row.original.firstName}
+            lastName={row.original.lastName}
+          />
+          <p className="font-medium text-foreground">
+            {row.original.firstName} {row.original.lastName}
+          </p>
+        </div>
       ),
     },
     {
       accessorKey: 'specialty',
       header: 'Especialidad',
-      cell: ({ row }) => <span className="text-sm text-slate-700">{row.original.specialty}</span>,
+      cell: ({ row }) => <span className="text-sm text-muted-foreground">{row.original.specialty}</span>,
     },
     {
       id: 'actions',

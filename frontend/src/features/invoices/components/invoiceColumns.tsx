@@ -1,20 +1,11 @@
 import type { ColumnDef } from '@tanstack/react-table'
 import { Link } from '@tanstack/react-router'
 import { Check, ClockAlert, Eye, X } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { StatusBadge } from '@/components/ui/status-badge'
 import { INVOICE_STATUS_LABELS } from '@/types/enums'
 import { formatCurrency, formatDate } from '@/lib/utils'
 import type { InvoiceListViewResponse } from '@/types/invoice'
-
-const STATUS_CLASS: Record<string, string> = {
-  draft: 'border-slate-200 text-slate-600 bg-slate-50',
-  pending: 'border-blue-200 text-blue-700 bg-blue-50',
-  partial_paid: 'border-cyan-200 text-cyan-700 bg-cyan-50',
-  paid: 'border-green-200 text-green-700 bg-green-50',
-  cancelled: 'border-slate-200 text-slate-600 bg-slate-50',
-  overdue: 'border-amber-200 text-amber-700 bg-amber-50',
-}
 
 interface InvoiceColumnsOptions {
   onConfirm: (invoice: InvoiceListViewResponse) => void
@@ -56,9 +47,10 @@ export function getInvoiceColumns({
       size: 130,
       enableSorting: true,
       cell: ({ row }) => (
-        <Badge variant="outline" className={STATUS_CLASS[row.original.status]}>
-          {INVOICE_STATUS_LABELS[row.original.status]}
-        </Badge>
+        <StatusBadge
+          status={row.original.status}
+          label={INVOICE_STATUS_LABELS[row.original.status]}
+        />
       ),
     },
     {

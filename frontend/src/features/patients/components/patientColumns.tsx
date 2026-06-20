@@ -2,6 +2,7 @@ import type { ColumnDef } from '@tanstack/react-table'
 import { Link } from '@tanstack/react-router'
 import { Eye, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { AvatarInitials } from '@/components/ui/avatar-initials'
 import type { PatientSummaryResponse } from '@/types/patient'
 import type { PatientResponse } from '@/types/patient'
 
@@ -20,7 +21,7 @@ export function getPatientColumns({
       header: 'DNI',
       size: 140,
       cell: ({ row }) => (
-        <span className="font-mono text-xs text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
+        <span className="font-mono text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
           {row.original.dni}
         </span>
       ),
@@ -29,16 +30,22 @@ export function getPatientColumns({
       id: 'fullName',
       header: 'Nombre completo',
       cell: ({ row }) => (
-        <p className="font-medium text-slate-900">
-          {row.original.firstName} {row.original.lastName}
-        </p>
+        <div className="flex items-center gap-2.5">
+          <AvatarInitials
+            firstName={row.original.firstName}
+            lastName={row.original.lastName}
+          />
+          <p className="font-medium text-foreground">
+            {row.original.firstName} {row.original.lastName}
+          </p>
+        </div>
       ),
     },
     {
       accessorKey: 'phone',
       header: 'Teléfono',
       size: 180,
-      cell: ({ row }) => <span className="text-sm text-slate-600">{row.original.phone}</span>,
+      cell: ({ row }) => <span className="text-sm text-muted-foreground">{row.original.phone}</span>,
     },
     {
       id: 'actions',
