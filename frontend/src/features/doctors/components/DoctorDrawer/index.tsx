@@ -222,8 +222,8 @@ export function DoctorDrawer({ open, onOpenChange, doctorId }: DoctorDrawerProps
                       <span className="text-slate-400 font-normal">(opcional)</span>
                     </FormLabel>
                     <Select
-                      value={field.value ?? ''}
-                      onValueChange={field.onChange}
+                      value={field.value ?? 'none'}
+                      onValueChange={(val) => field.onChange(val === 'none' ? null : val)}
                       disabled={isEditing && !!doctor?.userId}
                     >
                       <FormControl>
@@ -232,7 +232,7 @@ export function DoctorDrawer({ open, onOpenChange, doctorId }: DoctorDrawerProps
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">Sin usuario vinculado</SelectItem>
+                        <SelectItem value="none">Sin usuario vinculado</SelectItem>
                         {doctorUsers.map((user) => (
                           <SelectItem key={user.id} value={user.id}>
                             {user.username} — {user.email}
