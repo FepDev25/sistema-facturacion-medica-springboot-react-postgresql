@@ -1,6 +1,4 @@
 import type { InvoiceStatus, ItemType, PaymentMethod } from './enums'
-import type { ServiceSummaryResponse } from './catalog'
-import type { MedicationSummaryResponse } from './catalog'
 
 // Invoice Items
 

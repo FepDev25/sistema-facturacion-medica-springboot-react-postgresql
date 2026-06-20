@@ -1,3 +1,39 @@
+// ── Insurance Provider ────────────────────────────────────────────────────────
+
+export interface InsuranceProviderCreateRequest {
+  name: string
+  code: string
+  phone: string
+  email?: string | null
+  address?: string | null
+}
+
+export interface InsuranceProviderUpdateRequest {
+  name: string
+  phone: string
+  email?: string | null
+  address?: string | null
+  isActive: boolean
+}
+
+export interface InsuranceProviderResponse {
+  id: string
+  name: string
+  code: string
+  phone: string
+  email: string | null
+  address: string | null
+  isActive: boolean
+  createdAt?: string | null
+  updatedAt?: string | null
+}
+
+export interface InsuranceProviderSummaryResponse {
+  id: string
+  name: string
+  code: string
+}
+
 // ── Insurance Policy ──────────────────────────────────────────────────────────
 
 export interface InsurancePolicyCreateRequest {
