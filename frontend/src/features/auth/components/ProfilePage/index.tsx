@@ -1,4 +1,5 @@
 import { Badge } from '@/components/ui/badge'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { useProfile } from '../../hooks/useProfile'
 
 const ROLE_LABELS: Record<string, string> = {
@@ -24,14 +25,11 @@ export function ProfilePage() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="border-b bg-white px-6 py-4">
-        <h1 className="text-lg font-semibold text-slate-900">Mi perfil</h1>
-        <p className="text-sm text-slate-500 mt-0.5">Informacion de la cuenta</p>
-      </div>
+      <PageHeader title="Mi perfil" subtitle="Informacion de la cuenta" />
 
       <div className="flex-1 px-6 py-5 overflow-auto">
         <div className="max-w-lg space-y-6">
-          <section className="rounded-md border border-border bg-white p-5">
+          <section className="rounded-xl border border-border bg-card p-5 shadow-card">
             <h2 className="text-sm font-semibold text-slate-900 mb-4">Datos de usuario</h2>
             <div className="grid gap-4">
               <div>
@@ -60,7 +58,7 @@ export function ProfilePage() {
           </section>
 
           {profile.doctorId && (
-            <section className="rounded-md border border-border bg-white p-5">
+            <section className="rounded-xl border border-border bg-card p-5 shadow-card">
               <h2 className="text-sm font-semibold text-slate-900 mb-4">Perfil de medico vinculado</h2>
               <div className="grid gap-4">
                 <div>

@@ -100,6 +100,14 @@ vi.mock('@/features/invoices/components/InvoiceItemDrawer', () => ({
     open ? <div data-testid="item-drawer">ItemDrawer</div> : null,
 }))
 
+vi.mock('@/features/ai/hooks/useAi', () => ({
+  useSuggestItems: () => ({ mutate: vi.fn(), isPending: false, data: undefined }),
+}))
+
+vi.mock('@/features/ai/components/ItemSuggestionPanel', () => ({
+  ItemSuggestionPanel: () => null,
+}))
+
 import { InvoiceDetailPage } from '@/features/invoices/components/InvoiceDetailPage'
 
 const baseInvoice = {

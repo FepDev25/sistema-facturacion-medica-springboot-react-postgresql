@@ -15,6 +15,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
+import { AiBadge, AiIcon } from '@/components/ui/ai-badge'
 import type { ExtractionResult } from '@/types/ai'
 import type { Severity } from '@/types'
 import * as medicalRecordsApi from '@/features/medical-records/api/medicalRecordsApi'
@@ -141,7 +142,11 @@ export function ExtractionPanel({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="sm:max-w-lg gap-0 p-0 flex flex-col">
         <SheetHeader className="px-5 pt-5 pb-4 border-b pr-12">
-          <SheetTitle>Extracción de notas clínicas</SheetTitle>
+          <div className="flex items-center gap-2.5">
+            <AiIcon />
+            <SheetTitle>Extracción de notas clínicas</SheetTitle>
+            <AiBadge />
+          </div>
           <SheetDescription>
             Selecciona los elementos que deseas guardar en el expediente.
           </SheetDescription>
@@ -149,21 +154,21 @@ export function ExtractionPanel({
 
         <ScrollArea className="flex-1 px-5 py-4">
           {totalItems === 0 ? (
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-muted-foreground">
               No se encontraron elementos para extraer de las notas clínicas.
             </p>
           ) : (
             <div className="space-y-5">
               {result.diagnoses.length > 0 && (
                 <section>
-                  <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
                     Diagnósticos ({result.diagnoses.length})
                   </h3>
                   <div className="space-y-2">
                     {result.diagnoses.map((d, i) => (
                       <label
                         key={i}
-                        className="flex items-start gap-3 rounded-md border border-slate-200 bg-white px-3 py-2.5 cursor-pointer hover:bg-slate-50"
+                        className="flex items-start gap-3 rounded-lg border border-border bg-card px-3 py-2.5 cursor-pointer transition-colors hover:bg-muted/40"
                       >
                         <Checkbox
                           checked={selectedDiagnoses.has(i)}
@@ -193,7 +198,7 @@ export function ExtractionPanel({
 
               {result.prescriptions.length > 0 && (
                 <section>
-                  <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
                     Prescripciones ({result.prescriptions.length})
                   </h3>
                   <div className="space-y-2">
@@ -202,10 +207,10 @@ export function ExtractionPanel({
                       return (
                         <label
                           key={i}
-                          className={`flex items-start gap-3 rounded-md border px-3 py-2.5 ${
+                          className={`flex items-start gap-3 rounded-lg border px-3 py-2.5 transition-colors ${
                             disabled
                               ? 'border-amber-200 bg-amber-50 cursor-not-allowed opacity-70'
-                              : 'border-slate-200 bg-white cursor-pointer hover:bg-slate-50'
+                              : 'border-border bg-card cursor-pointer hover:bg-muted/40'
                           }`}
                         >
                           <Checkbox
@@ -249,14 +254,14 @@ export function ExtractionPanel({
 
               {result.procedures.length > 0 && (
                 <section>
-                  <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
                     Procedimientos ({result.procedures.length})
                   </h3>
                   <div className="space-y-2">
                     {result.procedures.map((proc, i) => (
                       <label
                         key={i}
-                        className="flex items-start gap-3 rounded-md border border-slate-200 bg-white px-3 py-2.5 cursor-pointer hover:bg-slate-50"
+                        className="flex items-start gap-3 rounded-lg border border-border bg-card px-3 py-2.5 cursor-pointer transition-colors hover:bg-muted/40"
                       >
                         <Checkbox
                           checked={selectedProcedures.has(i)}

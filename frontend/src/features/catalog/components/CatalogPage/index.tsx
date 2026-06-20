@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { DataTable } from '@/components/DataTable'
@@ -122,12 +123,10 @@ export function CatalogPage() {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="border-b bg-white px-6 py-4">
-        <h1 className="text-lg font-semibold text-slate-900">Catálogo</h1>
-        <p className="text-sm text-slate-500 mt-0.5">
-          Gestión de servicios médicos y medicamentos
-        </p>
-      </div>
+      <PageHeader
+        title="Catálogo"
+        subtitle="Gestión de servicios médicos y medicamentos"
+      />
 
       {/* Content */}
       <div className="flex-1 px-6 py-5 overflow-auto">

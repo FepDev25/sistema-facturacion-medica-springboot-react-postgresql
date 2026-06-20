@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -139,12 +140,10 @@ export function InvoicesPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="border-b bg-white px-6 py-4">
-        <h1 className="text-lg font-semibold text-slate-900">Facturas</h1>
-        <p className="text-sm text-slate-500 mt-0.5">
-          Control de facturación, cobranza y estado financiero
-        </p>
-      </div>
+      <PageHeader
+        title="Facturas"
+        subtitle="Control de facturación, cobranza y estado financiero"
+      />
 
       <div className="flex-1 px-6 py-5 overflow-auto">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">

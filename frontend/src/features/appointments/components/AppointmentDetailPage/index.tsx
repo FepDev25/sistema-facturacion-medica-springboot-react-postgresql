@@ -2,10 +2,11 @@ import { useState } from 'react'
 import { useParams } from '@tanstack/react-router'
 import { ClipboardCheck, FileText, ShieldAlert, Stethoscope, UserRound } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { StatusBadge } from '@/components/ui/status-badge'
 import { AllergyAlert } from '@/components/AllergyAlert'
 import { BackToListButton } from '@/components/BackToListButton'
+import { PageHeader } from '@/components/layout/PageHeader'
 import {
   NO_PERMISSION_MESSAGE,
   useRolePermissions,
@@ -25,15 +26,6 @@ import {
   useStartAppointment,
 } from '../../hooks/useAppointments'
 import { usePatient } from '@/features/patients/hooks/usePatients'
-
-const STATUS_CLASS: Record<string, string> = {
-  scheduled: 'border-blue-200 text-blue-700 bg-blue-50',
-  confirmed: 'border-cyan-200 text-cyan-700 bg-cyan-50',
-  in_progress: 'border-indigo-200 text-indigo-700 bg-indigo-50',
-  completed: 'border-green-200 text-green-700 bg-green-50',
-  cancelled: 'border-slate-200 text-slate-600 bg-slate-50',
-  no_show: 'border-amber-200 text-amber-700 bg-amber-50',
-}
 
 export function AppointmentDetailPage() {
   const { role, canCompleteAppointment, canManagePatients } = useRolePermissions()
@@ -70,25 +62,25 @@ export function AppointmentDetailPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="border-b bg-white px-6 py-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h1 className="text-lg font-semibold text-slate-900">Detalle de cita</h1>
-            <p className="text-sm text-slate-500 mt-0.5">{formatDateTime(appointment.scheduledAt)}</p>
-          </div>
-          <BackToListButton fallbackTo="/appointments" label="Volver a citas" />
-          {appointment.status === 'in_progress' && canComplete ? (
-            <Button
-              size="sm"
-              onClick={() => {
-                setCompleteDrawerOpen(true)
-              }}
-            >
-              Completar cita
-            </Button>
-          ) : null}
-        </div>
-      </div>
+      <PageHeader
+        title="Detalle de cita"
+        subtitle={formatDateTime(appointment.scheduledAt)}
+        actions={
+          <>
+            {appointment.status === 'in_progress' && canComplete ? (
+              <Button
+                size="sm"
+                onClick={() => {
+                  setCompleteDrawerOpen(true)
+                }}
+              >
+                Completar cita
+              </Button>
+            ) : null}
+            <BackToListButton fallbackTo="/appointments" label="Volver a citas" />
+          </>
+        }
+      />
 
       <div className="flex-1 px-6 py-5 overflow-auto space-y-6">
         {!isOwnAppointment && (
@@ -144,14 +136,17 @@ export function AppointmentDetailPage() {
           }}
         />
 
-        <section className="rounded-md border border-border bg-white p-4">
+        <section className="rounded-xl border border-border bg-card p-5 shadow-card">
           <h2 className="text-sm font-semibold text-slate-900 mb-3">Resumen de atención</h2>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
             <div>
               <p className="text-xs text-slate-500">Estado</p>
-              <Badge variant="outline" className={STATUS_CLASS[appointment.status]}>
-                {APPOINTMENT_STATUS_LABELS[appointment.status]}
-              </Badge>
+              <div className="mt-1">
+                <StatusBadge
+                  status={appointment.status}
+                  label={APPOINTMENT_STATUS_LABELS[appointment.status]}
+                />
+              </div>
             </div>
             <div>
               <p className="text-xs text-slate-500">Duración</p>
@@ -168,7 +163,7 @@ export function AppointmentDetailPage() {
           </div>
         </section>
 
-        <section className="rounded-md border border-border bg-white p-4">
+        <section className="rounded-xl border border-border bg-card p-5 shadow-card">
           <div className="flex items-center gap-2 mb-3">
             <UserRound className="h-4 w-4 text-slate-500" />
             <h2 className="text-sm font-semibold text-slate-900">Paciente</h2>
@@ -178,7 +173,7 @@ export function AppointmentDetailPage() {
           </p>
         </section>
 
-        <section className="rounded-md border border-border bg-white p-4">
+        <section className="rounded-xl border border-border bg-card p-5 shadow-card">
           <div className="flex items-center gap-2 mb-3">
             <Stethoscope className="h-4 w-4 text-slate-500" />
             <h2 className="text-sm font-semibold text-slate-900">Médico</h2>
@@ -188,7 +183,7 @@ export function AppointmentDetailPage() {
           </p>
         </section>
 
-        <section className="rounded-md border border-border bg-white p-4">
+        <section className="rounded-xl border border-border bg-card p-5 shadow-card">
           <div className="flex items-center gap-2 mb-3">
             <ClipboardCheck className="h-4 w-4 text-slate-500" />
             <h2 className="text-sm font-semibold text-slate-900">Notas clínicas</h2>

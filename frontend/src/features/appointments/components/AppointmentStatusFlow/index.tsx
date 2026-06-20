@@ -60,7 +60,7 @@ export function AppointmentStatusFlow({
               : 'Estado final: No show'
 
   return (
-    <section className="rounded-md border border-border bg-white p-4">
+    <section className="rounded-xl border border-border bg-card p-5 shadow-card">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
         <h2 className="text-sm font-semibold text-slate-900">AppointmentStatusFlow</h2>
         <p className="text-xs text-slate-500">{nextTransitionLabel}</p>

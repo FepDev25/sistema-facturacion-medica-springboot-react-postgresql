@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from '@tanstack/react-router'
 import { ClipboardList, CreditCard, FileText, Loader2, Plus, Sparkles, Trash2, UserRound } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { StatusBadge } from '@/components/ui/status-badge'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { BackToListButton } from '@/components/BackToListButton'
+import { PageHeader } from '@/components/layout/PageHeader'
 import {
   NO_PERMISSION_MESSAGE,
   useRolePermissions,
@@ -33,15 +34,6 @@ import {
 import { InvoiceCoverageBar } from '../InvoiceCoverageBar'
 import { InvoiceItemDrawer } from '../InvoiceItemDrawer'
 import { PaymentDrawer } from '../PaymentDrawer'
-
-const STATUS_CLASS: Record<string, string> = {
-  draft: 'border-slate-200 text-slate-600 bg-slate-50',
-  pending: 'border-blue-200 text-blue-700 bg-blue-50',
-  partial_paid: 'border-cyan-200 text-cyan-700 bg-cyan-50',
-  paid: 'border-green-200 text-green-700 bg-green-50',
-  cancelled: 'border-slate-200 text-slate-600 bg-slate-50',
-  overdue: 'border-amber-200 text-amber-700 bg-amber-50',
-}
 
 export function InvoiceDetailPage() {
   const { canManageInvoices, canRegisterPayments } = useRolePermissions()
@@ -93,13 +85,11 @@ export function InvoiceDetailPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="border-b bg-white px-6 py-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h1 className="text-lg font-semibold text-slate-900">{invoice.invoiceNumber}</h1>
-            <p className="text-sm text-slate-500 mt-0.5">Detalle de factura y cobranza</p>
-          </div>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+      <PageHeader
+        title={invoice.invoiceNumber}
+        subtitle="Detalle de factura y cobranza"
+        actions={
+          <>
             {isDraft && (
               <Button
                 size="sm"
@@ -131,19 +121,22 @@ export function InvoiceDetailPage() {
               Registrar pago
             </Button>
             <BackToListButton fallbackTo="/invoices" label="Volver a facturas" />
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       <div className="flex-1 px-6 py-5 overflow-auto space-y-6">
-        <section className="rounded-md border border-border bg-white p-4">
+        <section className="rounded-xl border border-border bg-card p-5 shadow-card">
           <h2 className="text-sm font-semibold text-slate-900 mb-3">Resumen financiero</h2>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
             <div>
               <p className="text-xs text-slate-500">Estado</p>
-              <Badge variant="outline" className={STATUS_CLASS[invoice.status]}>
-                {INVOICE_STATUS_LABELS[invoice.status]}
-              </Badge>
+              <div className="mt-1">
+                <StatusBadge
+                  status={invoice.status}
+                  label={INVOICE_STATUS_LABELS[invoice.status]}
+                />
+              </div>
             </div>
             <div>
               <p className="text-xs text-slate-500">Emision</p>
@@ -202,7 +195,7 @@ export function InvoiceDetailPage() {
           patientResponsibility={invoice.patientResponsibility}
         />
 
-        <section className="rounded-md border border-border bg-white p-4">
+        <section className="rounded-xl border border-border bg-card p-5 shadow-card">
           <div className="flex items-center gap-2 mb-3">
             <UserRound className="h-4 w-4 text-slate-500" />
             <h2 className="text-sm font-semibold text-slate-900">Paciente y cobertura</h2>
@@ -281,7 +274,7 @@ export function InvoiceDetailPage() {
           ) : null}
         </section>
 
-        <section className="rounded-md border border-border bg-white p-4">
+        <section className="rounded-xl border border-border bg-card p-5 shadow-card">
           <div className="flex items-center gap-2 mb-3">
             <FileText className="h-4 w-4 text-slate-500" />
             <h2 className="text-sm font-semibold text-slate-900">Items facturados</h2>
@@ -369,7 +362,7 @@ export function InvoiceDetailPage() {
           </div>
         </section>
 
-        <section className="rounded-md border border-border bg-white p-4">
+        <section className="rounded-xl border border-border bg-card p-5 shadow-card">
           <div className="flex items-center gap-2 mb-3">
             <CreditCard className="h-4 w-4 text-slate-500" />
             <h2 className="text-sm font-semibold text-slate-900">Pagos registrados</h2>

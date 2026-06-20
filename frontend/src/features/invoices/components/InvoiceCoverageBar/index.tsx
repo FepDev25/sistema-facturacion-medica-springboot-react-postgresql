@@ -24,7 +24,7 @@ export function InvoiceCoverageBar({
   const patientPercent = toPercent(patientResponsibility, normalizedTotal)
 
   return (
-    <section className="rounded-md border border-border bg-white p-4">
+    <section className="rounded-xl border border-border bg-card p-5 shadow-card">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-sm font-semibold text-slate-900">Distribución de cobertura</h2>
         <p className="text-xs text-slate-500">Total {formatCurrency(normalizedTotal)}</p>

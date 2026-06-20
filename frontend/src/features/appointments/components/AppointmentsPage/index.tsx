@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { PageHeader } from '@/components/layout/PageHeader'
 import {
   Select,
   SelectContent,
@@ -104,12 +105,10 @@ export function AppointmentsPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="border-b bg-white px-6 py-4">
-        <h1 className="text-lg font-semibold text-slate-900">Citas</h1>
-        <p className="text-sm text-slate-500 mt-0.5">
-          Gestión operativa de agenda, atención y estados de consulta
-        </p>
-      </div>
+      <PageHeader
+        title="Citas"
+        subtitle="Gestión operativa de agenda, atención y estados de consulta"
+      />
 
       <div className="flex-1 px-6 py-5 overflow-auto">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3">

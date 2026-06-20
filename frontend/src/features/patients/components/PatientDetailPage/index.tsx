@@ -3,6 +3,7 @@ import { CalendarClock, FileHeart, Shield } from 'lucide-react'
 import { AllergyAlert } from '@/components/AllergyAlert'
 import { DataTable } from '@/components/DataTable'
 import { BackToListButton } from '@/components/BackToListButton'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { GENDER_LABELS } from '@/types/enums'
 import { formatDate, formatDateTime } from '@/lib/utils'
 import {
@@ -46,17 +47,11 @@ export function PatientDetailPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="border-b bg-white px-6 py-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h1 className="text-lg font-semibold text-slate-900">
-              {patient.firstName} {patient.lastName}
-            </h1>
-            <p className="text-sm text-slate-500 mt-0.5">Ficha clínica del paciente</p>
-          </div>
-          <BackToListButton fallbackTo="/patients" label="Volver a pacientes" />
-        </div>
-      </div>
+      <PageHeader
+        title={`${patient.firstName} ${patient.lastName}`}
+        subtitle="Ficha clínica del paciente"
+        actions={<BackToListButton fallbackTo="/patients" label="Volver a pacientes" />}
+      />
 
       <div className="flex-1 px-6 py-5 overflow-auto space-y-6">
         <AllergyAlert
@@ -64,7 +59,7 @@ export function PatientDetailPage() {
           patientName={`${patient.firstName} ${patient.lastName}`}
         />
 
-        <section className="rounded-md border border-border bg-white p-4">
+        <section className="rounded-xl border border-border bg-card p-5 shadow-card">
           <h2 className="text-sm font-semibold text-slate-900 mb-3">Información general</h2>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
             <div>
@@ -114,7 +109,7 @@ export function PatientDetailPage() {
           </div>
         </section>
 
-        <section className="rounded-md border border-border bg-white p-4">
+        <section className="rounded-xl border border-border bg-card p-5 shadow-card">
           <div className="flex items-center gap-2 mb-3">
             <CalendarClock className="h-4 w-4 text-slate-500" />
             <h2 className="text-sm font-semibold text-slate-900">Citas del paciente</h2>
@@ -128,7 +123,7 @@ export function PatientDetailPage() {
           />
         </section>
 
-        <section className="rounded-md border border-border bg-white p-4">
+        <section className="rounded-xl border border-border bg-card p-5 shadow-card">
           <div className="flex items-center gap-2 mb-3">
             <Shield className="h-4 w-4 text-slate-500" />
             <h2 className="text-sm font-semibold text-slate-900">Pólizas de seguro</h2>
@@ -142,7 +137,7 @@ export function PatientDetailPage() {
           />
         </section>
 
-        <section className="rounded-md border border-border bg-white p-4">
+        <section className="rounded-xl border border-border bg-card p-5 shadow-card">
           <div className="flex items-center gap-2 mb-3">
             <Shield className="h-4 w-4 text-slate-500" />
             <h2 className="text-sm font-semibold text-slate-900">Facturas del paciente</h2>
@@ -156,7 +151,7 @@ export function PatientDetailPage() {
           />
         </section>
 
-        <section className="rounded-md border border-border bg-white p-4">
+        <section className="rounded-xl border border-border bg-card p-5 shadow-card">
           <div className="flex items-center gap-2 mb-3">
             <FileHeart className="h-4 w-4 text-slate-500" />
             <h2 className="text-sm font-semibold text-slate-900">Expedientes clinicos</h2>

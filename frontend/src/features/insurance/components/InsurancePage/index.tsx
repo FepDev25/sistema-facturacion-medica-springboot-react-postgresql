@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import {
@@ -119,12 +120,10 @@ export function InsurancePage() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="border-b bg-white px-6 py-4">
-        <h1 className="text-lg font-semibold text-slate-900">Seguros</h1>
-        <p className="text-sm text-slate-500 mt-0.5">
-          Administracion de aseguradoras y polizas por paciente
-        </p>
-      </div>
+      <PageHeader
+        title="Seguros"
+        subtitle="Administracion de aseguradoras y polizas por paciente"
+      />
 
       <div className="flex-1 px-6 py-5 overflow-auto">
         <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'providers' | 'policies')}>

@@ -108,7 +108,11 @@ export function CompleteAppointmentDrawer({
                 )}
               />
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-lg border border-border bg-muted/30 p-4">
+                <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Signos vitales
+                </h3>
+                <div className="grid grid-cols-2 gap-3">
                 <FormField
                   control={form.control}
                   name="bloodPressure"
@@ -250,6 +254,7 @@ export function CompleteAppointmentDrawer({
                     </FormItem>
                   )}
                 />
+                </div>
               </div>
             </div>
 

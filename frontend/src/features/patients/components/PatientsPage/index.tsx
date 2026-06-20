@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { DataTable } from '@/components/DataTable'
+import { PageHeader } from '@/components/layout/PageHeader'
 import {
   NO_PERMISSION_MESSAGE,
   useRolePermissions,
@@ -46,12 +47,10 @@ export function PatientsPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="border-b bg-white px-6 py-4">
-        <h1 className="text-lg font-semibold text-slate-900">Pacientes</h1>
-        <p className="text-sm text-slate-500 mt-0.5">
-          Registro y actualización de información demográfica y clínica básica
-        </p>
-      </div>
+      <PageHeader
+        title="Pacientes"
+        subtitle="Registro y actualización de información demográfica y clínica básica"
+      />
 
       <div className="flex-1 px-6 py-5 overflow-auto">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3">

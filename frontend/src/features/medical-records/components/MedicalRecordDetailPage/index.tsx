@@ -4,6 +4,7 @@ import { Loader2, Sparkles } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { BackToListButton } from '@/components/BackToListButton'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -127,13 +128,11 @@ export function MedicalRecordDetailPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="border-b bg-white px-6 py-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h1 className="text-lg font-semibold text-slate-900">Expediente clinico</h1>
-            <p className="text-sm text-slate-500 mt-0.5">Registro {record.id}</p>
-          </div>
-          <div className="flex items-center gap-2">
+      <PageHeader
+        title="Expediente clinico"
+        subtitle={`Registro ${record.id}`}
+        actions={
+          <>
             <Button
               size="sm"
               variant="outline"
@@ -162,9 +161,9 @@ export function MedicalRecordDetailPage() {
               )}
             </Button>
             <BackToListButton fallbackTo="/patients" label="Volver a pacientes" />
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       <div className="flex-1 px-6 py-5 overflow-auto space-y-6">
         <AllergyAlert
@@ -172,7 +171,7 @@ export function MedicalRecordDetailPage() {
           patientName={`${record.patientFirstName} ${record.patientLastName}`}
         />
 
-        <section className="rounded-md border border-border bg-white p-4">
+        <section className="rounded-xl border border-border bg-card p-5 shadow-card">
           <h2 className="text-sm font-semibold text-slate-900 mb-3">Resumen</h2>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
             <div>
@@ -192,7 +191,7 @@ export function MedicalRecordDetailPage() {
           </div>
         </section>
 
-        <section className="rounded-md border border-border bg-white p-4">
+        <section className="rounded-xl border border-border bg-card p-5 shadow-card">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-slate-900">Diagnosticos</h2>
             <Dialog open={diagnosisOpen} onOpenChange={setDiagnosisOpen}>
@@ -319,7 +318,7 @@ export function MedicalRecordDetailPage() {
           />
         </section>
 
-        <section className="rounded-md border border-border bg-white p-4">
+        <section className="rounded-xl border border-border bg-card p-5 shadow-card">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-slate-900">Prescripciones</h2>
             <Dialog open={prescriptionOpen} onOpenChange={setPrescriptionOpen}>
@@ -462,7 +461,7 @@ export function MedicalRecordDetailPage() {
           />
         </section>
 
-        <section className="rounded-md border border-border bg-white p-4">
+        <section className="rounded-xl border border-border bg-card p-5 shadow-card">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-slate-900">Procedimientos</h2>
             <Dialog open={procedureOpen} onOpenChange={setProcedureOpen}>

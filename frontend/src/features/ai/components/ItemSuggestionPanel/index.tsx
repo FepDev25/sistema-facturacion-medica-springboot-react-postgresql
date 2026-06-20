@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { AiBadge, AiIcon } from '@/components/ui/ai-badge'
 import { formatCurrency } from '@/lib/utils'
 import type { ItemSuggestionResult, SuggestedItem } from '@/types/ai'
 import type { ItemType } from '@/types'
@@ -91,7 +92,11 @@ export function ItemSuggestionPanel({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="sm:max-w-md gap-0 p-0 flex flex-col">
         <SheetHeader className="px-5 pt-5 pb-4 border-b pr-12">
-          <SheetTitle>Sugerencias de ítems</SheetTitle>
+          <div className="flex items-center gap-2.5">
+            <AiIcon />
+            <SheetTitle>Sugerencias de ítems</SheetTitle>
+            <AiBadge />
+          </div>
           <SheetDescription>
             Agrega los ítems sugeridos según el expediente médico de esta factura.
           </SheetDescription>
@@ -99,7 +104,7 @@ export function ItemSuggestionPanel({
 
         <ScrollArea className="flex-1 px-5 py-4">
           {suggestedItems.length === 0 ? (
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-muted-foreground">
               No se encontraron sugerencias para este expediente.
             </p>
           ) : (
@@ -112,7 +117,7 @@ export function ItemSuggestionPanel({
                 return (
                   <div
                     key={i}
-                    className="rounded-md border border-slate-200 bg-white p-3 flex items-start gap-3"
+                    className="rounded-lg border border-border bg-card p-3.5 flex items-start gap-3 transition-colors hover:border-primary/30"
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -123,13 +128,13 @@ export function ItemSuggestionPanel({
                           {TYPE_LABELS[item.itemType]}
                         </Badge>
                         {item.unitPrice !== null && (
-                          <span className="text-xs font-medium text-slate-700">
+                          <span className="text-xs font-medium text-foreground">
                             {formatCurrency(item.unitPrice)}
                           </span>
                         )}
                       </div>
-                      <p className="text-sm font-medium text-slate-900">{item.name}</p>
-                      <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                      <p className="text-sm font-medium text-foreground">{item.name}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
                         {item.justification}
                       </p>
                       {unavailable && (

@@ -2,6 +2,7 @@ import { useParams } from '@tanstack/react-router'
 import { CalendarClock, Link2, Mail, Phone, Stethoscope } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { BackToListButton } from '@/components/BackToListButton'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { formatDateTime } from '@/lib/utils'
 import { useAppointments } from '@/features/appointments/hooks/useAppointments'
 import { useDoctorById } from '../../hooks/useDoctors'
@@ -33,20 +34,14 @@ export function DoctorDetailPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="border-b bg-white px-6 py-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div>
-            <h1 className="text-lg font-semibold text-slate-900">
-              Dr. {doctor.firstName} {doctor.lastName}
-            </h1>
-            <p className="text-sm text-slate-500 mt-0.5">Ficha profesional</p>
-          </div>
-          <BackToListButton fallbackTo="/doctors" label="Volver a médicos" />
-        </div>
-      </div>
+      <PageHeader
+        title={`Dr. ${doctor.firstName} ${doctor.lastName}`}
+        subtitle="Ficha profesional"
+        actions={<BackToListButton fallbackTo="/doctors" label="Volver a médicos" />}
+      />
 
       <div className="flex-1 px-6 py-5 overflow-auto space-y-6">
-        <section className="rounded-md border border-border bg-white p-4">
+        <section className="rounded-xl border border-border bg-card p-5 shadow-card">
           <h2 className="text-sm font-semibold text-slate-900 mb-3">Información general</h2>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
             <div>
@@ -103,7 +98,7 @@ export function DoctorDetailPage() {
           </div>
         </section>
 
-        <section className="rounded-md border border-border bg-white p-4">
+        <section className="rounded-xl border border-border bg-card p-5 shadow-card">
           <div className="flex items-center gap-2 mb-3">
             <CalendarClock className="h-4 w-4 text-slate-500" />
             <h2 className="text-sm font-semibold text-slate-900">Agenda reciente</h2>

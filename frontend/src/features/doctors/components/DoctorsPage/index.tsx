@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { ChevronLeft, ChevronRight, Plus, Search } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { PageHeader } from '@/components/layout/PageHeader'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -59,12 +60,10 @@ export function DoctorsPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="border-b bg-white px-6 py-4">
-        <h1 className="text-lg font-semibold text-slate-900">Médicos</h1>
-        <p className="text-sm text-slate-500 mt-0.5">
-          Gestión de profesionales, especialidades y estado operativo
-        </p>
-      </div>
+      <PageHeader
+        title="Médicos"
+        subtitle="Gestión de profesionales, especialidades y estado operativo"
+      />
 
       <div className="flex-1 px-6 py-5 overflow-auto">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3">
