@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" id="hospital">
+  <g>
+    <rect width="14" height="32" x="47" y="29" fill="#bddbff"></rect>
+    <polygon fill="#bddbff" points="49 19 49 23 47 23 41 23 41 19 49 19"></polygon>
+    <polygon fill="#bddbff" points="47 29 47 61 38 61 38 51 32 51 26 51 26 61 17 61 17 29 17 23 23 23 23 30 41 30 41 23 47 23 47 29"></polygon>
+    <polygon fill="#bddbff" points="34 19 34 16 30 16 30 19 27 19 27 23 30 23 30 26 34 26 34 23 37 23 37 19 34 19"></polygon>
+    <polygon fill="#bddbff" points="23 19 23 23 17 23 15 23 15 19 23 19"></polygon>
+    <rect width="14" height="32" x="3" y="29" fill="#bddbff"></rect>
+    <path fill="#3d9ae2" d="M61,28H48V24h1a1,1,0,0,0,1-1V19a1,1,0,0,0-1-1H42V12a1,1,0,0,0-1-1H23a1,1,0,0,0-1,1v6H15a1,1,0,0,0-1,1v4a1,1,0,0,0,1,1h1v4H3a1,1,0,0,0-1,1V61a1,1,0,0,0,1,1H61a1,1,0,0,0,1-1V29A1,1,0,0,0,61,28ZM16,60H4V30H16Zm8-47H40V29H24Zm-8,9V20h6v2ZM31,60H27V52h4Zm6,0H33V52h4Zm9,0H39V51a1,1,0,0,0-1-1H26a1,1,0,0,0-1,1v9H18V24h4v6a1,1,0,0,0,1,1H41a1,1,0,0,0,1-1V24h4ZM42,22V20h6v2ZM60,60H48V30H60Z"></path>
+    <path fill="#3d9ae2" d="M37,18H35V16a1,1,0,0,0-1-1H30a1,1,0,0,0-1,1v2H27a1,1,0,0,0-1,1v4a1,1,0,0,0,1,1h2v2a1,1,0,0,0,1,1h4a1,1,0,0,0,1-1V24h2a1,1,0,0,0,1-1V19A1,1,0,0,0,37,18Zm-1,4H34a1,1,0,0,0-1,1v2H31V23a1,1,0,0,0-1-1H28V20h2a1,1,0,0,0,1-1V17h2v2a1,1,0,0,0,1,1h2Z"></path>
+    <rect width="2" height="2" x="21" y="34" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="25" y="34" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="29" y="34" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="33" y="34" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="37" y="34" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="41" y="34" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="21" y="38" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="25" y="38" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="29" y="38" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="33" y="38" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="37" y="38" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="41" y="38" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="51" y="34" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="55" y="34" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="51" y="38" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="55" y="38" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="51" y="42" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="55" y="42" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="51" y="46" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="55" y="46" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="51" y="50" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="55" y="50" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="51" y="54" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="55" y="54" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="7" y="34" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="11" y="34" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="7" y="38" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="11" y="38" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="7" y="42" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="11" y="42" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="7" y="46" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="11" y="46" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="7" y="54" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="11" y="54" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="7" y="50" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="11" y="50" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="21" y="42" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="25" y="42" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="29" y="42" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="33" y="42" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="37" y="42" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="41" y="42" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="21" y="46" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="25" y="46" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="29" y="46" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="33" y="46" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="37" y="46" fill="#3d9ae2"></rect>
+    <rect width="2" height="2" x="41" y="46" fill="#3d9ae2"></rect>
+  </g>
+</svg>
