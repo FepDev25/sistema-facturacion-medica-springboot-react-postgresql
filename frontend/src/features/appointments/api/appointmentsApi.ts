@@ -7,15 +7,7 @@ import type {
   AppointmentSummaryResponse,
 } from '@/types/appointment'
 import type { MedicalRecordCreateRequest, MedicalRecordResponse } from '@/types/medical-record'
-
-const APPOINTMENT_STATUSES = [
-  'scheduled',
-  'confirmed',
-  'in_progress',
-  'completed',
-  'cancelled',
-  'no_show',
-] as const
+import type { AppointmentStatus } from '@/types/enums'
 
 export const AppointmentFormSchema = z.object({
   patientId: z.string().min(1, 'Requerido'),
@@ -35,7 +27,7 @@ export type AppointmentFormValues = z.infer<typeof AppointmentFormSchema>
 export interface AppointmentsListParams {
   doctorId?: string
   patientId?: string
-  status?: (typeof APPOINTMENT_STATUSES)[number]
+  status?: AppointmentStatus
   from?: string
   to?: string
   page?: number

@@ -8,7 +8,6 @@ import {
   getMedications,
   getMedicationById,
   createMedication,
-  updateMedication,
   toggleMedicationActive,
   searchServicesByName,
 } from '@/features/catalog/api/catalogApi'
@@ -132,7 +131,7 @@ describe('catalog API - medications', () => {
   describe('getMedicationById', () => {
     it('fetches medication by id', async () => {
       mockGet.mockResolvedValue({ data: mockMedication })
-      const result = await getMedicationById('med-1')
+      await getMedicationById('med-1')
       expect(mockGet).toHaveBeenCalledWith('/catalog/medications/med-1')
     })
   })
@@ -140,7 +139,7 @@ describe('catalog API - medications', () => {
   describe('createMedication', () => {
     it('posts medication data', async () => {
       mockPost.mockResolvedValue({ data: mockMedication })
-      const result = await createMedication({ code: 'M-001', name: 'Ibuprofeno', price: 50, unit: 'tablet', requiresPrescription: true, isActive: true })
+      await createMedication({ code: 'M-001', name: 'Ibuprofeno', price: 50, unit: 'tablet', requiresPrescription: true, isActive: true })
       expect(mockPost).toHaveBeenCalledWith('/catalog/medications', expect.objectContaining({ code: 'M-001' }))
     })
   })

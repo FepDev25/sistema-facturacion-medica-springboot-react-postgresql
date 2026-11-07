@@ -2,7 +2,6 @@ import { describe, expect, it, vi } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { AppointmentStatusFlow } from '@/features/appointments/components/AppointmentStatusFlow'
-import type { AppointmentStatus } from '@/types/enums'
 
 const makeCallbacks = () => ({
   canOperate: true,

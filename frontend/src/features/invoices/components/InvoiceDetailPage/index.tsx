@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link, useParams } from '@tanstack/react-router'
 import { ClipboardList, CreditCard, FileText, Loader2, Plus, Sparkles, Trash2, UserRound } from 'lucide-react'
 import { StatusBadge } from '@/components/ui/status-badge'
@@ -41,8 +41,15 @@ export function InvoiceDetailPage() {
   const { id } = useParams({ from: '/invoices/$id' })
   const [paymentDrawerOpen, setPaymentDrawerOpen] = useState(false)
   const [itemDrawerOpen, setItemDrawerOpen] = useState(false)
-  const [selectedPolicyId, setSelectedPolicyId] = useState('')
+  const [policySelection, setPolicySelection] = useState<{
+    invoiceId: string
+    value: string
+  } | null>(null)
   const [suggestionsOpen, setSuggestionsOpen] = useState(false)
+
+  function selectPolicy(value: string) {
+    setPolicySelection({ invoiceId: id, value })
+  }
 
   const suggestItems = useSuggestItems()
 
@@ -60,12 +67,6 @@ export function InvoiceDetailPage() {
     onlyActive: true,
   })
 
-  useEffect(() => {
-    if (invoiceQuery.data?.insurancePolicyId) {
-      setSelectedPolicyId(invoiceQuery.data.insurancePolicyId)
-    }
-  }, [invoiceQuery.data?.insurancePolicyId])
-
   if (invoiceQuery.isLoading) {
     return <div className="px-6 py-8 text-sm text-slate-500">Cargando factura...</div>
   }
@@ -80,6 +81,10 @@ export function InvoiceDetailPage() {
     )
   }
 
+  const selectedPolicyId =
+    policySelection?.invoiceId === id
+      ? policySelection.value
+      : (invoice.insurancePolicyId ?? '')
   const payments = paymentsQuery.data ?? []
   const isDraft = invoice.status === 'draft'
 
@@ -223,7 +228,7 @@ export function InvoiceDetailPage() {
             <div className="mt-4 flex flex-col sm:flex-row sm:items-end gap-2">
               <div className="w-full sm:w-80">
                 <p className="text-xs text-slate-500 mb-1">Poliza para esta factura</p>
-                <Select value={selectedPolicyId} onValueChange={setSelectedPolicyId}>
+                <Select value={selectedPolicyId} onValueChange={selectPolicy}>
                   <SelectTrigger>
                     <SelectValue placeholder="Sin poliza" />
                   </SelectTrigger>
@@ -264,7 +269,7 @@ export function InvoiceDetailPage() {
                     return
                   }
 
-                  setSelectedPolicyId('')
+                  selectPolicy('')
                   assignInsurancePolicy.mutate({ insurancePolicyId: null })
                 }}
               >

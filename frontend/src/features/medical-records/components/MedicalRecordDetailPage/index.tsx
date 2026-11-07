@@ -75,6 +75,7 @@ export function MedicalRecordDetailPage() {
 
   const extractRecord = useExtractRecord()
   const [extractionOpen, setExtractionOpen] = useState(false)
+  const [extractionVersion, setExtractionVersion] = useState(0)
 
   const [diagnosisOpen, setDiagnosisOpen] = useState(false)
   const [prescriptionOpen, setPrescriptionOpen] = useState(false)
@@ -144,7 +145,12 @@ export function MedicalRecordDetailPage() {
                     appointmentId: record.appointmentId,
                     clinicalNotes: record.clinicalNotes,
                   },
-                  { onSuccess: () => setExtractionOpen(true) },
+                  {
+                    onSuccess: () => {
+                      setExtractionVersion((version) => version + 1)
+                      setExtractionOpen(true)
+                    },
+                  },
                 )
               }
             >
@@ -571,6 +577,7 @@ export function MedicalRecordDetailPage() {
 
       {extractRecord.data && (
         <ExtractionPanel
+          key={extractionVersion}
           result={extractRecord.data}
           open={extractionOpen}
           onOpenChange={setExtractionOpen}

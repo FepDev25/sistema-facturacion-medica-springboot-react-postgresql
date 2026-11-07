@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
 import { getAppointmentColumns } from '@/features/appointments/components/appointmentColumns'
-import type { AppointmentSummaryResponse } from '@/types/appointment'
 
 const mockCallbacks = {
   onConfirm: vi.fn(),

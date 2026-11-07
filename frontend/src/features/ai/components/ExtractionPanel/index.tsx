@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { AlertTriangle } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -38,21 +38,20 @@ export function ExtractionPanel({
 }: ExtractionPanelProps) {
   const qc = useQueryClient()
   const [saving, setSaving] = useState(false)
-  const [selectedDiagnoses, setSelectedDiagnoses] = useState<Set<number>>(new Set())
-  const [selectedPrescriptions, setSelectedPrescriptions] = useState<Set<number>>(new Set())
-  const [selectedProcedures, setSelectedProcedures] = useState<Set<number>>(new Set())
-
-  useEffect(() => {
-    setSelectedDiagnoses(new Set(result.diagnoses.map((_, i) => i)))
-    setSelectedPrescriptions(
+  const [selectedDiagnoses, setSelectedDiagnoses] = useState<Set<number>>(
+    () => new Set(result.diagnoses.map((_, i) => i)),
+  )
+  const [selectedPrescriptions, setSelectedPrescriptions] = useState<Set<number>>(
+    () =>
       new Set(
         result.prescriptions
           .map((p, i) => (p.matchedMedicationId !== null ? i : -1))
           .filter((i) => i >= 0),
       ),
-    )
-    setSelectedProcedures(new Set(result.procedures.map((_, i) => i)))
-  }, [result])
+  )
+  const [selectedProcedures, setSelectedProcedures] = useState<Set<number>>(
+    () => new Set(result.procedures.map((_, i) => i)),
+  )
 
   function toggle(
     set: Set<number>,

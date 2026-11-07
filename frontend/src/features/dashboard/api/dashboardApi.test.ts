@@ -31,11 +31,6 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
-function todayString() {
-  const now = new Date()
-  return now.toISOString().split('T')[0]
-}
-
 function makeAppointment(overrides: { scheduledAt: string; status: string }) {
   return {
     id: 'apt-1', patientId: 'p-1', patientFirstName: 'Juan', patientLastName: 'Perez',
