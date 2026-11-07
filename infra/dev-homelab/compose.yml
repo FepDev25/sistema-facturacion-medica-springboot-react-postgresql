@@ -1,0 +1,19 @@
+name: sfm-dev
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: sfm-dev-redis
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - sfm_dev_redis_data:/data
+    restart: "no"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  sfm_dev_redis_data:

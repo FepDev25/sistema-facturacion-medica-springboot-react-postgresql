@@ -10,10 +10,9 @@ La configuracion del backend esta dividida en perfiles de Spring Boot. Cada perf
 
 ```
 src/main/resources/
-  application.yml           # Configuracion base compartida por todos los perfiles
-  application-dev.yml       # Perfil de desarrollo local (Docker Compose)
-  application-docker.yml    # Perfil para ejecucion del backend dentro de Docker
-  application-test.yml      # Perfil para pruebas automatizadas con Testcontainers
+  application.yml                # Configuracion base compartida por todos los perfiles
+  application-dev-homelab.yml    # Desarrollo local contra PostgreSQL/Redis del homelab
+  application-test.yml           # Perfil para pruebas automatizadas con Testcontainers
 ```
 
 ---
@@ -32,38 +31,25 @@ Bloques configurados:
 - **SpringDoc**: rutas de la documentacion OpenAPI (`/api-docs`) y Swagger UI (`/swagger-ui.html`).
 - **Actuator**: expone unicamente los endpoints `health` e `info`.
 
-### Desarrollo (`application-dev`)
+### Desarrollo (`application-dev-homelab`)
 
-Activo cuando se ejecuta con `-Dspring-boot.run.profiles=dev`.
+Activo cuando se ejecuta con `-Dspring-boot.run.profiles=dev-homelab`.
 
-Conecta a los contenedores del `docker-compose.yml` ubicado en la raiz del proyecto:
+Conecta al PostgreSQL nativo y al Redis Docker del homelab a traves del tunel SSH:
 
 | Parametro | Valor |
 |---|---|
-| Host base de datos | `localhost:5434` |
+| Host base de datos | `127.0.0.1:15432` |
 | Base de datos | `fac_med_db` |
-| Usuario | `medisys` |
-| Password | `medisys_dev` |
-| Host Redis | `localhost:6379` |
-| Pool HikariCP | max 20 conexiones, min 5 inactivas |
+| Usuario | `sfm_dev` |
+| Password | `DB_PASSWORD` del `.env` |
+| Host Redis | `127.0.0.1:6379` |
+| Pool HikariCP | max 5 conexiones, min 2 inactivas |
 
 Adicionalmente:
-- Activa `show-sql: true` y `format_sql: true` para visualizar consultas en consola.
 - Extiende las ubicaciones de Flyway con `classpath:db/seeds` para cargar datos de prueba.
 - Establece nivel de log `DEBUG` para el paquete `com.fepdev.sfm`.
-
-### Docker (`application-docker`)
-
-Activo cuando el backend corre dentro del Docker Compose con `SPRING_PROFILES_ACTIVE=docker`.
-
-Utiliza los nombres de servicio internos de Docker como hostnames:
-
-| Parametro | Valor |
-|---|---|
-| Host base de datos | `postgres:5432` |
-| Host Redis | `redis:6379` |
-
-No carga seeds. Logs en nivel `INFO`.
+- No usa Docker en la PC.
 
 ### Test (`application-test`)
 
@@ -100,25 +86,24 @@ Las propiedades JWT son custom del proyecto y se leen mediante una clase `@Confi
 
 ### Pasos
 
-**1. Iniciar la base de datos y Redis:**
+**1. Levantar la infraestructura del homelab:**
 
 ```bash
 # Desde la raiz del repositorio
-docker compose up -d
+./scripts/dev-up.sh
 ```
 
-Esto levanta dos contenedores:
-- `sfm-postgres`: PostgreSQL 15 en el puerto `5434` del host.
-- `sfm-redis`: Redis 7 en el puerto `6379` del host.
+Esto verifica el tunel SSH, arranca Redis en el homelab y comprueba que
+PostgreSQL responda en `127.0.0.1:15432`.
 
 **2. Ejecutar el backend:**
 
 ```bash
 cd backend
-./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev-homelab
 ```
 
-Al iniciar, Flyway ejecutara automaticamente las migraciones pendientes en orden (V1 a V5).
+Al iniciar, Flyway ejecutara automaticamente las migraciones pendientes.
 
 **3. Verificar que funciona:**
 
@@ -128,23 +113,20 @@ GET http://localhost:8080/actuator/health
 
 Debe devolver `{"status":"UP"}`.
 
-**4. Acceder a Swagger UI:**
+**4. Contrato OpenAPI:**
 
-```
-http://localhost:8080/swagger-ui.html
-```
+El contrato vive en `backend/openapi/openapi.yaml`. El backend no incluye
+SpringDoc/Swagger UI; no hay `/swagger-ui.html`.
 
 ### Detener el Entorno
 
 ```bash
-docker compose down
+./scripts/dev-down.sh
 ```
 
-Para eliminar tambien los volumenes de datos (reset completo de la BD):
-
-```bash
-docker compose down -v
-```
+Detiene Redis. PostgreSQL y el tunel SSH siguen activos para otros proyectos.
+Para reiniciar la base de desarrollo hay que hacer un dump y recrear
+`fac_med_db`; no usar `docker compose down -v` porque ya no hay Docker local.
 
 ---
 

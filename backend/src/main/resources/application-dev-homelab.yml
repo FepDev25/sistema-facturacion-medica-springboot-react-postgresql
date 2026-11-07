@@ -1,0 +1,47 @@
+spring:
+  config:
+    import: optional:file:../.env[.properties]
+
+  datasource:
+    url: jdbc:postgresql://127.0.0.1:15432/fac_med_db
+    username: ${DB_USER:sfm_dev}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+      connection-timeout: 30000
+      pool-name: HikariPool-SFM-Homelab
+
+  ai:
+    anthropic:
+      api-key: ${ANTHROPIC_API_KEY}
+    google:
+      genai:
+        embedding:
+          api-key: ${GOOGLE_API_KEY}
+    vectorstore:
+      pgvector:
+        initialize-schema: false
+        dimensions: 768
+        index-type: HNSW
+        distance-type: COSINE_DISTANCE
+
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        "[format_sql]": false
+
+  flyway:
+    locations: classpath:db/migration,classpath:db/seeds
+
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+
+logging:
+  level:
+    com.fepdev.sfm: DEBUG
+    org.springframework.security: DEBUG
+    org.flywaydb: INFO

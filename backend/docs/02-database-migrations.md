@@ -187,23 +187,18 @@ Una vez que Flyway ejecuta una migracion, su checksum queda registrado. **Nunca 
 
 ## Comandos Utiles
 
-Verificar el estado de las migraciones sin ejecutarlas:
+Verificar el estado de las migraciones:
 
 ```bash
-./mvnw flyway:info -Dspring-boot.run.profiles=dev
+psql -h 127.0.0.1 -p 15432 -U sfm_dev -d fac_med_db \
+  -c "SELECT installed_rank, version, description, success
+      FROM flyway_schema_history ORDER BY installed_rank;"
 ```
 
-Ejecutar migraciones pendientes manualmente:
+Las migraciones pendientes se aplican automaticamente al arrancar el backend
+con el perfil `dev-homelab`. No hay plugin `flyway-maven-plugin` configurado.
 
-```bash
-./mvnw flyway:migrate -Dspring-boot.run.profiles=dev
-```
-
-Limpiar completamente la base de datos (solo desarrollo):
-
-```bash
-docker compose down -v
-docker compose up -d
-```
-
-Al reiniciar el backend, Flyway re-ejecutara todas las migraciones desde V1.
+Para reiniciar la base de desarrollo hay que recrear `fac_med_db` en el
+PostgreSQL nativo del homelab; ver
+[`docs/dev-homelab.md`](../../docs/dev-homelab.md). Ya no se usa
+`docker compose down -v` porque no hay Docker local.
