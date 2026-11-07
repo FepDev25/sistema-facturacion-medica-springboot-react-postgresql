@@ -41,24 +41,32 @@ COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", \
   "-XX:+UseContainerSupport", \
-  "-XX:MaxRAMPercentage=45.0", \
+  "-Xmx160m", \
   "-XX:MaxMetaspaceSize=160m", \
   "-XX:ReservedCodeCacheSize=64m", \
   "-XX:+UseG1GC", \
+  "-Xss512k", \
+  "-XX:+ExitOnOutOfMemoryError", \
   "-jar", "app.jar"]
 ```
 
 ### Flags JVM para dyno de 512 MB
 
-El dyno Basic de Heroku tiene 512 MB de RAM. Sin ajuste, Spring Boot 4 + Spring AI excedía el límite causando errores R15 (SIGKILL). Solución:
+El dyno Basic de Heroku tiene 512 MB de RAM. El valor inicial de `MaxRAMPercentage=45` dejaba un heap máximo de ~230 MB y la app llegaba a **599–736 MB de RSS**, provocando `R14 (Memory quota exceeded)` y, finalmente, el crash del dyno.
 
-- `-XX:MaxRAMPercentage=45.0` — limita el heap al 45% de la RAM del contenedor (~230 MB)
-- `-XX:MaxMetaspaceSize=160m` — cap explícito al metaspace (clases cargadas)
+La configuración vigente usa un heap explícito más conservador:
+
+- `-Xmx160m` — límite de heap explícito (más predecible que un porcentaje)
+- `-XX:MaxMetaspaceSize=160m` — cap al metaspace (clases cargadas)
 - `-XX:ReservedCodeCacheSize=64m` — cap al cache del compilador JIT
-- `-XX:+UseG1GC` — garbage collector más eficiente en memoria limitada
-- `spring.main.lazy-initialization: true` — los beans de Spring AI se inicializan solo cuando se usan por primera vez, reduciendo el pico de memoria al arrancar
+- `-XX:+UseG1GC` — garbage collector para memoria limitada
+- `-Xss512k` — stack por hilo más pequeño
+- `-XX:+ExitOnOutOfMemoryError` — si se agota el heap, el proceso muere y Heroku lo reinicia en vez de quedar colgado
+- `spring.main.lazy-initialization: true` — reduce el pico de arranque
 
-**Resultado**: pico de arranque bajó de ~1097 MB (R15 SIGKILL) a ~559 MB (R14 warning leve, app funcional).
+**Resultado medido (noviembre 2026):** con `-Xmx160m` la app arranca en ~11 s, se mantiene por debajo del límite de 512 MB y no vuelve a emitir R14.
+
+> Nota: durante el incidente se aplicó `JAVA_TOOL_OPTIONS=-Xmx160m -Xss512k` como hotfix en Heroku, antes de rebuildear la imagen. El `Dockerfile` ya incluye los mismos límites, así que ese config var puede eliminarse después del próximo deploy.
 
 ### application-prod.yml
 
@@ -194,8 +202,13 @@ Solución: `baseline-on-migrate: true` + `baseline-version: "0"` le indica a Fly
 ### Variable de entorno en Vercel
 
 ```
-VITE_API_URL=https://sfm-backend-fepdev.herokuapp.com/api/v1
+VITE_API_URL=https://sfm-backend-fepdev-a04e4eeac708.herokuapp.com/api/v1
 ```
+
+> La app de Heroku expone un dominio con sufijo aleatorio. El dominio corto
+> `sfm-backend-fepdev.herokuapp.com` ya no resuelve; usar el que aparece en
+> **Heroku → app → Settings → Domains** y mantenerlo sincronizado con
+> `VITE_API_URL` en Vercel.
 
 ### SPA Routing con TanStack Router
 
