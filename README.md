@@ -1,6 +1,6 @@
 # Sistema de Facturación Médica (SFM)
 
-Sistema clínico fullstack con cuatro asistentes AI integrados: desde RAG con embeddings de Google Gemini hasta Tool Calling y Structured Output con Claude. El backend es una API RESTful en Spring Boot 4 con máquinas de estados explícitas, auditoría dual y 370 tests. El frontend es un backoffice React 19 con routing type-safe, estado del servidor con TanStack Query y una suite de 740 tests.
+Sistema clínico fullstack con cuatro asistentes AI integrados: desde RAG con embeddings de Google Gemini hasta Tool Calling y Structured Output con Claude. El backend es una API RESTful en Spring Boot 4 con máquinas de estados explícitas, auditoría dual y 412 tests. El frontend es un backoffice React 19 con routing type-safe, estado del servidor con TanStack Query y una suite de 740 tests.
 
 **Demo en producción:** https://sistema-facturacion-medica-springbo.vercel.app
 
@@ -107,7 +107,7 @@ El médico escribe notas en lenguaje libre y Claude extrae estructuradamente dia
 
 ![ICD-10 RAG](docs/img/12.png)
 
-Pipeline **RAG** de tres pasos: Query Expansion normaliza el lenguaje coloquial a terminología CIE-10, Vector Search recupera 20 candidatos de los 14.268 códigos indexados en pgvector, y Claude hace Reranking para devolver los 5 más apropiados.
+Pipeline **RAG** de tres pasos: Query Expansion normaliza el lenguaje coloquial a terminología CIE-10, Vector Search recupera 20 candidatos de los 14.208 códigos indexados en pgvector, y Claude hace Reranking para devolver los 5 más apropiados.
 
 ---
 
@@ -250,7 +250,7 @@ Flujos E2E verificados con base de datos real (Testcontainers):
 │   │       └── ai/          # P1 icd10 (RAG) · P2 extraction · P3 history · P4 suggestion
 │   ├── src/main/resources/
 │   │   ├── db/migration/    # Flyway V1–V11 (incluye pgvector)
-│   │   └── data/cie-10.csv  # 14 268 códigos CIE-10 nivel 2–5
+│   │   └── data/cie-10.csv  # 14 208 códigos CIE-10 nivel 2–5
 │   └── src/test/java/       # unit, web, persistence, integration/e2e
 │
 ├── frontend/                # React 19 — Backoffice SPA
@@ -274,18 +274,32 @@ Flujos E2E verificados con base de datos real (Testcontainers):
 
 ## Levantar el Proyecto
 
-### 1. Infraestructura
+### 1. Infraestructura de desarrollo (homelab)
+
+El desarrollo local ya no usa Docker en la PC. PostgreSQL 17 y Redis viven en
+el homelab y se acceden por un túnel SSH. El detalle completo está en
+[`docs/dev-homelab.md`](docs/dev-homelab.md).
+
+Requisitos:
+
+- Acceso SSH a `ssh.fepdev.app`.
+- Túnel `postgresql-tunnel.service` configurado con los forwards `15432` y `6379`.
+- Redis levantado en el homelab.
+- PostgreSQL 17 con la base `fac_med_db` y el rol `sfm_dev`.
 
 ```bash
-docker compose up -d
-# PostgreSQL en :5434 — Redis en :6379
+./scripts/dev-up.sh
+# Verifica el túnel, arranca Redis y comprueba PostgreSQL
 ```
 
 ### 2. Variables de entorno
 
-Crea un `.env` en la raíz del repositorio (ya está en `.gitignore`) con las claves de API:
+Crea un `.env` en la raíz del repositorio (ya está en `.gitignore`) tomando como
+base [`.env.example`](.env.example):
 
-```
+```properties
+DB_USER=sfm_dev
+DB_PASSWORD=tu_password
 GOOGLE_API_KEY=tu_clave_de_google_ai_studio
 ANTHROPIC_API_KEY=tu_clave_de_anthropic
 ```
@@ -294,9 +308,10 @@ ANTHROPIC_API_KEY=tu_clave_de_anthropic
 
 ```bash
 cd backend
-./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev-homelab
 # API disponible en http://localhost:8080/api/v1
-# Al iniciar: indexación asíncrona de 14 268 códigos ICD-10 en pgvector
+# El índice CIE-10 ya está importado (14.208 códigos).
+# Si la base está vacía, el loader lo indexa una vez en segundo plano.
 ```
 
 ### 4. Frontend
@@ -308,6 +323,13 @@ npm run dev
 # SPA disponible en http://localhost:5173
 ```
 
+### 5. Apagar la infraestructura de desarrollo
+
+```bash
+./scripts/dev-down.sh
+# Detiene Redis. PostgreSQL y el túnel siguen activos para otros proyectos.
+```
+
 ---
 
 ## Documentación
@@ -315,6 +337,7 @@ npm run dev
 | Archivo | Contenido |
 |---|---|
 | [`DIAGRAMAS.md`](DIAGRAMAS.md) | Diagramas de flujo, máquinas de estado, secuencias JWT y IA |
+| [`docs/dev-homelab.md`](docs/dev-homelab.md) | Entorno de desarrollo local con PostgreSQL/Redis en el homelab |
 | [`DEPLOY.md`](DEPLOY.md) | Proceso completo de despliegue en la nube (Heroku, Vercel, Neon, Upstash) |
 | [`backend/README.md`](backend/README.md) | Documentación técnica del backend |
 | [`frontend/README.md`](frontend/README.md) | Documentación técnica del frontend |

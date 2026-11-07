@@ -205,7 +205,7 @@ Pipeline RAG de tres pasos para resolver el vocabulary mismatch entre lenguaje c
 2. **Vector search** — busqueda semantica en pgvector (topK=20) con embeddings de `gemini-embedding-001` (Google AI Studio, 768 dims, HNSW cosine).
 3. **Reranking** — Claude selecciona los 5 codigos mas apropiados del pool de candidatos.
 
-El catalogo completo de 14,268 codigos CIE-10 nivel 2-5 se indexa asincronomante al iniciar la aplicacion (si el vector store esta vacio).
+El catalogo completo de 14,208 codigos CIE-10 nivel 2-5 se indexa asincronomante al iniciar la aplicacion (si el vector store esta vacio).
 
 #### P3 — Consulta en Lenguaje Natural sobre Historial del Paciente (`POST /api/v1/ai/patients/{patientId}/query`)
 
@@ -325,7 +325,7 @@ Formato de respuesta: `{ timestamp, status, error, message, path }`
 
 ## Estrategia de Testing
 
-Piramide de tests con tres capas, 370 tests totales, cobertura exigida por JaCoCo.
+Piramide de tests con tres capas, 412 tests totales, cobertura exigida por JaCoCo.
 
 ### Umbrales JaCoCo
 
@@ -365,7 +365,7 @@ graph TB
 | WebMvc | ~12 | MockMvc + @WebMvcTest | Controladores, validacion, autorizacion HTTP |
 | DataJPA | ~9 | Testcontainers + @DataJpaTest | Repositorios, queries nativas, constraints DB |
 | E2E | ~5 | Testcontainers + SpringBootTest | Flujos completos de negocio contra BD real |
-| Totales | **370** | -- | **0 fallos, BUILD SUCCESS** |
+| Totales | **412** | -- | **0 fallos, BUILD SUCCESS** |
 
 ### Flujos E2E
 
@@ -423,20 +423,23 @@ Variables de infraestructura (produccion):
 
 - Java 21
 - Maven 3.9+
-- Docker y Docker Compose (para infraestructura y Testcontainers)
+- Acceso al homelab por SSH (`ssh.fepdev.app`) y el túnel configurado.
+- Docker **solo** es necesario para ejecutar la suite completa de Testcontainers.
 
-### Infraestructura local
+### Infraestructura de desarrollo
+
+PostgreSQL 17 y Redis viven en el homelab. No se usa Docker en la PC para
+infraestructura local. Ver [`docs/dev-homelab.md`](../docs/dev-homelab.md).
 
 ```bash
-docker compose up -d
+# Desde la raíz del repositorio
+./scripts/dev-up.sh
 ```
-
-Inicia PostgreSQL (puerto 5434) y Redis (puerto 6379).
 
 ### Ejecutar en desarrollo
 
 ```bash
-./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev-homelab
 ```
 
 ### Compilar
@@ -513,12 +516,11 @@ backend/
       history/                      # P3: consulta en lenguaje natural sobre historial del paciente (RAG dual)
   src/main/resources/
     application.yml
-    application-dev.yml
-    application-docker.yml
+    application-dev-homelab.yml     # Desarrollo local contra PostgreSQL/Redis del homelab
     application-test.yml
     db/migration/                   # Flyway migrations (V1-V11)
     db/seeds/                       # Datos de desarrollo (V7)
-    data/cie-10.csv                 # Catalogo CIE-10 en espanol (14,268 codigos nivel 2-5)
+    data/cie-10.csv                 # Catalogo CIE-10 en espanol (14,208 codigos nivel 2-5)
   src/test/java/com/fepdev/sfm/backend/
     domain/                         # Tests unitarios de servicios, mappers, DTOs
     web/                            # Tests WebMvc de controladores
