@@ -52,7 +52,7 @@ local reproducible:
 | Arranque normal + health/login/P1 | Validado |
 | Limpieza de Docker local | Hecho |
 | Documentación de README/backend | Hecho |
-| Perfil Maven sin Docker | Pendiente |
+| Perfil Maven sin Docker | Hecho (`-Punit`) |
 
 ---
 

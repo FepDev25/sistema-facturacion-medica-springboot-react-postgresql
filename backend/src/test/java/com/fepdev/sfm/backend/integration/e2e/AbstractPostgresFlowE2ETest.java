@@ -56,7 +56,6 @@ public abstract class AbstractPostgresFlowE2ETest {
 
     static {
         System.setProperty("docker.host", System.getProperty("docker.host", "unix:///var/run/docker.sock"));
-        System.setProperty("docker.api.version", System.getProperty("docker.api.version", "1.54"));
     }
 
     @Container

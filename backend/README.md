@@ -450,11 +450,23 @@ infraestructura local. Ver [`docs/dev-homelab.md`](../docs/dev-homelab.md).
 
 ### Ejecutar tests completos con cobertura
 
+Requiere Docker para Testcontainers:
+
 ```bash
 ./mvnw clean verify
 ```
 
 Ejecuta todos los tests (unitarios, WebMvc, DataJPA, E2E), genera reporte JaCoCo en `target/site/jacoco/index.html`, y valida umbrales de cobertura.
+
+### Ejecutar solo tests de unidad (sin Docker)
+
+```bash
+./mvnw -Punit test
+```
+
+Corre 384 tests y omite los `*DataJpaTest`, `*FlowE2ETest` y
+`BackendApplicationTests`, que necesitan PostgreSQL con Testcontainers. El
+perfil `unit` también desactiva JaCoCo porque el reporte quedaría incompleto.
 
 ### Ejecutar una capa especifica de tests
 

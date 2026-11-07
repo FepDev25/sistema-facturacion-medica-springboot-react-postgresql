@@ -330,4 +330,34 @@
 		</plugins>
 	</build>
 
+	<profiles>
+		<!--
+			Tests de unidad sin Docker/Testcontainers.
+			Uso: ./mvnw -Punit test
+			Excluye los tests que levantan PostgreSQL y desactiva JaCoCo porque
+			el reporte quedaría incompleto sin la capa de persistencia.
+		-->
+		<profile>
+			<id>unit</id>
+			<properties>
+				<jacoco.skip>true</jacoco.skip>
+			</properties>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<configuration>
+							<excludes>
+								<exclude>**/*DataJpaTest.java</exclude>
+								<exclude>**/*FlowE2ETest.java</exclude>
+								<exclude>**/BackendApplicationTests.java</exclude>
+							</excludes>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+
 </project>
