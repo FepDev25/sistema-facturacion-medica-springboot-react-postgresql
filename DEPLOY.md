@@ -4,6 +4,12 @@ Documentación del proceso de despliegue del MVP a producción. Cubre la arquite
 
 **URL de producción:** https://sistema-facturacion-medica-springbo.vercel.app
 
+> **Despliegue actual:** el backend se despliega automáticamente desde GitHub
+> Actions al hacer push a `main`, después de que pasan los tests. Ver
+> [`docs/ci-cd.md`](docs/ci-cd.md). Los comandos manuales de este documento
+> quedan como referencia y fallback; ya no hay Docker local en la PC de
+> desarrollo.
+
 ---
 
 ## Arquitectura de producción
@@ -139,6 +145,11 @@ docker run --rm -i postgres:15 \
 ### Heroku Container Registry
 
 Heroku soporta dos modos de deploy: **buildpacks** (automático) y **Container Registry** (Docker). Se usó Container Registry porque el proyecto ya tiene un Dockerfile.
+
+> **En la práctica, este paso lo hace GitHub Actions.** El workflow
+> `.github/workflows/ci.yml` construye y publica la imagen después de que pasan
+> los tests. Los comandos manuales de abajo solo se usan si hay que deployar
+> desde una máquina con Docker.
 
 ```bash
 # 1. Configurar la app para usar contenedores
