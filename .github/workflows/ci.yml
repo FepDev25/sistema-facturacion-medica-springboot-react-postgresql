@@ -157,18 +157,17 @@ jobs:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: echo "$HEROKU_API_KEY" | docker login --username=_ --password-stdin registry.heroku.com
 
-      - name: Build de la imagen
-        run: docker build -t "registry.heroku.com/$HEROKU_APP/web" ./backend
+      - name: Configurar Buildx
+        uses: docker/setup-buildx-action@v4
 
-      - name: Push de la imagen
-        run: |
-          output=$(docker push "registry.heroku.com/$HEROKU_APP/web" 2>&1) || {
-            echo "$output"
-            last_line=$(printf '%s\n' "$output" | tail -n 1)
-            echo "::error title=Docker push::$last_line"
-            exit 1
-          }
-          echo "$output"
+      - name: Build y push de la imagen
+        uses: docker/build-push-action@v7
+        with:
+          context: ./backend
+          platforms: linux/amd64
+          provenance: false
+          sbom: false
+          outputs: type=image,name=registry.heroku.com/${{ env.HEROKU_APP }}/web,push=true,oci-mediatypes=false
 
       - name: Release
         env:
