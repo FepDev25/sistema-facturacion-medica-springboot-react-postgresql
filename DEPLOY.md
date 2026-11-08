@@ -72,7 +72,7 @@ La configuración vigente usa un heap explícito más conservador:
 
 **Resultado medido (noviembre 2026):** con `-Xmx160m` la app arranca en ~11 s, se mantiene por debajo del límite de 512 MB y no vuelve a emitir R14.
 
-> Nota: durante el incidente se aplicó `JAVA_TOOL_OPTIONS=-Xmx160m -Xss512k` como hotfix en Heroku, antes de rebuildear la imagen. El `Dockerfile` ya incluye los mismos límites, así que ese config var puede eliminarse después del próximo deploy.
+> Nota: durante el incidente se aplicó `JAVA_TOOL_OPTIONS=-Xmx160m -Xss512k` como hotfix en Heroku, antes de rebuildear la imagen. El primer deploy de GitHub Actions (release `v13`) ya usó el `Dockerfile` nuevo, y `JAVA_TOOL_OPTIONS` se retiró en la release `v14` del 2026-11-08.
 
 ### application-prod.yml
 

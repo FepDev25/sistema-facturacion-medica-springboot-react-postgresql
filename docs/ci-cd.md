@@ -92,27 +92,26 @@ En **GitHub → Settings → Rules → Rulesets** (o Branch protection):
 Con eso, `main` solo recibe commits que ya pasaron CI. Vercel puede seguir
 desplegando desde `main` sin riesgo adicional.
 
-## Primer deploy con la imagen nueva
+## Primer deploy con la imagen nueva (hecho)
 
-El `Dockerfile` con `-Xmx160m`, `-Xss512k` y `ExitOnOutOfMemoryError` ya está en
-`main`, pero producción todavía corre la imagen anterior. El primer deploy del
-workflow aplica ese cambio.
+El primer deploy del workflow se completó el **2026-11-08**:
 
-Después de que el workflow termine en verde:
+| Release | Cambio |
+|---|---|
+| `v13` | Imagen nueva con `-Xmx160m`, `-Xss512k`, `MaxMetaspaceSize` y `ExitOnOutOfMemoryError` |
+| `v14` | Se retiró `JAVA_TOOL_OPTIONS`; el dyno ya usa solo los flags del `Dockerfile` |
+
+Verificación:
 
 ```bash
-# Verificar que el dyno usa el comando nuevo
 heroku ps -a sfm-backend-fepdev
-
-# Quitar el hotfix temporal de memoria
-heroku config:unset JAVA_TOOL_OPTIONS -a sfm-backend-fepdev
-
-# Ver logs y confirmar que no reaparece R14
-heroku logs --tail -a sfm-backend-fepdev
+heroku releases -a sfm-backend-fepdev
+heroku logs -n 300 -a sfm-backend-fepdev | grep -iE "R14|OutOfMemory|ERROR"
 ```
 
-En `heroku ps` el comando debe incluir `-Xmx160m` y `-Xss512k`. Si el dyno
-vuelve a mostrar `MaxRAMPercentage=45`, el release no tomó la imagen nueva.
+El dyno arranca en ~11 s, el health check responde 200 y no hay R14. Si en el
+futuro un release vuelve a mostrar `MaxRAMPercentage=45`, significa que no tomó
+la imagen nueva.
 
 ## Rollback
 
@@ -206,5 +205,8 @@ PRs.
 | `Cannot connect to the Docker daemon` en CI | El runner no expone Docker | Verificar que el job use `ubuntu-latest` |
 | Testcontainers usa una API de Docker vieja | docker-java usa `1.32` por defecto y el engine exige `>= 1.40` | `DockerTestSupport` detecta la versión del servidor con `docker version` antes de arrancar los contenedores |
 | Falla el gate de JaCoCo | Cobertura real por debajo del umbral | Revisar el reporte `backend-reports` |
+| `docker push ... unsupported` | Heroku solo acepta Docker Manifest V2; buildx generó un índice OCI con attestations | Mantener `provenance: false`, `sbom: false` y `oci-mediatypes=false` en `docker/build-push-action` |
+| El deploy falla en `Verificar Heroku CLI` | El runner no trae el CLI en PATH | El workflow lo instala con `install.sh` |
 | Falla el login de Heroku | `HEROKU_API_KEY` ausente o vencido | Regenerar el token y actualizar el secret |
 | El smoke test no llega a 200 | El dyno todavía está arrancando o crasheó | Revisar `heroku logs`; el job reintenta 5 minutos |
+| Un test falla y no se ve el detalle | Los logs del job requieren autenticación | El step `Resumir fallos de tests` publica los `[ERROR]` de Maven como anotaciones del check run |
