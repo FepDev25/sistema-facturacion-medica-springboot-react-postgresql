@@ -156,7 +156,7 @@ export function InvoicesPage() {
                 setPage(0)
               }}
             >
-              <SelectTrigger className="h-8 w-full sm:w-44 text-sm">
+              <SelectTrigger aria-label="Estado" className="h-8 w-full sm:w-44 text-sm">
                 <SelectValue placeholder="Todos" />
               </SelectTrigger>
               <SelectContent>

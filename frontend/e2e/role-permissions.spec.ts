@@ -75,7 +75,7 @@ test.describe('Role-based sidebar badges', () => {
   test('DOCTOR sidebar shows Doctor badge', async ({ page }) => {
     if (!DOCTOR_USER) test.skip(true, 'E2E_DOCTOR_USER not set')
     await loginAs(page, DOCTOR_USER, DOCTOR_PASS)()
-    await expect(page.locator('aside').getByText('Doctor')).toBeVisible()
+    await expect(page.locator('aside').getByText('Doctor').first()).toBeVisible()
   })
 
   test('RECEPTIONIST sidebar shows Recepción badge', async ({ page }) => {
@@ -91,40 +91,40 @@ test.describe('ADMIN permissions', () => {
 
   test('can create patients (Nuevo paciente button enabled)', async ({ page }) => {
     await loginAs(page, ADMIN_USER, ADMIN_PASS)()
-    await page.getByRole('link', { name: 'Pacientes' }).click()
+    await page.locator('aside nav').getByRole('link', { name: 'Pacientes' }).click()
     const newBtn = page.getByRole('button', { name: /Nuevo paciente/ })
     await expect(newBtn).toBeEnabled()
   })
 
   test('can create appointments (Nueva cita button enabled)', async ({ page }) => {
     await loginAs(page, ADMIN_USER, ADMIN_PASS)()
-    await page.getByRole('link', { name: 'Citas' }).click()
+    await page.locator('aside nav').getByRole('link', { name: 'Citas' }).click()
     const newBtn = page.getByRole('button', { name: /Nueva cita/ })
     await expect(newBtn).toBeEnabled()
   })
 
   test('can access doctors page', async ({ page }) => {
     await loginAs(page, ADMIN_USER, ADMIN_PASS)()
-    await page.getByRole('link', { name: 'Médicos' }).click()
+    await page.locator('aside nav').getByRole('link', { name: 'Médicos' }).click()
     await expect(page).toHaveURL('/doctors')
     await expect(page.getByRole('heading', { name: 'Médicos' })).toBeVisible()
   })
 
   test('can access insurance page', async ({ page }) => {
     await loginAs(page, ADMIN_USER, ADMIN_PASS)()
-    await page.getByRole('link', { name: 'Seguros' }).click()
+    await page.locator('aside nav').getByRole('link', { name: 'Seguros' }).click()
     await expect(page).toHaveURL('/insurance')
   })
 
   test('can access catalog page', async ({ page }) => {
     await loginAs(page, ADMIN_USER, ADMIN_PASS)()
-    await page.getByRole('link', { name: 'Catálogo' }).click()
+    await page.locator('aside nav').getByRole('link', { name: 'Catálogo' }).click()
     await expect(page).toHaveURL('/catalog')
   })
 
   test('can confirm invoices (Confirmar factura button enabled)', async ({ page }) => {
     await loginAs(page, ADMIN_USER, ADMIN_PASS)()
-    await page.getByRole('link', { name: 'Facturas' }).click()
+    await page.locator('aside nav').getByRole('link', { name: 'Facturas' }).click()
 
     const confirmBtns = page.getByRole('button', { name: 'Confirmar factura' })
     const count = await confirmBtns.count()
@@ -144,7 +144,7 @@ test.describe('RECEPTIONIST permissions', () => {
   test('can create patients (Nuevo paciente button enabled)', async ({ page }) => {
     if (!RECEPTIONIST_USER) test.skip(true, 'E2E_RECEPTIONIST_USER not set')
     await loginAs(page, RECEPTIONIST_USER, RECEPTIONIST_PASS)()
-    await page.getByRole('link', { name: 'Pacientes' }).click()
+    await page.locator('aside nav').getByRole('link', { name: 'Pacientes' }).click()
     const newBtn = page.getByRole('button', { name: /Nuevo paciente/ })
     await expect(newBtn).toBeEnabled()
   })
@@ -152,7 +152,7 @@ test.describe('RECEPTIONIST permissions', () => {
   test('can register payments on invoices', async ({ page }) => {
     if (!RECEPTIONIST_USER) test.skip(true, 'E2E_RECEPTIONIST_USER not set')
     await loginAs(page, RECEPTIONIST_USER, RECEPTIONIST_PASS)()
-    await page.getByRole('link', { name: 'Facturas' }).click()
+    await page.locator('aside nav').getByRole('link', { name: 'Facturas' }).click()
 
     const detailLinks = page.getByRole('link', { name: 'Ver detalle de la factura' })
     if (await detailLinks.count() > 0) {
@@ -194,7 +194,7 @@ test.describe('DOCTOR permissions', () => {
   test('cannot create patients (no Nuevo paciente button)', async ({ page }) => {
     if (!DOCTOR_USER) test.skip(true, 'E2E_DOCTOR_USER not set')
     await loginAs(page, DOCTOR_USER, DOCTOR_PASS)()
-    await page.getByRole('link', { name: 'Citas' }).first().click()
+    await page.locator('aside nav').getByRole('link', { name: 'Citas' }).click()
 
     const navLinks = page.locator('aside nav').getByRole('link')
     await expect(navLinks.filter({ hasText: 'Pacientes' })).not.toBeVisible()
@@ -203,7 +203,7 @@ test.describe('DOCTOR permissions', () => {
   test('cannot create appointments (Nueva cita button hidden/disabled)', async ({ page }) => {
     if (!DOCTOR_USER) test.skip(true, 'E2E_DOCTOR_USER not set')
     await loginAs(page, DOCTOR_USER, DOCTOR_PASS)()
-    await page.getByRole('link', { name: 'Citas' }).click()
+    await page.locator('aside nav').getByRole('link', { name: 'Citas' }).click()
 
     const newBtn = page.getByRole('button', { name: /Nueva cita/ })
     if (await newBtn.isVisible()) {
@@ -223,7 +223,7 @@ test.describe('DOCTOR permissions', () => {
   test('can view appointment detail page', async ({ page }) => {
     if (!DOCTOR_USER) test.skip(true, 'E2E_DOCTOR_USER not set')
     await loginAs(page, DOCTOR_USER, DOCTOR_PASS)()
-    await page.getByRole('link', { name: 'Citas' }).click()
+    await page.locator('aside nav').getByRole('link', { name: 'Citas' }).click()
 
     const detailLinks = page.getByRole('link', { name: 'Ver detalle de la cita' })
     if (await detailLinks.count() > 0) {
@@ -237,7 +237,7 @@ test.describe('DOCTOR permissions', () => {
   test('can complete appointment when status is in_progress', async ({ page }) => {
     if (!DOCTOR_USER) test.skip(true, 'E2E_DOCTOR_USER not set')
     await loginAs(page, DOCTOR_USER, DOCTOR_PASS)()
-    await page.getByRole('link', { name: 'Citas' }).click()
+    await page.locator('aside nav').getByRole('link', { name: 'Citas' }).click()
 
     const detailLinks = page.getByRole('link', { name: 'Ver detalle de la cita' })
     const count = await detailLinks.count()

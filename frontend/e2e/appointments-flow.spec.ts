@@ -110,7 +110,7 @@ test.describe('Login flow', () => {
     await page.getByLabel('Usuario').fill('wronguser')
     await page.getByLabel('Contraseña').fill('wrongpass')
     await page.getByRole('button', { name: 'Ingresar' }).click()
-    await expect(page.getByText(/No se pudo iniciar sesión|Credenciales/)).toBeVisible()
+    await expect(page.getByText(/No se pudo iniciar sesión|Credenciales/).first()).toBeVisible()
   })
 
   test('redirects to dashboard after successful login', async ({ page }) => {
@@ -152,7 +152,8 @@ test.describe('Appointments list page', () => {
     await loginAsAdmin(page)
     await openAppointments(page)
 
-    const eyeButtons = page.getByRole('button', { name: 'Ver detalle de la cita' })
+    const eyeButtons = page.getByRole('link', { name: 'Ver detalle de la cita' })
+    await expect(eyeButtons.first()).toBeVisible()
     const rowCount = await eyeButtons.count()
     expect(rowCount).toBeGreaterThan(0)
   })
@@ -164,7 +165,7 @@ test.describe('Appointments list page', () => {
     const newButton = page.getByRole('button', { name: /Nueva cita/ })
     if (await newButton.isVisible() && await newButton.isEnabled()) {
       await newButton.click()
-      await expect(page.getByText('Nueva Cita')).toBeVisible()
+      await expect(page.getByRole('heading', { name: 'Nueva Cita' })).toBeVisible()
       await expect(page.getByLabel('Buscar paciente por DNI')).toBeVisible()
       await expect(page.getByLabel('Buscar médico')).toBeVisible()
       await expect(page.getByLabel('Fecha y hora')).toBeVisible()
@@ -321,11 +322,13 @@ test.describe('Status transitions', () => {
     await loginAsAdmin(page)
     await openAppointments(page)
 
+    const table = page.getByRole('table')
+    await expect(table.getByText(/Programada|Confirmada|En curso|Completada|Cancelada|No se presentó/).first()).toBeVisible()
     const statusLabels = ['Programada', 'Confirmada', 'En curso', 'Completada', 'Cancelada']
     const foundLabels: string[] = []
 
     for (const label of statusLabels) {
-      if (await page.getByText(label).isVisible()) {
+      if (await table.getByText(label, { exact: true }).first().isVisible()) {
         foundLabels.push(label)
       }
     }

@@ -11,6 +11,11 @@ async function loginAsAdmin(page: import('@playwright/test').Page) {
   await expect(page).toHaveURL(/\/(dashboard)?$/)
 }
 
+async function openProfile(page: import('@playwright/test').Page) {
+  await page.locator('aside').getByRole('link', { name: /admin/i }).first().click()
+  await expect(page).toHaveURL('/profile')
+}
+
 test.describe('Login page', () => {
   test('renders login form with all elements', async ({ page }) => {
     await page.goto('/login')
@@ -164,7 +169,7 @@ test.describe('Logout flow', () => {
 test.describe('Profile page', () => {
   test('renders profile information', async ({ page }) => {
     await loginAsAdmin(page)
-    await page.goto('/profile')
+    await openProfile(page)
 
     await expect(page.getByRole('heading', { name: 'Mi perfil' })).toBeVisible()
     await expect(page.getByText('Informacion de la cuenta')).toBeVisible()
@@ -173,19 +178,21 @@ test.describe('Profile page', () => {
 
   test('shows username, email and role', async ({ page }) => {
     await loginAsAdmin(page)
-    await page.goto('/profile')
+    await openProfile(page)
 
-    await expect(page.getByText('Usuario')).toBeVisible()
-    await expect(page.getByText('Email')).toBeVisible()
-    await expect(page.getByText('Rol')).toBeVisible()
+    const dataSection = page.locator('section').filter({ hasText: 'Datos de usuario' })
+    await expect(dataSection.getByText('Usuario', { exact: true })).toBeVisible()
+    await expect(dataSection.getByText('Email', { exact: true })).toBeVisible()
+    await expect(dataSection.getByText('Rol', { exact: true })).toBeVisible()
   })
 
   test('shows active status badge', async ({ page }) => {
     await loginAsAdmin(page)
-    await page.goto('/profile')
+    await openProfile(page)
 
-    await expect(page.getByText('Estado')).toBeVisible()
-    await expect(page.getByText('Activo')).toBeVisible()
+    const dataSection = page.locator('section').filter({ hasText: 'Datos de usuario' })
+    await expect(dataSection.getByText('Estado', { exact: true })).toBeVisible()
+    await expect(dataSection.getByText('Activo', { exact: true })).toBeVisible()
   })
 
   test('back navigation from profile works', async ({ page }) => {

@@ -47,6 +47,7 @@ test.describe('Patients list page', () => {
     await openPatients(page)
 
     const eyeButtons = page.getByRole('link', { name: 'Ver detalle del paciente' })
+    await expect(eyeButtons.first()).toBeVisible()
     const count = await eyeButtons.count()
     expect(count).toBeGreaterThan(0)
   })
@@ -82,7 +83,7 @@ test.describe('Patients list page', () => {
     const newButton = page.getByRole('button', { name: /Nuevo paciente/ })
     if (await newButton.isVisible() && await newButton.isEnabled()) {
       await newButton.click()
-      await expect(page.getByText('Nuevo Paciente')).toBeVisible()
+      await expect(page.getByRole('heading', { name: 'Nuevo Paciente' })).toBeVisible()
       await expect(page.getByLabel('DNI')).toBeVisible()
       await expect(page.getByLabel('Nombre')).toBeVisible()
       await expect(page.getByLabel('Apellido')).toBeVisible()
@@ -143,13 +144,14 @@ test.describe('Patient detail page', () => {
     await openPatients(page)
     await openFirstPatientDetail(page)
 
-    await expect(page.getByText('Información general')).toBeVisible()
-    await expect(page.getByText('DNI').first()).toBeVisible()
-    await expect(page.getByText('Género')).toBeVisible()
-    await expect(page.getByText('Nacimiento')).toBeVisible()
-    await expect(page.getByText('Teléfono')).toBeVisible()
-    await expect(page.getByText('Email')).toBeVisible()
-    await expect(page.getByText('Tipo de sangre')).toBeVisible()
+    const general = page.locator('section').filter({ hasText: 'Información general' })
+    await expect(general.getByText('Información general')).toBeVisible()
+    await expect(general.getByText('DNI')).toBeVisible()
+    await expect(general.getByText('Género')).toBeVisible()
+    await expect(general.getByText('Nacimiento')).toBeVisible()
+    await expect(general.getByText('Teléfono')).toBeVisible()
+    await expect(general.getByText('Email', { exact: true })).toBeVisible()
+    await expect(general.getByText('Tipo de sangre')).toBeVisible()
   })
 
   test('DNI is displayed in monospace', async ({ page }) => {
@@ -201,9 +203,7 @@ test.describe('Patient detail page', () => {
     await openPatients(page)
     await openFirstPatientDetail(page)
 
-    const tables = page.locator('section').locator('table')
-    const tableCount = await tables.count()
-    expect(tableCount).toBeGreaterThanOrEqual(4)
+    await expect(page.locator('section').locator('table')).toHaveCount(4)
   })
 
   test('BackToListButton returns to patients list', async ({ page }) => {
@@ -262,7 +262,7 @@ test.describe('Patient CRUD via drawer', () => {
     }
 
     await newButton.click()
-    await expect(page.getByText('Nuevo Paciente')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Nuevo Paciente' })).toBeVisible()
 
     await expect(page.getByLabel('DNI')).toBeVisible()
     await expect(page.getByLabel('Nombre')).toBeVisible()
@@ -287,7 +287,7 @@ test.describe('Patient CRUD via drawer', () => {
     }
 
     await newButton.click()
-    await expect(page.getByText('Nuevo Paciente')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Nuevo Paciente' })).toBeVisible()
 
     const submitButton = page.getByRole('button', { name: 'Crear paciente' })
     await submitButton.click()
@@ -307,11 +307,11 @@ test.describe('Patient CRUD via drawer', () => {
     }
 
     await newButton.click()
-    await expect(page.getByText('Nuevo Paciente')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Nuevo Paciente' })).toBeVisible()
 
     const cancelButton = page.getByRole('button', { name: 'Cancelar' })
     await cancelButton.click()
-    await expect(page.getByText('Nuevo Paciente')).not.toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Nuevo Paciente' })).not.toBeVisible()
   })
 })
 

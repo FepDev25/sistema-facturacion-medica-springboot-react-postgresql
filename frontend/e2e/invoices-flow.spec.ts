@@ -37,10 +37,10 @@ test.describe('Invoices list page', () => {
     await openInvoices(page)
 
     const headers = page.getByRole('columnheader')
-    await expect(headers.filter({ hasText: 'Factura' })).toBeVisible()
-    await expect(headers.filter({ hasText: 'Paciente' })).toBeVisible()
-    await expect(headers.filter({ hasText: 'Estado' })).toBeVisible()
-    await expect(headers.filter({ hasText: 'Vencimiento' })).toBeVisible()
+    await expect(headers.filter({ hasText: 'Factura' }).first()).toBeVisible()
+    await expect(headers.filter({ hasText: 'Paciente' }).first()).toBeVisible()
+    await expect(headers.filter({ hasText: 'Estado' }).first()).toBeVisible()
+    await expect(headers.filter({ hasText: 'Vencimiento' }).first()).toBeVisible()
   })
 
   test('table has action buttons for each row', async ({ page }) => {
@@ -48,6 +48,7 @@ test.describe('Invoices list page', () => {
     await openInvoices(page)
 
     const eyeButtons = page.getByRole('link', { name: 'Ver detalle de la factura' })
+    await expect(eyeButtons.first()).toBeVisible()
     const count = await eyeButtons.count()
     expect(count).toBeGreaterThan(0)
   })
@@ -76,9 +77,9 @@ test.describe('Invoices list page', () => {
 
     const statusSelect = page.getByRole('combobox', { name: /Estado/ })
     await statusSelect.click()
-    const firstOption = page.getByRole('option').first()
-    if (await firstOption.isVisible()) {
-      await firstOption.click()
+    const pendingOption = page.getByRole('option', { name: 'Pendiente' }).first()
+    if (await pendingOption.isVisible()) {
+      await pendingOption.click()
       await expect(page.getByRole('button', { name: 'Limpiar filtros' })).toBeVisible()
     }
   })
@@ -95,11 +96,13 @@ test.describe('Invoices list page', () => {
     await loginAsAdmin(page)
     await openInvoices(page)
 
+    const table = page.getByRole('table')
+    await expect(table.getByText(/Borrador|Pendiente|Pago parcial|Pagada|Cancelada|Vencida/).first()).toBeVisible()
     const statusLabels = ['Borrador', 'Pendiente', 'Pago parcial', 'Pagada', 'Vencida']
     const foundLabels: string[] = []
 
     for (const label of statusLabels) {
-      if (await page.getByText(label).isVisible()) {
+      if (await table.getByText(label, { exact: true }).first().isVisible()) {
         foundLabels.push(label)
       }
     }
@@ -184,7 +187,7 @@ test.describe('Invoice detail page', () => {
     await expect(page.getByText('Vencimiento').first()).toBeVisible()
     await expect(page.getByText('Subtotal')).toBeVisible()
     await expect(page.getByText('Impuestos')).toBeVisible()
-    await expect(page.getByText('Total')).toBeVisible()
+    await expect(page.getByText('Total').first()).toBeVisible()
     await expect(page.getByText('Cobertura seguro')).toBeVisible()
     await expect(page.getByText('Responsabilidad paciente')).toBeVisible()
     await expect(page.getByText('Pagado')).toBeVisible()

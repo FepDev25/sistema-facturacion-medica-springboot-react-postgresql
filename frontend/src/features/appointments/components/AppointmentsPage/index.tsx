@@ -121,7 +121,7 @@ export function AppointmentsPage() {
                 setPage(0)
               }}
             >
-              <SelectTrigger className="h-8 w-full sm:w-52 text-sm">
+              <SelectTrigger aria-label="Estado" className="h-8 w-full sm:w-52 text-sm">
                 <SelectValue placeholder="Todos" />
               </SelectTrigger>
               <SelectContent>
