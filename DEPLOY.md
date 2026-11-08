@@ -158,14 +158,22 @@ heroku stack:set container -a sfm-backend-fepdev
 # 2. Login al registry de Heroku
 heroku container:login
 
-# 3. Build y push manual (el CLI de Heroku usa un builder legacy
-#    que no soporta --provenance, así que se bypasea)
-docker build -t registry.heroku.com/sfm-backend-fepdev/web .
-docker push registry.heroku.com/sfm-backend-fepdev/web
+# 3. Build y push manual. Heroku solo acepta Docker Manifest V2:
+#    hay que evitar OCI/provenance/SBOM y forzar oci-mediatypes=false.
+docker buildx build \
+  --platform linux/amd64 \
+  --provenance=false \
+  --sbom=false \
+  --output type=image,name=registry.heroku.com/sfm-backend-fepdev/web,push=true,oci-mediatypes=false \
+  .
 
 # 4. Activar el contenedor
 heroku container:release web -a sfm-backend-fepdev
 ```
+
+> Si el push falla con `unsupported`, la imagen se generó como OCI en vez de
+> Docker Manifest V2. Repetir el build con los flags de arriba y sin
+> `--provenance`/`--sbom`.
 
 ### Variables de entorno en Heroku
 
@@ -255,8 +263,12 @@ El backend lee los orígenes permitidos desde la variable `ALLOWED_ORIGINS`. Des
 
 ```bash
 heroku config:set ALLOWED_ORIGINS="https://sistema-facturacion-medica-springbo.vercel.app" -a sfm-backend-fepdev
-docker build -t registry.heroku.com/sfm-backend-fepdev/web .
-docker push registry.heroku.com/sfm-backend-fepdev/web
+docker buildx build \
+  --platform linux/amd64 \
+  --provenance=false \
+  --sbom=false \
+  --output type=image,name=registry.heroku.com/sfm-backend-fepdev/web,push=true,oci-mediatypes=false \
+  .
 heroku container:release web -a sfm-backend-fepdev
 ```
 
