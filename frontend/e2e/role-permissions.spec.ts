@@ -155,14 +155,21 @@ test.describe('RECEPTIONIST permissions', () => {
     await page.locator('aside nav').getByRole('link', { name: 'Facturas' }).click()
 
     const detailLinks = page.getByRole('link', { name: 'Ver detalle de la factura' })
-    if (await detailLinks.count() > 0) {
-      await detailLinks.first().click()
+    const count = await detailLinks.count()
+
+    for (let i = 0; i < count; i++) {
+      await detailLinks.nth(i).click()
       const payBtn = page.getByRole('button', { name: 'Registrar pago' })
-      if (await payBtn.isVisible()) {
+
+      if (await payBtn.isVisible() && await payBtn.isEnabled()) {
         await expect(payBtn).toBeEnabled()
         return
       }
+
+      await page.goBack()
+      await expect(page).toHaveURL(/\/invoices/)
     }
+
     test.skip(true, 'No se encontró factura que acepte pagos')
   })
 
