@@ -88,6 +88,10 @@ No subir a GitHub `DATABASE_URL`, `JWT_SECRET`, `ANTHROPIC_API_KEY` ni
 
 ### 3. Proteger `main`
 
+> **Pendiente de ejecución manual.** El entorno donde se preparó esto no tiene
+> `gh` instalado ni una sesión con permisos de administrador. El script está
+> listo; hay que correrlo una vez desde una máquina autenticada.
+
 Con GitHub CLI autenticado como administrador del repo:
 
 ```bash
