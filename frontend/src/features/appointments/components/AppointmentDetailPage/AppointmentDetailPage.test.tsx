@@ -6,7 +6,13 @@ const { m, mockConfirmMutate, mockStartMutate, mockCancelMutate, mockNoShowMutat
     appointmentData: null as unknown,
     medicalRecordData: null as unknown,
     patientData: { allergies: null, firstName: 'Ana', lastName: 'García' } as Record<string, unknown> | null,
-    permissions: { role: 'ADMIN', canManagePatients: true, canCompleteAppointment: true },
+    permissions: {
+      role: 'ADMIN',
+      canManagePatients: true,
+      canCompleteAppointment: true,
+      canManageInvoices: true,
+      canRegisterPayments: true,
+    },
     loggedInDoctorId: null as string | null,
   },
   mockConfirmMutate: vi.fn(),
@@ -104,7 +110,13 @@ function reset() {
   m.appointmentData = { ...baseAppointment }
   m.medicalRecordData = null
   m.patientData = { allergies: null, firstName: 'Ana', lastName: 'García' }
-  m.permissions = { role: 'ADMIN', canManagePatients: true, canCompleteAppointment: true }
+  m.permissions = {
+    role: 'ADMIN',
+    canManagePatients: true,
+    canCompleteAppointment: true,
+    canManageInvoices: true,
+    canRegisterPayments: true,
+  }
   m.loggedInDoctorId = null
 }
 
@@ -215,6 +227,19 @@ describe('AppointmentDetailPage', () => {
     })
 
     it('hides invoice link when invoice is null', () => {
+      render(<AppointmentDetailPage />)
+      expect(screen.queryByText('Factura generada')).not.toBeInTheDocument()
+    })
+
+    it('hides invoice link for roles without invoice access', () => {
+      m.appointmentData = { ...baseAppointment, invoiceId: 'inv-1', invoiceNumber: 'FAC-001' }
+      m.permissions = {
+        role: 'DOCTOR',
+        canManagePatients: false,
+        canCompleteAppointment: true,
+        canManageInvoices: false,
+        canRegisterPayments: false,
+      }
       render(<AppointmentDetailPage />)
       expect(screen.queryByText('Factura generada')).not.toBeInTheDocument()
     })

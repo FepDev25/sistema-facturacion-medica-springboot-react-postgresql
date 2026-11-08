@@ -28,7 +28,14 @@ import {
 import { usePatient } from '@/features/patients/hooks/usePatients'
 
 export function AppointmentDetailPage() {
-  const { role, canCompleteAppointment, canManagePatients } = useRolePermissions()
+  const {
+    role,
+    canCompleteAppointment,
+    canManagePatients,
+    canManageInvoices,
+    canRegisterPayments,
+  } = useRolePermissions()
+  const canViewInvoices = canManageInvoices || canRegisterPayments
   const loggedInDoctorId = useLoggedInDoctorId()
   const { id } = useParams({ from: '/appointments/$id' })
   const [completeDrawerOpen, setCompleteDrawerOpen] = useState(false)
@@ -208,7 +215,7 @@ export function AppointmentDetailPage() {
               </Link>
             </div>
           )}
-          {appointment.invoiceId && appointment.invoiceNumber ? (
+          {canViewInvoices && appointment.invoiceId && appointment.invoiceNumber ? (
             <div className="mt-3 rounded-md border border-cyan-200 bg-cyan-50 px-3 py-2 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <FileText className="h-4 w-4 text-cyan-700" />
