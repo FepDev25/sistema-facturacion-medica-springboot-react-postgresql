@@ -115,6 +115,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Instalar Heroku CLI
+        run: curl -fsSL https://cli-assets.heroku.com/install.sh | sh
+
       - name: Verificar Heroku CLI
         run: heroku --version
 
