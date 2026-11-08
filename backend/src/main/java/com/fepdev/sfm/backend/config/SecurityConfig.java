@@ -83,8 +83,19 @@ public class SecurityConfig {
                         // Citas — completar es exclusivo del DOCTOR
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/appointments/*/complete").hasAuthority("DOCTOR")
 
-                        // Pagos — ADMIN y RECEPTIONIST registran
+                        // Facturas — ADMIN y RECEPTIONIST consultan, solo ADMIN gestiona
+                        .requestMatchers(HttpMethod.GET,    "/api/v1/invoices/**").hasAnyAuthority("ADMIN", "RECEPTIONIST")
+                        .requestMatchers(HttpMethod.POST,   "/api/v1/invoices/**").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH,  "/api/v1/invoices/**").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/invoices/**").hasAuthority("ADMIN")
+
+                        // Pagos — ADMIN y RECEPTIONIST consultan y registran
+                        .requestMatchers(HttpMethod.GET,  "/api/v1/payments/**").hasAnyAuthority("ADMIN", "RECEPTIONIST")
                         .requestMatchers(HttpMethod.POST, "/api/v1/payments").hasAnyAuthority("ADMIN", "RECEPTIONIST")
+
+                        // Sugerencia de items de factura — mismo alcance que las facturas
+                        .requestMatchers(HttpMethod.POST, "/api/v1/ai/invoices/**")
+                                .hasAnyAuthority("ADMIN", "RECEPTIONIST")
 
                         // Cualquier otro endpoint requiere autenticacion (cualquier rol)
                         .anyRequest().authenticated()
