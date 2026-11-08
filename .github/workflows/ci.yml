@@ -121,6 +121,16 @@ jobs:
       - name: Verificar Heroku CLI
         run: heroku --version
 
+      - name: Verificar acceso a la app
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: |
+          echo "App configurada: $HEROKU_APP"
+          if ! heroku apps:info --app "$HEROKU_APP" >/dev/null 2>&1; then
+            echo "::error title=Heroku::La API key configurada no puede acceder a la app $HEROKU_APP"
+            exit 1
+          fi
+
       - name: Login al registry de Heroku
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
@@ -130,7 +140,14 @@ jobs:
         run: docker build -t "registry.heroku.com/$HEROKU_APP/web" ./backend
 
       - name: Push de la imagen
-        run: docker push "registry.heroku.com/$HEROKU_APP/web"
+        run: |
+          output=$(docker push "registry.heroku.com/$HEROKU_APP/web" 2>&1) || {
+            echo "$output"
+            last_line=$(printf '%s\n' "$output" | tail -n 1)
+            echo "::error title=Docker push::$last_line"
+            exit 1
+          }
+          echo "$output"
 
       - name: Release
         env:
