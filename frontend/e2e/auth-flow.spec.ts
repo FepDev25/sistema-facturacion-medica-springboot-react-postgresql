@@ -170,6 +170,28 @@ test.describe('Logout flow', () => {
   })
 })
 
+test.describe('Session persistence', () => {
+  test('a full page reload keeps the session', async ({ page }) => {
+    await loginAsAdmin(page)
+    await expect(page.locator('aside')).toBeVisible()
+
+    await page.reload()
+
+    await expect(page).not.toHaveURL(/\/login/)
+    await expect(page.locator('aside').getByText('Facturación Médica')).toBeVisible()
+  })
+
+  test('after logout, a reload stays on the login page', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.getByRole('button', { name: 'Cerrar sesión' }).click()
+    await expect(page).toHaveURL(/\/login/)
+
+    await page.reload()
+
+    await expect(page).toHaveURL(/\/login/)
+  })
+})
+
 test.describe('Profile page', () => {
   test('renders profile information', async ({ page }) => {
     await loginAsAdmin(page)

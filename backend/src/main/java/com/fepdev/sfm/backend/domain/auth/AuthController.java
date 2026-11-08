@@ -77,9 +77,14 @@ public class AuthController {
                 throw new BusinessRuleException("El refresh token es invalido o ha expirado");
             }
 
+            // Rotacion deslizante: cada refresh extiende la sesion y devuelve un refresh token
+            // nuevo. No se invalida el anterior para que varias pestañas puedan refrescar en
+            // paralelo sin cerrar la sesion entre ellas (la deteccion de reuso requeriria
+            // familias de tokens y queda como endurecimiento posterior).
             String newAccessToken = jwtService.generateAccessToken(user);
-            return ResponseEntity.ok(TokenResponse.refresh(newAccessToken, user.getRole().name(),
-                    user.getId(), user.getUsername()));
+            String newRefreshToken = jwtService.generateRefreshToken(user);
+            return ResponseEntity.ok(TokenResponse.refresh(newAccessToken, newRefreshToken,
+                    user.getRole().name(), user.getId(), user.getUsername()));
 
         } catch (JwtException e) {
             throw new BusinessRuleException("El refresh token es invalido o ha expirado");

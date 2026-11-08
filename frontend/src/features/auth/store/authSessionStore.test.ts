@@ -144,6 +144,93 @@ describe('authSessionStore', () => {
     })
   })
 
+  describe('persistencia de la sesión', () => {
+    it('guarda la sesión en localStorage al autenticarse', () => {
+      setAuthSession(adminTokens)
+
+      const raw = window.localStorage.getItem('sfm.auth.session.v1')
+      expect(raw).not.toBeNull()
+      expect(JSON.parse(raw!)).toMatchObject({
+        accessToken: 'access-123',
+        refreshToken: 'refresh-456',
+        role: 'ADMIN',
+        userId: 'user-1',
+        username: 'admin',
+      })
+    })
+
+    it('elimina la sesión de localStorage al cerrar sesión', () => {
+      setAuthSession(adminTokens)
+      clearAuthSession()
+
+      expect(window.localStorage.getItem('sfm.auth.session.v1')).toBeNull()
+    })
+
+    it('conserva el refresh token anterior si el backend responde null', () => {
+      setAuthSession(adminTokens)
+
+      setAuthSession({ ...adminTokens, accessToken: 'access-new', refreshToken: null })
+
+      expect(getAuthSessionState().accessToken).toBe('access-new')
+      expect(getAuthSessionState().refreshToken).toBe('refresh-456')
+    })
+
+    it('rehidrata la sesión al volver a cargar el módulo (F5)', async () => {
+      setAuthSession(adminTokens)
+      vi.resetModules()
+
+      const reloaded = await import('@/features/auth/store/authSessionStore')
+
+      expect(reloaded.isAuthenticated()).toBe(true)
+      expect(reloaded.getAccessToken()).toBe('access-123')
+      expect(reloaded.getAuthSessionState().refreshToken).toBe('refresh-456')
+      expect(reloaded.hasRole('ADMIN')).toBe(true)
+    })
+
+    it('ignora y limpia una sesión persistida inválida', async () => {
+      window.localStorage.setItem('sfm.auth.session.v1', '{"accessToken":"x","role":"HACKER"}')
+      vi.resetModules()
+
+      const reloaded = await import('@/features/auth/store/authSessionStore')
+
+      expect(reloaded.isAuthenticated()).toBe(false)
+      expect(window.localStorage.getItem('sfm.auth.session.v1')).toBeNull()
+    })
+
+    it('se sincroniza cuando otra pestaña cambia la sesión', () => {
+      setAuthSession(adminTokens)
+
+      window.dispatchEvent(
+        new StorageEvent('storage', {
+          key: 'sfm.auth.session.v1',
+          newValue: JSON.stringify({
+            accessToken: 'access-otra-pestana',
+            refreshToken: 'refresh-otra-pestana',
+            role: 'DOCTOR',
+            userId: 'user-2',
+            username: 'drhouse',
+          }),
+        }),
+      )
+
+      expect(getAccessToken()).toBe('access-otra-pestana')
+      expect(hasRole('DOCTOR')).toBe(true)
+    })
+
+    it('cierra la sesión cuando otra pestaña la elimina', () => {
+      setAuthSession(adminTokens)
+
+      window.dispatchEvent(
+        new StorageEvent('storage', {
+          key: 'sfm.auth.session.v1',
+          newValue: null,
+        }),
+      )
+
+      expect(isAuthenticated()).toBe(false)
+    })
+  })
+
   describe('subscribeAuthSession', () => {
     it('notifies listener on setAuthSession', () => {
       const listener = vi.fn()
