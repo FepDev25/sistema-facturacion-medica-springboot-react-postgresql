@@ -8,6 +8,8 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import com.fepdev.sfm.backend.support.DockerTestSupport;
+
 @ActiveProfiles("persistence")
 @Import(TestJpaAuditingConfig.class)
 @Testcontainers
@@ -15,7 +17,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 public abstract class AbstractPostgresDataJpaTest {
 
     static {
-        System.setProperty("docker.host", System.getProperty("docker.host", "unix:///var/run/docker.sock"));
+        DockerTestSupport.configure();
     }
 
     @Container

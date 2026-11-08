@@ -9,10 +9,16 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import com.fepdev.sfm.backend.support.DockerTestSupport;
+
 @SpringBootTest
 @Testcontainers
 @ActiveProfiles("integration-e2e")
 class BackendApplicationTests {
+
+    static {
+        DockerTestSupport.configure();
+    }
 
     @Container
     static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("pgvector/pgvector:pg16")

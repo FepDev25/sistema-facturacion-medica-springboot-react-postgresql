@@ -45,6 +45,7 @@ import com.fepdev.sfm.backend.domain.patient.Patient;
 import com.fepdev.sfm.backend.domain.patient.PatientRepository;
 import com.fepdev.sfm.backend.domain.payment.PaymentRepository;
 import com.fepdev.sfm.backend.domain.payment.PaymentService;
+import com.fepdev.sfm.backend.support.DockerTestSupport;
 
 import jakarta.persistence.EntityManager;
 
@@ -55,7 +56,7 @@ import jakarta.persistence.EntityManager;
 public abstract class AbstractPostgresFlowE2ETest {
 
     static {
-        System.setProperty("docker.host", System.getProperty("docker.host", "unix:///var/run/docker.sock"));
+        DockerTestSupport.configure();
     }
 
     @Container

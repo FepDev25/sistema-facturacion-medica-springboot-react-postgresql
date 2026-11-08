@@ -155,6 +155,15 @@ cd backend
 ./mvnw verify
 ```
 
+`DockerTestSupport` detecta la versión de API del daemon con `docker version`
+antes de que Testcontainers arranque. Si hiciera falta forzarla:
+
+```bash
+./mvnw verify -Ddocker.api.version=1.44
+# o
+DOCKER_API_VERSION=1.44 ./mvnw verify
+```
+
 ### Frontend
 
 ```bash
@@ -192,7 +201,7 @@ PRs.
 | Síntoma | Causa probable | Acción |
 |---|---|---|
 | `Cannot connect to the Docker daemon` en CI | El runner no expone Docker | Verificar que el job use `ubuntu-latest` |
-| Testcontainers intenta una API de Docker inexistente | `docker.api.version` forzado | Ya se eliminó el hardcode; dejar que Testcontainers negocie |
+| Testcontainers usa una API de Docker vieja | docker-java usa `1.32` por defecto y el engine exige `>= 1.40` | `DockerTestSupport` detecta la versión del servidor con `docker version` antes de arrancar los contenedores |
 | Falla el gate de JaCoCo | Cobertura real por debajo del umbral | Revisar el reporte `backend-reports` |
 | Falla el login de Heroku | `HEROKU_API_KEY` ausente o vencido | Regenerar el token y actualizar el secret |
 | El smoke test no llega a 200 | El dyno todavía está arrancando o crasheó | Revisar `heroku logs`; el job reintenta 5 minutos |
