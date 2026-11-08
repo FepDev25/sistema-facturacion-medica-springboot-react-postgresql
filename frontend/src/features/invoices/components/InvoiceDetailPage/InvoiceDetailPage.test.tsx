@@ -255,11 +255,35 @@ describe('InvoiceDetailPage', () => {
       expect(btn).toBeDisabled()
     })
 
-    it('enables Registrar pago when not draft', () => {
-      m.invoiceData = { ...baseInvoice, status: 'confirmed' }
+    it('enables Registrar pago when invoice is pending', () => {
+      m.invoiceData = { ...baseInvoice, status: 'pending' }
       render(<InvoiceDetailPage />)
       const btn = screen.getByText('Registrar pago').closest('button')
       expect(btn).not.toBeDisabled()
+    })
+
+    it('enables Registrar pago when invoice is partially paid or overdue', () => {
+      for (const status of ['partial_paid', 'overdue'] as const) {
+        m.invoiceData = { ...baseInvoice, status }
+        render(<InvoiceDetailPage />)
+        const btn = screen.getByText('Registrar pago').closest('button')
+        expect(btn).not.toBeDisabled()
+        cleanup()
+      }
+    })
+
+    it('disables Registrar pago when invoice is already paid', () => {
+      m.invoiceData = { ...baseInvoice, status: 'paid' }
+      render(<InvoiceDetailPage />)
+      const btn = screen.getByText('Registrar pago').closest('button')
+      expect(btn).toBeDisabled()
+    })
+
+    it('disables Registrar pago when invoice is cancelled', () => {
+      m.invoiceData = { ...baseInvoice, status: 'cancelled' }
+      render(<InvoiceDetailPage />)
+      const btn = screen.getByText('Registrar pago').closest('button')
+      expect(btn).toBeDisabled()
     })
 
     it('shows empty payments message when no payments', () => {

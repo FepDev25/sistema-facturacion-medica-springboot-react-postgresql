@@ -14,7 +14,8 @@ public record TokenResponse(
         return new TokenResponse(accessToken, refreshToken, "Bearer", role, userId, username);
     }
 
-    public static TokenResponse refresh(String accessToken, String role, UUID userId, String username) {
-        return new TokenResponse(accessToken, null, "Bearer", role, userId, username);
+    public static TokenResponse refresh(String accessToken, String refreshToken, String role,
+            UUID userId, String username) {
+        return new TokenResponse(accessToken, refreshToken, "Bearer", role, userId, username);
     }
 }

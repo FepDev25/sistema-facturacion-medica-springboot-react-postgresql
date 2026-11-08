@@ -38,7 +38,7 @@
 - **RN-10:** Una factura puede tener estados: `draft`, `pending`, `partial_paid`, `paid`, `cancelled`, `overdue`.
 - **RN-11:** El total de la factura = subtotal + impuestos.
 - **RN-12:** Si hay seguro activo, la factura se divide en: `insurance_coverage` + `patient_responsibility`.
-- **RN-13:** La suma de pagos no puede exceder el total de la factura.
+- **RN-13:** La suma de pagos no puede exceder la responsabilidad del paciente (`total - cobertura del seguro`). La parte cubierta por la póliza no se cobra ni se registra como pago.
 - **RN-14:** No se puede eliminar una factura si tiene pagos aplicados (usar soft delete con `cancelled` status).
 
 ### Seguros

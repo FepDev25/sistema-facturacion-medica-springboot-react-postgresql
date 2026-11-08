@@ -175,7 +175,7 @@ A partir del expediente clínico asociado, Claude sugiere servicios y medicament
 
 ## Seguridad y Autorización
 
-Autenticación **JWT stateless**: access token (15 min) + refresh token (7 días). El logout revoca el refresh token en Redis con TTL igual a la vida restante del token. El frontend implementa un mutex `refreshInFlight` para que múltiples requests concurrentes con 401 compartan una sola llamada de renovación.
+Autenticación **JWT stateless**: access token (15 min) + refresh token (7 días) con rotación deslizante en cada refresh. El logout revoca el refresh token en Redis con TTL igual a la vida restante del token. El frontend implementa un mutex `refreshInFlight` para que múltiples requests concurrentes con 401 compartan una sola llamada de renovación, persiste la sesión en `localStorage` para sobrevivir a un F5 y la sincroniza entre pestañas con el evento `storage`.
 
 ### Matriz de Permisos
 

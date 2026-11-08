@@ -319,7 +319,14 @@ public class InvoiceService {
         // Recalcular totales para asegurar que estén correctos antes de confirmar
         recalculateTotals(invoiceId);
 
-        invoice.setStatus(InvoiceStatus.PENDING);
+        // Si la poliza cubre el 100 % no hay saldo que cobrar: la factura nace saldada.
+        // Dejarla en PENDING la volvia incobrable porque no se admiten pagos por cero.
+        if (invoice.getPatientResponsibility() != null
+                && invoice.getPatientResponsibility().signum() == 0) {
+            invoice.setStatus(InvoiceStatus.PAID);
+        } else {
+            invoice.setStatus(InvoiceStatus.PENDING);
+        }
         invoiceRepository.save(invoice);
     }
 

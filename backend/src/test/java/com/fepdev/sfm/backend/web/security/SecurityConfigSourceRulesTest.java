@@ -19,6 +19,11 @@ class SecurityConfigSourceRulesTest {
 
         assertThat(code).contains(".requestMatchers(HttpMethod.POST, \"/api/v1/patients\").hasAnyAuthority(\"ADMIN\", \"RECEPTIONIST\")");
         assertThat(code).contains(".requestMatchers(HttpMethod.POST, \"/api/v1/payments\").hasAnyAuthority(\"ADMIN\", \"RECEPTIONIST\")");
+        assertThat(code).contains(".requestMatchers(HttpMethod.GET,    \"/api/v1/invoices/**\").hasAnyAuthority(\"ADMIN\", \"RECEPTIONIST\")");
+        assertThat(code).contains(".requestMatchers(HttpMethod.POST,   \"/api/v1/invoices/**\").hasAuthority(\"ADMIN\")");
+        assertThat(code).contains(".requestMatchers(HttpMethod.PATCH,  \"/api/v1/invoices/**\").hasAuthority(\"ADMIN\")");
+        assertThat(code).contains(".requestMatchers(HttpMethod.DELETE, \"/api/v1/invoices/**\").hasAuthority(\"ADMIN\")");
+        assertThat(code).contains(".requestMatchers(HttpMethod.GET,  \"/api/v1/payments/**\").hasAnyAuthority(\"ADMIN\", \"RECEPTIONIST\")");
         assertThat(code).contains(".requestMatchers(HttpMethod.PATCH, \"/api/v1/appointments/*/complete\").hasAuthority(\"DOCTOR\")");
         assertThat(code).contains(".requestMatchers(HttpMethod.POST,   \"/api/v1/doctors\").hasAuthority(\"ADMIN\")");
         assertThat(code).contains(".requestMatchers(HttpMethod.POST,   \"/api/v1/insurance/**\").hasAuthority(\"ADMIN\")");

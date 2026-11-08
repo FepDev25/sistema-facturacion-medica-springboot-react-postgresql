@@ -263,11 +263,12 @@ sequenceDiagram
 | `/api/v1/doctors` | Autenticado | ADMIN |
 | `/api/v1/insurance/**` | Autenticado | ADMIN |
 | `/api/v1/patients` | Autenticado | ADMIN, RECEPTIONIST |
-| `/api/v1/payments` | Autenticado | ADMIN, RECEPTIONIST |
+| `/api/v1/payments/**` | ADMIN, RECEPTIONIST | ADMIN, RECEPTIONIST |
 | `/api/v1/appointments/*/complete` | -- | DOCTOR |
 | `/api/v1/medical-records/**` | Autenticado | Autenticado |
-| `/api/v1/invoices/**` | Autenticado | Autenticado |
+| `/api/v1/invoices/**` | ADMIN, RECEPTIONIST | ADMIN |
 | `/api/v1/ai/**` | Autenticado | Autenticado |
+| `/api/v1/ai/invoices/**` | -- | ADMIN, RECEPTIONIST |
 
 ### Usuarios por Defecto
 

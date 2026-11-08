@@ -233,7 +233,7 @@ test.describe('Invoice detail page', () => {
     await openInvoices(page)
     await openFirstInvoiceDetail(page)
 
-    await expect(page.getByText('Pagos registrados')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Pagos registrados' })).toBeVisible()
   })
 
   test('shows empty message when no payments', async ({ page }) => {

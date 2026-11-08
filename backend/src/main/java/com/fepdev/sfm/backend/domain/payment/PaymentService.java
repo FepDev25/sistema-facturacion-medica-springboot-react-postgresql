@@ -49,9 +49,18 @@ public class PaymentService {
                     + ". Estados válidos: PENDING, PARTIAL_PAID, OVERDUE");
         }
 
-        // el pago no puede exceder el saldo pendiente
+        // El paciente solo responde por patientResponsibility: la parte cubierta por el
+        // seguro no se cobra ni se registra como pago. Comparar contra el total permitia
+        // cobrar de mas y, con cobertura, dejaba la factura en PARTIAL_PAID para siempre.
+        BigDecimal amountDue = invoice.getPatientResponsibility() != null
+                ? invoice.getPatientResponsibility()
+                : invoice.getTotal();
+
         BigDecimal totalPaid = paymentRepository.sumAmountByInvoiceId(request.invoiceId());
-        BigDecimal pendingBalance = invoice.getTotal().subtract(totalPaid);
+        BigDecimal pendingBalance = amountDue.subtract(totalPaid);
+        if (pendingBalance.signum() < 0) {
+            pendingBalance = BigDecimal.ZERO;
+        }
 
         if (request.amount().compareTo(pendingBalance) > 0) {
             throw new BusinessRuleException(
@@ -64,9 +73,9 @@ public class PaymentService {
         payment.setInvoice(invoice);
         paymentRepository.save(payment);
 
-        // actualizar estado de la factura según el total acumulado
+        // actualizar estado de la factura según la responsabilidad del paciente acumulada
         BigDecimal newTotalPaid = totalPaid.add(request.amount());
-        if (newTotalPaid.compareTo(invoice.getTotal()) == 0) {
+        if (newTotalPaid.compareTo(amountDue) >= 0) {
             invoice.setStatus(InvoiceStatus.PAID);
         } else {
             // cubre tanto PENDING → PARTIAL_PAID como OVERDUE → PARTIAL_PAID
