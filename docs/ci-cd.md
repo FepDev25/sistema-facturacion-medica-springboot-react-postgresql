@@ -159,10 +159,13 @@ cd backend
 antes de que Testcontainers arranque. Si hiciera falta forzarla:
 
 ```bash
-./mvnw verify -Ddocker.api.version=1.44
+./mvnw verify -Dapi.version=1.44
 # o
 DOCKER_API_VERSION=1.44 ./mvnw verify
 ```
+
+La propiedad `docker.api.version` también se acepta por compatibilidad, pero la
+que lee Testcontainers es `api.version`.
 
 ### Frontend
 
