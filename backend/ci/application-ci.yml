@@ -1,0 +1,51 @@
+spring:
+  datasource:
+    url: ${CI_DB_URL:jdbc:postgresql://127.0.0.1:5432/fac_med_db}
+    username: ${CI_DB_USER:sfm}
+    password: ${CI_DB_PASSWORD:sfm}
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+      connection-timeout: 30000
+      pool-name: HikariPool-SFM-CI
+
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        "[format_sql]": false
+
+  flyway:
+    locations: classpath:db/migration,classpath:db/seeds
+
+  data:
+    redis:
+      host: ${CI_REDIS_HOST:127.0.0.1}
+      port: ${CI_REDIS_PORT:6379}
+
+  ai:
+    anthropic:
+      api-key: ${ANTHROPIC_API_KEY:ci-dummy-key}
+    google:
+      genai:
+        embedding:
+          api-key: ${GOOGLE_API_KEY:ci-dummy-key}
+    vectorstore:
+      pgvector:
+        initialize-schema: false
+        dimensions: 768
+        index-type: HNSW
+        distance-type: COSINE_DISTANCE
+
+app:
+  ai:
+    icd10:
+      # En E2E no se indexan los 14.208 codigos en cada corrida.
+      index-on-startup: false
+  cors:
+    allowed-origins: http://localhost:5173,http://127.0.0.1:5173
+
+logging:
+  level:
+    com.fepdev.sfm: INFO
+    org.flywaydb: INFO
