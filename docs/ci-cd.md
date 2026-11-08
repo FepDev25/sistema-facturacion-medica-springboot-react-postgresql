@@ -260,8 +260,12 @@ npm run e2e
 ```
 
 La suite local validada en noviembre de 2026: **108 passed, 18 skipped, 0
-failed**. Los skips son condicionales del dataset (por ejemplo, paciente sin
-alergias o factura que no está en borrador).
+failed**. En CI con los seeds: **116 passed, 10 skipped, 0 failed**. Los skips
+son condicionales del dataset (por ejemplo, paciente sin alergias o factura que
+no está en borrador).
+
+El job se fija en `ubuntu-24.04` porque Playwright 1.59 todavía no soporta las
+dependencias de Ubuntu 26, que es el nuevo `ubuntu-latest`.
 
 En CI, los artefactos `playwright-results` incluyen screenshots, videos,
 traces, el reporte HTML y los logs del backend/frontend.
