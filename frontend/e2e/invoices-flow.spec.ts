@@ -267,12 +267,12 @@ test.describe('Invoice detail page', () => {
     const count = await detailLinks.count()
 
     for (let i = 0; i < count; i++) {
-      await detailLinks.first().click()
+      await detailLinks.nth(i).click()
       const payButton = page.getByRole('button', { name: 'Registrar pago' })
 
       if (await payButton.isVisible() && await payButton.isEnabled()) {
         await payButton.click()
-        await expect(page.getByText('Registrar pago')).toBeVisible()
+        await expect(page.getByRole('heading', { name: 'Registrar pago' })).toBeVisible()
         await expect(page.getByLabel('Monto')).toBeVisible()
         await expect(page.getByLabel('Metodo de pago')).toBeVisible()
         return
