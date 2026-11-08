@@ -398,6 +398,36 @@ class InvoiceServiceTest {
     }
 
     @Test
+    void confirmInvoice_whenPolicyCoversEverything_setsStatusPaid() {
+        UUID invoiceId = UUID.randomUUID();
+        Invoice invoice = draftInvoice();
+
+        InsuranceProvider provider = new InsuranceProvider();
+        provider.setActive(true);
+
+        InsurancePolicy policy = new InsurancePolicy();
+        policy.setActive(true);
+        policy.setProvider(provider);
+        policy.setStartDate(LocalDate.now().minusDays(1));
+        policy.setEndDate(LocalDate.now().plusDays(30));
+        policy.setCoveragePercentage(new BigDecimal("100.00"));
+        policy.setDeductible(BigDecimal.ZERO);
+        invoice.setInsurancePolicy(policy);
+
+        InvoiceItem item = new InvoiceItem();
+        item.setSubtotal(new BigDecimal("100.00"));
+
+        when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
+        when(invoiceItemRepository.findByInvoiceId(invoiceId)).thenReturn(List.of(item));
+        when(invoiceRepository.save(any(Invoice.class))).thenReturn(invoice);
+
+        invoiceService.confirmInvoice(invoiceId);
+
+        assertThat(invoice.getPatientResponsibility()).isEqualByComparingTo("0.00");
+        assertThat(invoice.getStatus()).isEqualTo(InvoiceStatus.PAID);
+    }
+
+    @Test
     void confirmInvoice_whenInvoiceNotFound_throwsEntityNotFoundException() {
         UUID invoiceId = UUID.randomUUID();
         when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.empty());

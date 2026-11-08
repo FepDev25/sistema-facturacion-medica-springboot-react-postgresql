@@ -87,6 +87,10 @@ export function InvoiceDetailPage() {
       : (invoice.insurancePolicyId ?? '')
   const payments = paymentsQuery.data ?? []
   const isDraft = invoice.status === 'draft'
+  const isPayable =
+    invoice.status === 'pending' ||
+    invoice.status === 'partial_paid' ||
+    invoice.status === 'overdue'
 
   return (
     <div className="flex flex-col h-full">
@@ -114,7 +118,7 @@ export function InvoiceDetailPage() {
             )}
             <Button
               size="sm"
-              disabled={!canRegisterPayments || isDraft}
+              disabled={!canRegisterPayments || !isPayable}
               onClick={() => {
                 if (!canRegisterPayments) {
                   toast.error(NO_PERMISSION_MESSAGE)

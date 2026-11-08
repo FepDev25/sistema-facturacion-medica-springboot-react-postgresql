@@ -49,6 +49,14 @@ class PaymentServiceTest {
         Invoice invoice = new Invoice();
         invoice.setStatus(status);
         invoice.setTotal(total);
+        invoice.setPatientResponsibility(total);
+        return invoice;
+    }
+
+    private Invoice invoiceWithCoverage(InvoiceStatus status, BigDecimal total, BigDecimal coverage) {
+        Invoice invoice = invoiceWith(status, total);
+        invoice.setInsuranceCoverage(coverage);
+        invoice.setPatientResponsibility(total.subtract(coverage));
         return invoice;
     }
 
@@ -106,6 +114,52 @@ class PaymentServiceTest {
         when(paymentRepository.sumAmountByInvoiceId(invoiceId)).thenReturn(new BigDecimal("60.00"));
 
         assertThatThrownBy(() -> paymentService.registerPayment(paymentRequest(invoiceId, new BigDecimal("50.00"))))
+            .isInstanceOf(BusinessRuleException.class)
+            .hasMessageContaining("saldo pendiente");
+    }
+
+    @Test
+    void registerPayment_whenInvoiceHasInsurance_comparesAgainstPatientResponsibility() {
+        UUID invoiceId = UUID.randomUUID();
+        // total=100, cobertura=80, responsabilidad=20
+        Invoice invoice = invoiceWithCoverage(InvoiceStatus.PENDING, new BigDecimal("100.00"), new BigDecimal("80.00"));
+        Payment payment = new Payment();
+
+        when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
+        when(paymentRepository.sumAmountByInvoiceId(invoiceId)).thenReturn(BigDecimal.ZERO);
+        when(paymentMapper.toEntity(any())).thenReturn(payment);
+        when(paymentRepository.save(payment)).thenReturn(payment);
+        when(invoiceRepository.save(invoice)).thenReturn(invoice);
+        when(paymentMapper.toResponse(payment)).thenReturn(null);
+
+        paymentService.registerPayment(paymentRequest(invoiceId, new BigDecimal("20.00")));
+
+        assertThat(invoice.getStatus()).isEqualTo(InvoiceStatus.PAID);
+    }
+
+    @Test
+    void registerPayment_whenAmountExceedsPatientResponsibility_throwsEvenIfBelowTotal() {
+        UUID invoiceId = UUID.randomUUID();
+        // total=100, cobertura=80, responsabilidad=20; pagar 50 excede la responsabilidad
+        Invoice invoice = invoiceWithCoverage(InvoiceStatus.PENDING, new BigDecimal("100.00"), new BigDecimal("80.00"));
+
+        when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
+        when(paymentRepository.sumAmountByInvoiceId(invoiceId)).thenReturn(BigDecimal.ZERO);
+
+        assertThatThrownBy(() -> paymentService.registerPayment(paymentRequest(invoiceId, new BigDecimal("50.00"))))
+            .isInstanceOf(BusinessRuleException.class)
+            .hasMessageContaining("saldo pendiente");
+    }
+
+    @Test
+    void registerPayment_whenInsuranceCoversEverything_rejectsAnyPayment() {
+        UUID invoiceId = UUID.randomUUID();
+        Invoice invoice = invoiceWithCoverage(InvoiceStatus.PENDING, new BigDecimal("100.00"), new BigDecimal("100.00"));
+
+        when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
+        when(paymentRepository.sumAmountByInvoiceId(invoiceId)).thenReturn(BigDecimal.ZERO);
+
+        assertThatThrownBy(() -> paymentService.registerPayment(paymentRequest(invoiceId, new BigDecimal("0.01"))))
             .isInstanceOf(BusinessRuleException.class)
             .hasMessageContaining("saldo pendiente");
     }
