@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -129,9 +130,14 @@ class DbConstraintsDataJpaTest extends AbstractPostgresDataJpaTest {
         return invoice;
     }
 
+    private static String unique(String prefix, int maxLength) {
+        String value = prefix + UUID.randomUUID().toString().replace("-", "");
+        return value.length() <= maxLength ? value : value.substring(0, maxLength);
+    }
+
     private Patient persistPatient(String dniPrefix) {
         Patient patient = new Patient();
-        patient.setDni((dniPrefix + System.nanoTime()).substring(0, 20));
+        patient.setDni(unique(dniPrefix, 20));
         patient.setFirstName("Ana");
         patient.setLastName("Lopez");
         patient.setBirthDate(LocalDate.of(1990, 1, 1));
@@ -143,12 +149,12 @@ class DbConstraintsDataJpaTest extends AbstractPostgresDataJpaTest {
 
     private Doctor persistDoctor() {
         Doctor doctor = new Doctor();
-        doctor.setLicenseNumber("LIC-" + System.nanoTime());
+        doctor.setLicenseNumber(unique("LIC-", 50));
         doctor.setFirstName("Doc");
         doctor.setLastName("Torres");
         doctor.setSpecialty("General");
         doctor.setPhone("5552222");
-        doctor.setEmail("doc" + System.nanoTime() + "@mail.com");
+        doctor.setEmail("doc" + UUID.randomUUID() + "@mail.com");
         doctor.setActive(true);
         entityManager.persist(doctor);
         return doctor;
@@ -157,7 +163,7 @@ class DbConstraintsDataJpaTest extends AbstractPostgresDataJpaTest {
     private InsuranceProvider persistProvider() {
         InsuranceProvider provider = new InsuranceProvider();
         provider.setName("Seguro Uno");
-        provider.setCode(("SEG" + System.nanoTime()).substring(0, 12));
+        provider.setCode(unique("SEG", 12));
         provider.setPhone("5553333");
         provider.setActive(true);
         entityManager.persist(provider);

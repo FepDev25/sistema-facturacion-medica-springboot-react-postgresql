@@ -118,9 +118,14 @@ public abstract class AbstractPostgresFlowE2ETest {
     @Autowired
     EntityManager entityManager;
 
+    private static String uniqueCode(String prefix, String key) {
+        String value = prefix + key + UUID.randomUUID().toString().replace("-", "");
+        return value.substring(0, 20);
+    }
+
     protected Patient createPatient(String key) {
         Patient patient = new Patient();
-        patient.setDni(("DNI" + key + System.nanoTime()).substring(0, 20));
+        patient.setDni(uniqueCode("DNI", key));
         patient.setFirstName("Ana");
         patient.setLastName("Lopez");
         patient.setBirthDate(LocalDate.of(1990, 1, 1));
@@ -132,7 +137,7 @@ public abstract class AbstractPostgresFlowE2ETest {
 
     protected Doctor createDoctor(String key) {
         Doctor doctor = new Doctor();
-        doctor.setLicenseNumber(("LIC" + key + System.nanoTime()).substring(0, 20));
+        doctor.setLicenseNumber(uniqueCode("LIC", key));
         doctor.setFirstName("Luis");
         doctor.setLastName("Torres");
         doctor.setSpecialty("General");
@@ -144,7 +149,7 @@ public abstract class AbstractPostgresFlowE2ETest {
 
     protected ServicesCatalog createServiceCatalog(String key, BigDecimal price) {
         ServicesCatalog service = new ServicesCatalog();
-        service.setCode(("SRV" + key + System.nanoTime()).substring(0, 20));
+        service.setCode(uniqueCode("SRV", key));
         service.setName("Consulta " + key);
         service.setDescription("Servicio para flujo " + key);
         service.setPrice(price);
@@ -155,7 +160,7 @@ public abstract class AbstractPostgresFlowE2ETest {
 
     protected MedicationsCatalog createMedication(String key, BigDecimal price, boolean requiresPrescription) {
         MedicationsCatalog medication = new MedicationsCatalog();
-        medication.setCode(("MED" + key + System.nanoTime()).substring(0, 20));
+        medication.setCode(uniqueCode("MED", key));
         medication.setName("Medicamento " + key);
         medication.setDescription("Medicamento para flujo " + key);
         medication.setPrice(price);
@@ -168,7 +173,7 @@ public abstract class AbstractPostgresFlowE2ETest {
     protected InsuranceProvider createInsuranceProvider(String key, boolean active) {
         InsuranceProvider provider = new InsuranceProvider();
         provider.setName("Seguro " + key);
-        provider.setCode(("SEG" + key + System.nanoTime()).substring(0, 20));
+        provider.setCode(uniqueCode("SEG", key));
         provider.setPhone("5553000");
         provider.setEmail("seg." + key + "@mail.com");
         provider.setActive(active);
@@ -180,7 +185,7 @@ public abstract class AbstractPostgresFlowE2ETest {
         InsurancePolicy policy = new InsurancePolicy();
         policy.setPatient(patient);
         policy.setProvider(provider);
-        policy.setPolicyNumber(("POL" + key + System.nanoTime()).substring(0, 20));
+        policy.setPolicyNumber(uniqueCode("POL", key));
         policy.setCoveragePercentage(coveragePercentage);
         policy.setDeductible(deductible);
         policy.setStartDate(startDate);
