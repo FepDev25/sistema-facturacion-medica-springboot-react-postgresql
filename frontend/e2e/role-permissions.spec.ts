@@ -265,13 +265,17 @@ test.describe('Permission error messages', () => {
     await loginAs(page, DOCTOR_USER, DOCTOR_PASS)()
 
     await page.goto('/doctors')
-    await expect(page).toHaveURL(/\/login/)
+    // Autenticado pero sin rol: requireRole redirige al dashboard, no al login.
+    await expect(page).toHaveURL('/')
+    await expect(page.getByRole('heading', { name: 'Médicos' })).not.toBeVisible()
   })
 
   test('MANAGE_INVOICES actions are restricted to non-ADMIN/RECEPTIONIST', async ({ page }) => {
     if (!DOCTOR_USER) test.skip(true, 'E2E_DOCTOR_USER not set')
     await loginAs(page, DOCTOR_USER, DOCTOR_PASS)()
     await page.goto('/invoices')
-    await expect(page).toHaveURL(/\/login/)
+    // Autenticado pero sin rol: requireRole redirige al dashboard, no al login.
+    await expect(page).toHaveURL('/')
+    await expect(page.getByRole('heading', { name: 'Facturas' })).not.toBeVisible()
   })
 })
