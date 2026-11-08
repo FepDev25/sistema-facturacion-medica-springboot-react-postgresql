@@ -31,19 +31,24 @@ El job de deploy no se ejecuta en PRs. Vercel genera una preview del frontend.
 ### Push a `main`
 
 1. Corren los mismos jobs de CI.
-2. Si ambos pasan, se ejecuta `deploy-backend`.
-3. El deploy construye la imagen con `backend/Dockerfile`, la publica en el
+2. El job **Cambios** compara el commit anterior con el actual y detecta si se
+   tocó `backend/`.
+3. Si backend y frontend pasan y hubo cambios de backend, se ejecuta
+   `deploy-backend`. Un push que solo toca docs, frontend o workflows no
+   redeploya el backend.
+4. El deploy construye la imagen con `backend/Dockerfile`, la publica en el
    registry de Heroku y hace `heroku container:release web`.
-4. Se hace un smoke test contra `/actuator/health` con hasta 5 minutos de
+5. Se hace un smoke test contra `/actuator/health` con hasta 5 minutos de
    reintentos.
-5. Vercel despliega el frontend en paralelo desde Git.
+6. Vercel despliega el frontend en paralelo desde Git.
 
-Si CI falla, el backend no se despliega.
+Si CI falla, el backend no se despliega. Si el filtro de cambios falla o no
+puede calcular el diff, el workflow es conservador y despliega.
 
 ### Ejecución manual
 
 Desde **Actions → CI → Run workflow** se puede ejecutar el pipeline. La opción
-`deploy` permite desplegar a producción aunque el disparador no sea un push.
+`deploy` fuerza el deploy aunque el diff no toque `backend/`.
 
 ## Configuración inicial
 
@@ -83,14 +88,27 @@ No subir a GitHub `DATABASE_URL`, `JWT_SECRET`, `ANTHROPIC_API_KEY` ni
 
 ### 3. Proteger `main`
 
-En **GitHub → Settings → Rules → Rulesets** (o Branch protection):
+Con GitHub CLI autenticado como administrador del repo:
 
-- Requerir pull request antes de mergear.
-- Requerir los checks `Backend` y `Frontend`.
-- Bloquear force pushes.
+```bash
+./scripts/setup-branch-protection.sh
+```
 
-Con eso, `main` solo recibe commits que ya pasaron CI. Vercel puede seguir
-desplegando desde `main` sin riesgo adicional.
+El script configura:
+
+- Pull request obligatorio.
+- Checks obligatorios `Backend` y `Frontend`.
+- Rama actualizada antes de mergear.
+- Sin force pushes ni borrados.
+- Aplicado también a administradores.
+
+Alternativa manual: **GitHub → Settings → Rules → Rulesets** (o Branch
+protection) y replicar esas opciones.
+
+La protección es una acción administrativa: si `gh` no está instalado o no hay
+una sesión con permisos de admin, el script falla con un mensaje claro. En ese
+caso hay que ejecutar el script desde una máquina autenticada o aplicar la
+configuración desde la UI.
 
 ## Primer deploy con la imagen nueva (hecho)
 
@@ -186,17 +204,82 @@ npm run build
 Los umbrales del frontend son un piso medido en noviembre de 2026. Se pueden
 subir cuando la cobertura real mejore; no se bajan para destrabar un PR.
 
-## E2E (fase 2)
+## E2E Playwright
 
-Los 126 tests de Playwright todavía no corren en CI. El plan es agregar un job
-con:
+El workflow [`e2e.yml`](../.github/workflows/e2e.yml) corre la suite completa de
+Playwright contra un backend y un frontend reales.
 
-- Servicios `pgvector/pgvector:pg16` y `redis:7-alpine`.
-- Un perfil Spring `ci` con seeds y `app.ai.icd10.index-on-startup=false`.
-- Backend empaquetado + `vite preview` + Playwright.
+### Cuándo corre
 
-Se ejecutará en nightly o en PRs que toquen frontend, para no alargar todos los
-PRs.
+- Pull requests que tocan `frontend/**`, `backend/**` o el propio workflow.
+- Push a `main` con esos mismos paths.
+- `workflow_dispatch`.
+- Schedule semanal, lunes a las 06:00 UTC.
+
+### Infraestructura efímera
+
+| Servicio | Imagen |
+|---|---|
+| PostgreSQL + pgvector | `pgvector/pgvector:pg16` |
+| Redis | `redis:7-alpine` |
+
+El backend se compila con `-Dmaven.test.skip=true` y arranca con el perfil
+`ci`, usando `backend/ci/application-ci.yml`. Ese perfil:
+
+- Apunta a PostgreSQL y Redis locales del runner.
+- Incluye `db/migration` y `db/seeds`.
+- Desactiva la indexación de los 14.208 códigos CIE-10.
+- Configura CORS para `localhost:5173` y `127.0.0.1:5173`.
+
+El frontend se compila con `VITE_API_URL=http://127.0.0.1:8080/api/v1` y se
+sirve con `vite preview` en `127.0.0.1:5173`. Playwright corre con `workers: 1`
+en CI para evitar interferencia entre tests que comparten la misma base.
+
+### Ejecución local
+
+Con el entorno del homelab levantado:
+
+```bash
+./scripts/dev-up.sh
+
+# Terminal 1
+cd backend
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev-homelab
+
+# Terminal 2
+cd frontend
+npm run dev
+
+# Terminal 3
+cd frontend
+E2E_BASE_URL=http://localhost:5173 \
+E2E_ADMIN_USER=admin E2E_ADMIN_PASS=admin123 \
+E2E_DOCTOR_USER=doctor1 E2E_DOCTOR_PASS=doctor123 \
+E2E_RECEPTIONIST_USER=recep1 E2E_RECEPTIONIST_PASS=recep123 \
+npm run e2e
+```
+
+La suite local validada en noviembre de 2026: **108 passed, 18 skipped, 0
+failed**. Los skips son condicionales del dataset (por ejemplo, paciente sin
+alergias o factura que no está en borrador).
+
+En CI, los artefactos `playwright-results` incluyen screenshots, videos,
+traces, el reporte HTML y los logs del backend/frontend.
+
+> El workflow E2E corre en paralelo al CI principal y **no bloquea el deploy**
+> todavía. Si se quiere que sea un gate de producción, hay que integrarlo como
+> `needs` del job de deploy o esperar el resultado con `workflow_run`.
+
+## Dependabot
+
+[`.github/dependabot.yml`](../.github/dependabot.yml) actualiza semanalmente:
+
+- Maven en `/backend`.
+- npm en `/frontend`.
+- GitHub Actions en `/`.
+
+Los updates `minor`/`patch` se agrupan en un PR por ecosistema; los `major`
+quedan como PRs individuales para revisarlos con más cuidado.
 
 ## Troubleshooting
 
@@ -210,3 +293,5 @@ PRs.
 | Falla el login de Heroku | `HEROKU_API_KEY` ausente o vencido | Regenerar el token y actualizar el secret |
 | El smoke test no llega a 200 | El dyno todavía está arrancando o crasheó | Revisar `heroku logs`; el job reintenta 5 minutos |
 | Un test falla y no se ve el detalle | Los logs del job requieren autenticación | El step `Resumir fallos de tests` publica los `[ERROR]` de Maven como anotaciones del check run |
+| E2E: el backend no arranca | PostgreSQL/Redis no están listos o el perfil `ci` no se cargó | Revisar `/tmp/e2e-backend.log` en el artefacto `playwright-results` |
+| E2E: errores 403/CORS | El origen del frontend no está permitido | Verificar `app.cors.allowed-origins` en `backend/ci/application-ci.yml` |
