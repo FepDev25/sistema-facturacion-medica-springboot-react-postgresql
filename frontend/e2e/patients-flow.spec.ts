@@ -125,7 +125,7 @@ test.describe('Patient detail page', () => {
     await openPatients(page)
     await openFirstPatientDetail(page)
 
-    const heading = page.getByRole('heading', { level: 1 })
+    const heading = page.locator('main').getByRole('heading', { level: 1 })
     await expect(heading).toBeVisible()
     const nameText = await heading.textContent()
     expect(nameText?.length).toBeGreaterThan(2)

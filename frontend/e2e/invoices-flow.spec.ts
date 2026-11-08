@@ -162,7 +162,7 @@ test.describe('Invoice detail page', () => {
     await openInvoices(page)
     await openFirstInvoiceDetail(page)
 
-    const heading = page.getByRole('heading', { level: 1 })
+    const heading = page.locator('main').getByRole('heading', { level: 1 })
     await expect(heading).toBeVisible()
     const headingText = await heading.textContent()
     expect(headingText?.trim().length).toBeGreaterThan(0)
@@ -322,7 +322,7 @@ test.describe('Invoice detail page', () => {
       if (await addItemBtn.isVisible()) {
         await expect(addItemBtn).toBeVisible()
         await addItemBtn.click()
-        await expect(page.getByText('Agregar item')).toBeVisible()
+        await expect(page.getByRole('heading', { name: 'Agregar item' })).toBeVisible()
         await expect(page.getByLabel('Tipo de item')).toBeVisible()
         return
       }

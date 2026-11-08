@@ -89,6 +89,10 @@ test.describe('Login page', () => {
 
   test('button shows loading state during login', async ({ page }) => {
     await page.goto('/login')
+    await page.route('**/api/v1/auth/login', async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 800))
+      await route.continue()
+    })
     await page.getByLabel('Usuario').fill('admin')
     await page.getByLabel('Contraseña').fill('admin123')
 
