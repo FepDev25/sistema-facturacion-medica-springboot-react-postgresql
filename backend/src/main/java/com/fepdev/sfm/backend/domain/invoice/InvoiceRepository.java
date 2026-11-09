@@ -31,7 +31,7 @@ public interface InvoiceRepository extends JpaRepository<Invoice, UUID> {
                 FROM payments
                 GROUP BY invoice_id
             ) p ON p.invoice_id = i.id
-            WHERE i.status IN ('PENDING', 'PARTIAL_PAID', 'OVERDUE')
+            WHERE i.status IN ('pending', 'partial_paid', 'overdue')
             """, nativeQuery = true)
     java.math.BigDecimal sumPendingCollection();
 
