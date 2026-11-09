@@ -4,6 +4,7 @@ import { Loader2, Sparkles } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { BackToListButton } from '@/components/BackToListButton'
+import { DetailSkeleton, QueryError } from '@/components/DetailState'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -112,14 +113,23 @@ export function MedicalRecordDetailPage() {
   })
 
   if (medicalRecordQuery.isLoading) {
-    return <div className="px-6 py-8 text-sm text-slate-500">Cargando expediente...</div>
+    return <DetailSkeleton label="Cargando expediente" />
+  }
+
+  if (medicalRecordQuery.isError) {
+    return (
+      <QueryError
+        message="No se pudo cargar el expediente. Revisa tu conexión e intenta de nuevo."
+        onRetry={() => void medicalRecordQuery.refetch()}
+      />
+    )
   }
 
   const record = medicalRecordQuery.data
   if (!record) {
     return (
       <div className="px-6 py-8">
-        <p className="text-sm text-slate-500 mb-4">No se encontro el expediente.</p>
+        <p className="text-sm text-muted-foreground mb-4">No se encontro el expediente.</p>
         <BackToListButton fallbackTo="/patients" label="Volver a pacientes" />
       </div>
     )
@@ -178,28 +188,28 @@ export function MedicalRecordDetailPage() {
         />
 
         <section className="rounded-xl border border-border bg-card p-5 shadow-card">
-          <h2 className="text-sm font-semibold text-slate-900 mb-3">Resumen</h2>
+          <h2 className="text-sm font-semibold text-foreground mb-3">Resumen</h2>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
             <div>
-              <p className="text-xs text-slate-500">Paciente</p>
-              <p className="text-sm text-slate-800">
+              <p className="text-xs text-muted-foreground">Paciente</p>
+              <p className="text-sm text-foreground">
                 {record.patientFirstName} {record.patientLastName}
               </p>
             </div>
             <div>
-              <p className="text-xs text-slate-500">Fecha de registro</p>
-              <p className="text-sm text-slate-800">{formatDateTime(record.recordDate)}</p>
+              <p className="text-xs text-muted-foreground">Fecha de registro</p>
+              <p className="text-sm text-foreground">{formatDateTime(record.recordDate)}</p>
             </div>
             <div className="md:col-span-2 lg:col-span-2">
-              <p className="text-xs text-slate-500">Notas clinicas</p>
-              <p className="text-sm text-slate-800">{record.clinicalNotes}</p>
+              <p className="text-xs text-muted-foreground">Notas clinicas</p>
+              <p className="text-sm text-foreground">{record.clinicalNotes}</p>
             </div>
           </div>
         </section>
 
         <section className="rounded-xl border border-border bg-card p-5 shadow-card">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-slate-900">Diagnosticos</h2>
+            <h2 className="text-sm font-semibold text-foreground">Diagnosticos</h2>
             <Dialog open={diagnosisOpen} onOpenChange={setDiagnosisOpen}>
               <DialogTrigger asChild>
                 <Button size="sm" variant="outline">
@@ -326,7 +336,7 @@ export function MedicalRecordDetailPage() {
 
         <section className="rounded-xl border border-border bg-card p-5 shadow-card">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-slate-900">Prescripciones</h2>
+            <h2 className="text-sm font-semibold text-foreground">Prescripciones</h2>
             <Dialog open={prescriptionOpen} onOpenChange={setPrescriptionOpen}>
               <DialogTrigger asChild>
                 <Button size="sm" variant="outline">
@@ -469,7 +479,7 @@ export function MedicalRecordDetailPage() {
 
         <section className="rounded-xl border border-border bg-card p-5 shadow-card">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-slate-900">Procedimientos</h2>
+            <h2 className="text-sm font-semibold text-foreground">Procedimientos</h2>
             <Dialog open={procedureOpen} onOpenChange={setProcedureOpen}>
               <DialogTrigger asChild>
                 <Button size="sm" variant="outline">

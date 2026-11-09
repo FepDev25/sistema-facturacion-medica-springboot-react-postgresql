@@ -20,7 +20,9 @@ test.describe('Login page', () => {
   test('renders login form with all elements', async ({ page }) => {
     await page.goto('/login')
     await expect(page.getByText('Acceso al sistema')).toBeVisible()
-    await expect(page.getByText('Inicia sesión para continuar en Facturación Médica.')).toBeVisible()
+    await expect(
+      page.getByText('Inicia sesión para continuar en Facturación Médica.'),
+    ).toBeVisible()
     await expect(page.getByLabel('Usuario')).toBeVisible()
     await expect(page.getByLabel('Contraseña')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Ingresar' })).toBeVisible()
@@ -66,7 +68,9 @@ test.describe('Login page', () => {
     await page.getByLabel('Usuario').fill('wronguser')
     await page.getByLabel('Contraseña').fill('wrongpass')
     await page.getByRole('button', { name: 'Ingresar' }).click()
-    await expect(page.getByText(/No se pudo iniciar sesión|Verifica tus credenciales/)).toBeVisible()
+    await expect(
+      page.getByText(/No se pudo iniciar sesión|Verifica tus credenciales/),
+    ).toBeVisible()
   })
 
   test('error banner disappears on new submit attempt', async ({ page }) => {
@@ -166,6 +170,28 @@ test.describe('Logout flow', () => {
     await expect(page).toHaveURL(/\/login/)
 
     await page.goto('/appointments')
+    await expect(page).toHaveURL(/\/login/)
+  })
+})
+
+test.describe('Session persistence', () => {
+  test('a full page reload keeps the session', async ({ page }) => {
+    await loginAsAdmin(page)
+    await expect(page.locator('aside')).toBeVisible()
+
+    await page.reload()
+
+    await expect(page).not.toHaveURL(/\/login/)
+    await expect(page.locator('aside').getByText('Facturación Médica')).toBeVisible()
+  })
+
+  test('after logout, a reload stays on the login page', async ({ page }) => {
+    await loginAsAdmin(page)
+    await page.getByRole('button', { name: 'Cerrar sesión' }).click()
+    await expect(page).toHaveURL(/\/login/)
+
+    await page.reload()
+
     await expect(page).toHaveURL(/\/login/)
   })
 })

@@ -2,12 +2,24 @@ import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 
 function MockSelect({ children, value }: { children?: React.ReactNode; value?: string }) {
-  return <div data-testid="select" data-value={value}>{children}</div>
+  return (
+    <div data-testid="select" data-value={value}>
+      {children}
+    </div>
+  )
 }
-function MockSelectTrigger({ children }: { children?: React.ReactNode }) { return <div>{children}</div> }
-function MockSelectContent({ children }: { children?: React.ReactNode }) { return <div>{children}</div> }
-function MockSelectItem({ children }: { children?: React.ReactNode }) { return <span>{children}</span> }
-function MockSelectValue({ placeholder }: { placeholder?: string }) { return <span>{placeholder}</span> }
+function MockSelectTrigger({ children }: { children?: React.ReactNode }) {
+  return <div>{children}</div>
+}
+function MockSelectContent({ children }: { children?: React.ReactNode }) {
+  return <div>{children}</div>
+}
+function MockSelectItem({ children }: { children?: React.ReactNode }) {
+  return <span>{children}</span>
+}
+function MockSelectValue({ placeholder }: { placeholder?: string }) {
+  return <span>{placeholder}</span>
+}
 
 const { m, mockConfirmMutate, mockAssignPolicy, mockRemoveItem, mockAddItem } = vi.hoisted(() => ({
   m: {
@@ -29,8 +41,19 @@ vi.mock('@tanstack/react-router', () => {
     useParams: () => ({ id: 'inv-1' }),
     useRouterState: () => routerState,
     useNavigate: () => vi.fn(),
-    Link: ({ to, children, ...rest }: { to: string; children: React.ReactNode; className?: string; [key: string]: unknown }) => (
-      <a href={to} {...rest}>{children}</a>
+    Link: ({
+      to,
+      children,
+      ...rest
+    }: {
+      to: string
+      children: React.ReactNode
+      className?: string
+      [key: string]: unknown
+    }) => (
+      <a href={to} {...rest}>
+        {children}
+      </a>
     ),
   }
 })
@@ -81,12 +104,18 @@ vi.mock('@/components/BackToListButton', () => ({
 
 vi.mock('@/components/ui/badge', () => ({
   Badge: ({ children, className }: { children: React.ReactNode; className?: string }) => (
-    <span className={className} data-testid="badge">{children}</span>
+    <span className={className} data-testid="badge">
+      {children}
+    </span>
   ),
 }))
 
 vi.mock('@/components/ui/select', () => ({
-  Select: MockSelect, SelectTrigger: MockSelectTrigger, SelectContent: MockSelectContent, SelectItem: MockSelectItem, SelectValue: MockSelectValue,
+  Select: MockSelect,
+  SelectTrigger: MockSelectTrigger,
+  SelectContent: MockSelectContent,
+  SelectItem: MockSelectItem,
+  SelectValue: MockSelectValue,
 }))
 vi.mock('@/components/ui/checkbox', () => ({ Checkbox: MockCheckbox }))
 
@@ -126,9 +155,10 @@ const baseInvoice = {
   patientLastName: 'García',
   appointmentId: 'apt-1',
   insurancePolicyId: null,
-  items: [
-    { id: 'item-1', description: 'Consulta', quantity: 1, unitPrice: 1000, subtotal: 1000 },
-  ],
+  insurancePolicyPolicyNumber: null,
+  insurancePolicyProviderName: null,
+  insurancePolicyCoveragePercentage: null,
+  items: [{ id: 'item-1', description: 'Consulta', quantity: 1, unitPrice: 1000, subtotal: 1000 }],
   createdAt: '2025-06-01T12:00:00',
   updatedAt: '2025-06-01T12:00:00',
 }
@@ -151,7 +181,10 @@ function reset() {
 }
 
 describe('InvoiceDetailPage', () => {
-  beforeEach(() => { vi.clearAllMocks(); reset() })
+  beforeEach(() => {
+    vi.clearAllMocks()
+    reset()
+  })
   afterEach(cleanup)
 
   it('shows not found state when invoice is null', () => {
@@ -186,6 +219,29 @@ describe('InvoiceDetailPage', () => {
     expect(screen.getByTestId('coverage-bar')).toBeInTheDocument()
   })
 
+  it('muestra los datos de la póliza cuando la factura tiene cobertura', () => {
+    m.invoiceData = {
+      ...baseInvoice,
+      status: 'pending',
+      insurancePolicyId: 'pol-1',
+      insurancePolicyPolicyNumber: 'POL-2026-001',
+      insurancePolicyProviderName: 'Seguros Salud',
+      insurancePolicyCoveragePercentage: 80,
+    }
+    render(<InvoiceDetailPage />)
+
+    expect(screen.getByText('Póliza')).toBeInTheDocument()
+    expect(screen.getByText(/POL-2026-001 · Seguros Salud/)).toBeInTheDocument()
+    expect(screen.getByText(/80% · \$500.00/)).toBeInTheDocument()
+  })
+
+  it('explica que no hay póliza cuando la factura no tiene cobertura', () => {
+    m.invoiceData = { ...baseInvoice, status: 'pending' }
+    render(<InvoiceDetailPage />)
+
+    expect(screen.getByText('Sin póliza asociada: el paciente cubre el total.')).toBeInTheDocument()
+  })
+
   describe('isDraft conditionals', () => {
     it('shows Confirmar factura button when draft', () => {
       render(<InvoiceDetailPage />)
@@ -211,7 +267,9 @@ describe('InvoiceDetailPage', () => {
 
     it('shows Policy Select when draft', () => {
       render(<InvoiceDetailPage />)
-      expect(screen.getByText(/Poliza para esta factura|Poliza para la factura/)).toBeInTheDocument()
+      expect(
+        screen.getByText(/Poliza para esta factura|Poliza para la factura/),
+      ).toBeInTheDocument()
       expect(screen.getByTestId('select')).toBeInTheDocument()
     })
 
@@ -255,11 +313,35 @@ describe('InvoiceDetailPage', () => {
       expect(btn).toBeDisabled()
     })
 
-    it('enables Registrar pago when not draft', () => {
-      m.invoiceData = { ...baseInvoice, status: 'confirmed' }
+    it('enables Registrar pago when invoice is pending', () => {
+      m.invoiceData = { ...baseInvoice, status: 'pending' }
       render(<InvoiceDetailPage />)
       const btn = screen.getByText('Registrar pago').closest('button')
       expect(btn).not.toBeDisabled()
+    })
+
+    it('enables Registrar pago when invoice is partially paid or overdue', () => {
+      for (const status of ['partial_paid', 'overdue'] as const) {
+        m.invoiceData = { ...baseInvoice, status }
+        render(<InvoiceDetailPage />)
+        const btn = screen.getByText('Registrar pago').closest('button')
+        expect(btn).not.toBeDisabled()
+        cleanup()
+      }
+    })
+
+    it('disables Registrar pago when invoice is already paid', () => {
+      m.invoiceData = { ...baseInvoice, status: 'paid' }
+      render(<InvoiceDetailPage />)
+      const btn = screen.getByText('Registrar pago').closest('button')
+      expect(btn).toBeDisabled()
+    })
+
+    it('disables Registrar pago when invoice is cancelled', () => {
+      m.invoiceData = { ...baseInvoice, status: 'cancelled' }
+      render(<InvoiceDetailPage />)
+      const btn = screen.getByText('Registrar pago').closest('button')
+      expect(btn).toBeDisabled()
     })
 
     it('shows empty payments message when no payments', () => {

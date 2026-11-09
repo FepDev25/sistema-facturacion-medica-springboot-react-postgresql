@@ -1,13 +1,7 @@
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import {
-  Sheet,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import {
   Form,
   FormControl,
@@ -117,7 +111,7 @@ export function ProviderDrawer({ open, onOpenChange, item }: ProviderDrawerProps
                       />
                     </FormControl>
                     {isEditing && (
-                      <p className="text-xs text-slate-400">El codigo no es editable</p>
+                      <p className="text-xs text-muted-foreground/70">El codigo no es editable</p>
                     )}
                     <FormMessage />
                   </FormItem>
@@ -158,7 +152,7 @@ export function ProviderDrawer({ open, onOpenChange, item }: ProviderDrawerProps
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Email <span className="text-slate-400 font-normal">(opcional)</span>
+                      Email <span className="text-muted-foreground/70 font-normal">(opcional)</span>
                     </FormLabel>
                     <FormControl>
                       <Input {...field} type="email" placeholder="contacto@seguro.com" />
@@ -174,7 +168,8 @@ export function ProviderDrawer({ open, onOpenChange, item }: ProviderDrawerProps
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Direccion <span className="text-slate-400 font-normal">(opcional)</span>
+                      Direccion{' '}
+                      <span className="text-muted-foreground/70 font-normal">(opcional)</span>
                     </FormLabel>
                     <FormControl>
                       <Textarea {...field} rows={3} className="resize-none" />

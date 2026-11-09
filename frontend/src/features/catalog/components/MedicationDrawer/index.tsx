@@ -1,13 +1,7 @@
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetFooter,
-} from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet'
 import {
   Form,
   FormControl,
@@ -130,7 +124,7 @@ export function MedicationDrawer({ open, onOpenChange, item }: MedicationDrawerP
                       />
                     </FormControl>
                     {isEditing && (
-                      <p className="text-xs text-slate-400">El código no es editable</p>
+                      <p className="text-xs text-muted-foreground/70">El código no es editable</p>
                     )}
                     <FormMessage />
                   </FormItem>
@@ -158,7 +152,7 @@ export function MedicationDrawer({ open, onOpenChange, item }: MedicationDrawerP
                   <FormItem>
                     <FormLabel>
                       Descripción{' '}
-                      <span className="text-slate-400 font-normal">(opcional)</span>
+                      <span className="text-muted-foreground/70 font-normal">(opcional)</span>
                     </FormLabel>
                     <FormControl>
                       <Textarea
@@ -211,13 +205,13 @@ export function MedicationDrawer({ open, onOpenChange, item }: MedicationDrawerP
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {(
-                            Object.entries(MEDICATION_UNIT_LABELS) as [string, string][]
-                          ).map(([value, label]) => (
-                            <SelectItem key={value} value={value}>
-                              {label}
-                            </SelectItem>
-                          ))}
+                          {(Object.entries(MEDICATION_UNIT_LABELS) as [string, string][]).map(
+                            ([value, label]) => (
+                              <SelectItem key={value} value={value}>
+                                {label}
+                              </SelectItem>
+                            ),
+                          )}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -232,10 +226,7 @@ export function MedicationDrawer({ open, onOpenChange, item }: MedicationDrawerP
                 render={({ field }) => (
                   <FormItem className="flex flex-row items-center gap-3">
                     <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
+                      <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                     </FormControl>
                     <div>
                       <FormLabel className="cursor-pointer">Requiere receta médica</FormLabel>
@@ -272,11 +263,7 @@ export function MedicationDrawer({ open, onOpenChange, item }: MedicationDrawerP
                 Cancelar
               </Button>
               <Button type="submit" disabled={isPending}>
-                {isPending
-                  ? 'Guardando...'
-                  : isEditing
-                    ? 'Guardar cambios'
-                    : 'Crear medicamento'}
+                {isPending ? 'Guardando...' : isEditing ? 'Guardar cambios' : 'Crear medicamento'}
               </Button>
             </SheetFooter>
           </form>

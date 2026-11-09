@@ -117,7 +117,7 @@ Cada token es un JWT firmado con HMAC-SHA256. El payload contiene:
 ```json
 {
   "jti": "550e8400-e29b-41d4-a716-446655440000",
-  "sub": "dr.garcia",
+  "sub": "doctor1",
   "type": "access",
   "role": "DOCTOR",
   "iat": 1711900800,
@@ -335,7 +335,7 @@ sequenceDiagram
 
 **Request:**
 ```json
-{ "username": "dr.garcia", "password": "secreto123" }
+{ "username": "doctor1", "password": "secreto123" }
 ```
 
 **Response 200:**
@@ -350,7 +350,7 @@ sequenceDiagram
 
 ### POST /api/v1/auth/refresh
 
-Emite un nuevo access token sin re-autenticarse. El refresh token se mantiene igual: el cliente debe volver a hacer login cuando el refresh expire.
+Emite un nuevo access token y un refresh token nuevo (rotación deslizante) sin re-autenticarse. El refresh anterior no se invalida para permitir refresh concurrente desde varias pestañas; la detección de reuso requeriría familias de tokens y queda como endurecimiento posterior. El cliente debe volver a hacer login cuando el refresh expire.
 
 ```mermaid
 sequenceDiagram
@@ -372,7 +372,8 @@ sequenceDiagram
             AC-->>C: 422 BusinessRuleException
         else token válido
             AC->>JS: generateAccessToken(user)
-            AC-->>C: 200 { accessToken, null, tokenType, role }
+            AC->>JS: generateRefreshToken(user)
+            AC-->>C: 200 { accessToken, refreshToken, tokenType, role }
         end
     end
 ```

@@ -118,6 +118,12 @@ public abstract class AbstractPostgresFlowE2ETest {
     @Autowired
     EntityManager entityManager;
 
+    @Autowired
+    java.time.Clock clock;
+
+    @Autowired
+    com.fepdev.sfm.backend.domain.dashboard.DashboardService dashboardService;
+
     private static String uniqueCode(String prefix, String key) {
         String value = prefix + key + UUID.randomUUID().toString().replace("-", "");
         return value.substring(0, 20);
@@ -195,7 +201,19 @@ public abstract class AbstractPostgresFlowE2ETest {
     }
 
     protected AppointmentResponse createAndCompleteAppointment(Patient patient, Doctor doctor) {
-        AppointmentResponse created = createScheduledAppointment(patient, doctor);
+        return createAndCompleteAppointment(patient, doctor,
+                OffsetDateTime.now().plusDays(1).withSecond(0).withNano(0));
+    }
+
+    protected AppointmentResponse createAndCompleteAppointment(Patient patient, Doctor doctor,
+            OffsetDateTime scheduledAt) {
+        AppointmentResponse created = appointmentService.createAppointment(new AppointmentCreateRequest(
+                patient.getId(),
+                doctor.getId(),
+                scheduledAt,
+                30,
+                "Control general",
+                "Notas E2E"));
         appointmentService.confirmAppointment(created.id());
         appointmentService.startAppointment(created.id());
         appointmentService.completeAppointment(created.id(), new MedicalRecordCreateRequest(

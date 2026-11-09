@@ -182,7 +182,8 @@ export function toMedicalRecordCreateRequest(
 ): MedicalRecordCreateRequest {
   const vitalSigns: Record<string, unknown> = {}
 
-  if (values.bloodPressure && values.bloodPressure.trim()) vitalSigns.bloodPressure = values.bloodPressure.trim()
+  if (values.bloodPressure && values.bloodPressure.trim())
+    vitalSigns.bloodPressure = values.bloodPressure.trim()
   if (values.heartRate) vitalSigns.heartRate = values.heartRate
   if (values.temperature) vitalSigns.temperature = values.temperature
   if (values.oxygenSaturation) vitalSigns.oxygenSaturation = values.oxygenSaturation
@@ -194,7 +195,8 @@ export function toMedicalRecordCreateRequest(
     appointmentId,
     patientId,
     clinicalNotes: values.clinicalNotes.trim(),
-    physicalExam: values.physicalExam && values.physicalExam.trim() ? values.physicalExam.trim() : null,
+    physicalExam:
+      values.physicalExam && values.physicalExam.trim() ? values.physicalExam.trim() : null,
     vitalSigns: Object.keys(vitalSigns).length > 0 ? vitalSigns : null,
     recordDate: new Date().toISOString(),
   }
@@ -227,7 +229,8 @@ export function toPrescriptionCreateRequest(
     dosage: values.dosage.trim(),
     frequency: values.frequency.trim(),
     durationDays: values.durationDays,
-    instructions: values.instructions && values.instructions.trim() ? values.instructions.trim() : null,
+    instructions:
+      values.instructions && values.instructions.trim() ? values.instructions.trim() : null,
   }
 }
 

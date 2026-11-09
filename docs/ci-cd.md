@@ -21,7 +21,7 @@ El workflow vive en
 
 Se ejecutan dos jobs en paralelo:
 
-- **Backend**: `./mvnw -B -ntp verify`. Corre los 412 tests, incluidos los de
+- **Backend**: `./mvnw -B -ntp verify`. Corre los 450 tests, incluidos los de
   Testcontainers, y aplica el gate de JaCoCo.
 - **Frontend**: `npm ci`, `npm run lint`, `npm run test:coverage` y
   `npm run build`.
@@ -88,9 +88,9 @@ No subir a GitHub `DATABASE_URL`, `JWT_SECRET`, `ANTHROPIC_API_KEY` ni
 
 ### 3. Proteger `main`
 
-> **Pendiente de ejecución manual.** El entorno donde se preparó esto no tiene
-> `gh` instalado ni una sesión con permisos de administrador. El script está
-> listo; hay que correrlo una vez desde una máquina autenticada.
+> **Aplicado el 2026-11-08.** Verificado con la API de GitHub: checks
+> `Backend` y `Frontend`, PR obligatorio, 0 aprobaciones, rama actualizada,
+> administradores incluidos y force push bloqueado.
 
 Con GitHub CLI autenticado como administrador del repo:
 

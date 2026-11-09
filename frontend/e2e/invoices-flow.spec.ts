@@ -97,7 +97,9 @@ test.describe('Invoices list page', () => {
     await openInvoices(page)
 
     const table = page.getByRole('table')
-    await expect(table.getByText(/Borrador|Pendiente|Pago parcial|Pagada|Cancelada|Vencida/).first()).toBeVisible()
+    await expect(
+      table.getByText(/Borrador|Pendiente|Pago parcial|Pagada|Cancelada|Vencida/).first(),
+    ).toBeVisible()
     const statusLabels = ['Borrador', 'Pendiente', 'Pago parcial', 'Pagada', 'Vencida']
     const foundLabels: string[] = []
 
@@ -233,7 +235,7 @@ test.describe('Invoice detail page', () => {
     await openInvoices(page)
     await openFirstInvoiceDetail(page)
 
-    await expect(page.getByText('Pagos registrados')).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Pagos registrados' })).toBeVisible()
   })
 
   test('shows empty message when no payments', async ({ page }) => {
@@ -267,12 +269,12 @@ test.describe('Invoice detail page', () => {
     const count = await detailLinks.count()
 
     for (let i = 0; i < count; i++) {
-      await detailLinks.first().click()
+      await detailLinks.nth(i).click()
       const payButton = page.getByRole('button', { name: 'Registrar pago' })
 
-      if (await payButton.isVisible() && await payButton.isEnabled()) {
+      if ((await payButton.isVisible()) && (await payButton.isEnabled())) {
         await payButton.click()
-        await expect(page.getByText('Registrar pago')).toBeVisible()
+        await expect(page.getByRole('heading', { name: 'Registrar pago' })).toBeVisible()
         await expect(page.getByLabel('Monto')).toBeVisible()
         await expect(page.getByLabel('Metodo de pago')).toBeVisible()
         return

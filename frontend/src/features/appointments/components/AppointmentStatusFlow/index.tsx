@@ -24,10 +24,10 @@ interface AppointmentStatusFlowProps {
 
 function statusClass(status: AppointmentStatus, current: AppointmentStatus): string {
   if (status === current) {
-    return 'border-cyan-300 bg-cyan-50 text-cyan-800 shadow-sm'
+    return 'border-info/40 bg-info/10 text-info shadow-sm'
   }
 
-  return 'border-slate-200 bg-white text-slate-500'
+  return 'border-border bg-white text-muted-foreground'
 }
 
 export function AppointmentStatusFlow({
@@ -62,8 +62,8 @@ export function AppointmentStatusFlow({
   return (
     <section className="rounded-xl border border-border bg-card p-5 shadow-card">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
-        <h2 className="text-sm font-semibold text-slate-900">AppointmentStatusFlow</h2>
-        <p className="text-xs text-slate-500">{nextTransitionLabel}</p>
+        <h2 className="text-sm font-semibold text-foreground">AppointmentStatusFlow</h2>
+        <p className="text-xs text-muted-foreground">{nextTransitionLabel}</p>
       </div>
 
       <div className="flex flex-wrap items-center gap-2 mb-4">
@@ -76,7 +76,7 @@ export function AppointmentStatusFlow({
               {APPOINTMENT_STATUS_LABELS[state]}
             </span>
             {index < STATUS_SEQUENCE.length - 1 ? (
-              <ArrowRight className="h-3.5 w-3.5 text-slate-300" />
+              <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/50" />
             ) : null}
           </div>
         ))}

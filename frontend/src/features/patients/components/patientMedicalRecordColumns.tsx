@@ -11,13 +11,15 @@ export function getPatientMedicalRecordColumns(): ColumnDef<MedicalRecordRespons
       accessorKey: 'recordDate',
       header: 'Fecha de registro',
       size: 180,
-      cell: ({ row }) => <span className="text-sm text-slate-700">{formatDateTime(row.original.recordDate)}</span>,
+      cell: ({ row }) => (
+        <span className="text-sm text-foreground">{formatDateTime(row.original.recordDate)}</span>
+      ),
     },
     {
       accessorKey: 'clinicalNotes',
       header: 'Notas clínicas',
       cell: ({ row }) => (
-        <span className="text-sm text-slate-700 line-clamp-2">{row.original.clinicalNotes}</span>
+        <span className="text-sm text-foreground line-clamp-2">{row.original.clinicalNotes}</span>
       ),
     },
     {
@@ -29,7 +31,7 @@ export function getPatientMedicalRecordColumns(): ColumnDef<MedicalRecordRespons
             asChild
             variant="ghost"
             size="icon"
-            className="h-7 w-7 text-slate-500 hover:text-slate-900"
+            className="h-7 w-7 text-muted-foreground hover:text-foreground"
             aria-label="Ver detalle del expediente"
             title="Ver detalle"
           >

@@ -1,7 +1,7 @@
 openapi: 3.1.0
 info:
   title: Sistema de Facturacion Medica API
-  version: 0.7.0-draft
+  version: 0.8.0-draft
   description: |
     Contrato API contract-first en construccion por lotes.
     Lote 1 implementado: auth + base global.
@@ -10,6 +10,7 @@ info:
     Lote 4 implementado: invoices + payments.
     Lote 5 implementado: catalog.
     Lote 6 implementado: AI — extraccion de notas clinicas, sugerencia de items de factura, sugerencia de codigos ICD-10.
+    Lote 7 implementado: dashboard agregado.
 servers:
   - url: http://localhost:8080
     description: Local dev
@@ -18,6 +19,7 @@ tags:
   - name: Appointments
   - name: Catalog Medications
   - name: Catalog Services
+  - name: Dashboard
   - name: Invoices
   - name: Medical Records
   - name: Payments
@@ -1866,6 +1868,47 @@ paths:
         '401': { $ref: '#/components/responses/UnauthorizedError' }
         '404': { $ref: '#/components/responses/NotFoundError' }
 
+  /api/v1/ai/patients/{patientId}/reindex:
+    post:
+      tags: [AI]
+      operationId: ai_patients_reindex
+      summary: Reparar el indice de historial de un paciente (solo ADMIN)
+      description: |
+        Reindexa todos los expedientes del paciente y elimina documentos huerfanos.
+        Es una operacion de mantenimiento para indices parciales.
+      parameters:
+        - name: patientId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Reindexacion completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReindexResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+
+  /api/v1/dashboard/metrics:
+    get:
+      tags: [Dashboard]
+      summary: Metricas agregadas del dashboard
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Metricas calculadas en SQL
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardMetricsResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+
 components:
   securitySchemes:
     bearerAuth:
@@ -2166,20 +2209,43 @@ components:
 
     InvoiceItemRequest:
       type: object
-      required: [itemType, description, quantity, unitPrice]
+      description: |
+        Para SERVICE/MEDICATION la descripcion y el precio salen del catalogo y el cliente
+        no puede alterarlos (solo ADMIN puede hacer override, auditado). Para PROCEDURE/OTHER
+        description y unitPrice son obligatorios.
+      required: [itemType, quantity]
       properties:
         serviceId: { type: string, format: uuid, nullable: true }
         medicationId: { type: string, format: uuid, nullable: true }
         itemType:
           type: string
           enum: [service, medication, procedure, other]
-        description: { type: string }
+        description: { type: string, maxLength: 255, nullable: true }
         quantity:
           type: integer
           minimum: 1
         unitPrice:
           type: number
           exclusiveMinimum: 0
+          nullable: true
+
+    ReindexResponse:
+      type: object
+      properties:
+        patientId: { type: string, format: uuid }
+        recordsIndexed: { type: integer }
+
+    DashboardMetricsResponse:
+      type: object
+      properties:
+        totalPatients: { type: integer }
+        activeDoctors: { type: integer }
+        appointmentsToday: { type: integer }
+        overdueInvoices: { type: integer }
+        pendingInvoices: { type: integer }
+        upcomingAppointments: { type: integer }
+        totalCollected: { type: number }
+        pendingCollection: { type: number }
 
     InvoiceItemResponse:
       type: object

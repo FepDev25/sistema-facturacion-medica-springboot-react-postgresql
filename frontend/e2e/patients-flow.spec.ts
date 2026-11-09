@@ -81,7 +81,7 @@ test.describe('Patients list page', () => {
     await openPatients(page)
 
     const newButton = page.getByRole('button', { name: /Nuevo paciente/ })
-    if (await newButton.isVisible() && await newButton.isEnabled()) {
+    if ((await newButton.isVisible()) && (await newButton.isEnabled())) {
       await newButton.click()
       await expect(page.getByRole('heading', { name: 'Nuevo Paciente' })).toBeVisible()
       await expect(page.getByLabel('DNI')).toBeVisible()
@@ -159,7 +159,10 @@ test.describe('Patient detail page', () => {
     await openPatients(page)
     await openFirstPatientDetail(page)
 
-    const dniValue = page.locator('section').filter({ hasText: 'Información general' }).locator('p.font-mono')
+    const dniValue = page
+      .locator('section')
+      .filter({ hasText: 'Información general' })
+      .locator('p.font-mono')
     await expect(dniValue).toBeVisible()
     const dniText = await dniValue.textContent()
     expect(dniText?.length).toBeGreaterThan(0)
@@ -256,7 +259,7 @@ test.describe('Patient CRUD via drawer', () => {
     await openPatients(page)
 
     const newButton = page.getByRole('button', { name: /Nuevo paciente/ })
-    if (!await newButton.isVisible() || !await newButton.isEnabled()) {
+    if (!(await newButton.isVisible()) || !(await newButton.isEnabled())) {
       test.skip(true, 'Botón Nuevo paciente no disponible')
       return
     }
@@ -281,7 +284,7 @@ test.describe('Patient CRUD via drawer', () => {
     await openPatients(page)
 
     const newButton = page.getByRole('button', { name: /Nuevo paciente/ })
-    if (!await newButton.isVisible() || !await newButton.isEnabled()) {
+    if (!(await newButton.isVisible()) || !(await newButton.isEnabled())) {
       test.skip(true, 'Botón Nuevo paciente no disponible')
       return
     }
@@ -301,7 +304,7 @@ test.describe('Patient CRUD via drawer', () => {
     await openPatients(page)
 
     const newButton = page.getByRole('button', { name: /Nuevo paciente/ })
-    if (!await newButton.isVisible() || !await newButton.isEnabled()) {
+    if (!(await newButton.isVisible()) || !(await newButton.isEnabled())) {
       test.skip(true, 'Botón Nuevo paciente no disponible')
       return
     }

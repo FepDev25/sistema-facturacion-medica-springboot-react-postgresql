@@ -53,7 +53,16 @@ describe('doctors API', () => {
   describe('getDoctors', () => {
     it('fetches paginated doctors with default params', async () => {
       mockGet.mockResolvedValue({
-        data: { content: [mockDoctor], totalElements: 1, totalPages: 1, number: 0, size: 20, first: true, last: true, empty: false },
+        data: {
+          content: [mockDoctor],
+          totalElements: 1,
+          totalPages: 1,
+          number: 0,
+          size: 20,
+          first: true,
+          last: true,
+          empty: false,
+        },
       })
       const result = await getDoctors()
       expect(mockGet).toHaveBeenCalledWith('/doctors', {
@@ -63,7 +72,18 @@ describe('doctors API', () => {
     })
 
     it('passes active and specialty filters', async () => {
-      mockGet.mockResolvedValue({ data: { content: [], totalElements: 0, totalPages: 0, number: 0, size: 20, first: true, last: true, empty: true } })
+      mockGet.mockResolvedValue({
+        data: {
+          content: [],
+          totalElements: 0,
+          totalPages: 0,
+          number: 0,
+          size: 20,
+          first: true,
+          last: true,
+          empty: true,
+        },
+      })
       await getDoctors({ active: true, specialty: 'Cardiologia' })
       expect(mockGet).toHaveBeenCalledWith('/doctors', {
         params: { active: true, specialty: 'Cardiologia', page: 0, size: 20, sort: undefined },
@@ -112,7 +132,10 @@ describe('doctors API', () => {
         phone: '555-9876',
         email: 'maria@test.com',
       })
-      expect(mockPost).toHaveBeenCalledWith('/doctors', expect.objectContaining({ licenseNumber: 'MED-12345' }))
+      expect(mockPost).toHaveBeenCalledWith(
+        '/doctors',
+        expect.objectContaining({ licenseNumber: 'MED-12345' }),
+      )
       expect(result.id).toBe('doc-1')
     })
   })
@@ -120,8 +143,18 @@ describe('doctors API', () => {
   describe('updateDoctor', () => {
     it('puts doctor data', async () => {
       mockPut.mockResolvedValue({ data: mockDoctor })
-      const result = await updateDoctor('doc-1', { firstName: 'Maria', lastName: 'Garcia', specialty: 'Cardiologia', phone: '555-9876', email: 'maria@test.com', isActive: true })
-      expect(mockPut).toHaveBeenCalledWith('/doctors/doc-1', expect.objectContaining({ firstName: 'Maria' }))
+      const result = await updateDoctor('doc-1', {
+        firstName: 'Maria',
+        lastName: 'Garcia',
+        specialty: 'Cardiologia',
+        phone: '555-9876',
+        email: 'maria@test.com',
+        isActive: true,
+      })
+      expect(mockPut).toHaveBeenCalledWith(
+        '/doctors/doc-1',
+        expect.objectContaining({ firstName: 'Maria' }),
+      )
       expect(result.id).toBe('doc-1')
     })
   })
@@ -140,7 +173,18 @@ describe('doctors API', () => {
   describe('getSystemUsers', () => {
     it('fetches system users with default params', async () => {
       mockGet.mockResolvedValue({
-        data: { content: [{ id: 'u-1', username: 'admin', email: 'a@b.com', role: 'ADMIN', active: true }], totalElements: 1, totalPages: 1, number: 0, size: 100, first: true, last: true, empty: false },
+        data: {
+          content: [
+            { id: 'u-1', username: 'admin', email: 'a@b.com', role: 'ADMIN', active: true },
+          ],
+          totalElements: 1,
+          totalPages: 1,
+          number: 0,
+          size: 100,
+          first: true,
+          last: true,
+          empty: false,
+        },
       })
       const result = await getSystemUsers()
       expect(mockGet).toHaveBeenCalledWith('/system-users', {
@@ -150,7 +194,18 @@ describe('doctors API', () => {
     })
 
     it('passes role filter', async () => {
-      mockGet.mockResolvedValue({ data: { content: [], totalElements: 0, totalPages: 0, number: 0, size: 100, first: true, last: true, empty: true } })
+      mockGet.mockResolvedValue({
+        data: {
+          content: [],
+          totalElements: 0,
+          totalPages: 0,
+          number: 0,
+          size: 100,
+          first: true,
+          last: true,
+          empty: true,
+        },
+      })
       await getSystemUsers({ role: 'DOCTOR' })
       expect(mockGet).toHaveBeenCalledWith('/system-users', {
         params: { role: 'DOCTOR', active: undefined, page: 0, size: 100 },
@@ -163,9 +218,14 @@ describe('doctor adapters', () => {
   describe('toDoctorCreateRequest', () => {
     it('trims strings and keeps userId when present', () => {
       const values: DoctorFormValues = {
-        licenseNumber: ' MED-123 ', firstName: ' Maria ', lastName: ' Garcia ',
-        specialty: ' Cardiologia ', phone: ' 555-1234 ', email: ' maria@test.com ',
-        isActive: true, userId: 'user-1',
+        licenseNumber: ' MED-123 ',
+        firstName: ' Maria ',
+        lastName: ' Garcia ',
+        specialty: ' Cardiologia ',
+        phone: ' 555-1234 ',
+        email: ' maria@test.com ',
+        isActive: true,
+        userId: 'user-1',
       }
       const result = toDoctorCreateRequest(values)
       expect(result.licenseNumber).toBe('MED-123')
@@ -174,8 +234,14 @@ describe('doctor adapters', () => {
 
     it('nullifies empty userId', () => {
       const values: DoctorFormValues = {
-        licenseNumber: 'MED-123', firstName: 'Maria', lastName: 'Garcia',
-        specialty: 'Cardio', phone: '555', email: 'm@t.com', isActive: true, userId: '',
+        licenseNumber: 'MED-123',
+        firstName: 'Maria',
+        lastName: 'Garcia',
+        specialty: 'Cardio',
+        phone: '555',
+        email: 'm@t.com',
+        isActive: true,
+        userId: '',
       }
       const result = toDoctorCreateRequest(values)
       expect(result.userId).toBeNull()
@@ -183,8 +249,14 @@ describe('doctor adapters', () => {
 
     it('nullifies whitespace-only userId', () => {
       const values: DoctorFormValues = {
-        licenseNumber: 'MED-123', firstName: 'Maria', lastName: 'Garcia',
-        specialty: 'Cardio', phone: '555', email: 'm@t.com', isActive: true, userId: '   ',
+        licenseNumber: 'MED-123',
+        firstName: 'Maria',
+        lastName: 'Garcia',
+        specialty: 'Cardio',
+        phone: '555',
+        email: 'm@t.com',
+        isActive: true,
+        userId: '   ',
       }
       const result = toDoctorCreateRequest(values)
       expect(result.userId).toBeNull()
@@ -194,8 +266,14 @@ describe('doctor adapters', () => {
   describe('toDoctorUpdateRequest', () => {
     it('excludes licenseNumber and userId', () => {
       const values: DoctorFormValues = {
-        licenseNumber: 'MED-123', firstName: ' Maria ', lastName: ' Garcia ',
-        specialty: ' Cardio ', phone: ' 555 ', email: ' m@t.com ', isActive: true, userId: 'user-1',
+        licenseNumber: 'MED-123',
+        firstName: ' Maria ',
+        lastName: ' Garcia ',
+        specialty: ' Cardio ',
+        phone: ' 555 ',
+        email: ' m@t.com ',
+        isActive: true,
+        userId: 'user-1',
       }
       const result = toDoctorUpdateRequest(values, false)
       expect(result.licenseNumber).toBeUndefined()

@@ -10,7 +10,9 @@ describe('getDoctorColumns', () => {
 
   it('has correct accessorKey columns', () => {
     const cols = getDoctorColumns(opts)
-    expect(cols.filter((c) => 'accessorKey' in c).map((c) => (c as { accessorKey: string }).accessorKey)).toEqual(['specialty'])
+    expect(
+      cols.filter((c) => 'accessorKey' in c).map((c) => (c as { accessorKey: string }).accessorKey),
+    ).toEqual(['specialty'])
   })
 
   it('has correct id columns', () => {

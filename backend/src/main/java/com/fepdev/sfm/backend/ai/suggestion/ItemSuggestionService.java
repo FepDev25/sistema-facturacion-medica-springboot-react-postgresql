@@ -10,6 +10,7 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.fepdev.sfm.backend.ai.guard.AiCallExecutor;
 import com.fepdev.sfm.backend.ai.suggestion.dto.ItemSuggestionResult;
 import com.fepdev.sfm.backend.ai.suggestion.dto.SuggestedItem;
 import com.fepdev.sfm.backend.domain.catalog.MedicationsCatalog;
@@ -26,6 +27,7 @@ import com.fepdev.sfm.backend.domain.medicalrecord.Prescription;
 import com.fepdev.sfm.backend.domain.medicalrecord.PrescriptionRepository;
 import com.fepdev.sfm.backend.domain.medicalrecord.Procedure;
 import com.fepdev.sfm.backend.domain.medicalrecord.ProcedureRepository;
+import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -48,6 +50,7 @@ public class ItemSuggestionService {
             """;
 
     private final ChatClient chatClient;
+    private final AiCallExecutor aiCallExecutor;
     private final InvoiceRepository invoiceRepo;
     private final MedicalRecordRepository medicalRecordRepo;
     private final DiagnosisRepository diagnosisRepo;
@@ -57,6 +60,7 @@ public class ItemSuggestionService {
     private final MedicationsCatalogRepository medicationsRepo;
 
     public ItemSuggestionService(ChatClient chatClient,
+                                  AiCallExecutor aiCallExecutor,
                                   InvoiceRepository invoiceRepo,
                                   MedicalRecordRepository medicalRecordRepo,
                                   DiagnosisRepository diagnosisRepo,
@@ -65,6 +69,7 @@ public class ItemSuggestionService {
                                   ServicesCatalogRepository servicesRepo,
                                   MedicationsCatalogRepository medicationsRepo) {
         this.chatClient = chatClient;
+        this.aiCallExecutor = aiCallExecutor;
         this.invoiceRepo = invoiceRepo;
         this.medicalRecordRepo = medicalRecordRepo;
         this.diagnosisRepo = diagnosisRepo;
@@ -78,6 +83,11 @@ public class ItemSuggestionService {
     public ItemSuggestionResult suggestItems(UUID invoiceId) {
         Invoice invoice = invoiceRepo.findById(invoiceId)
                 .orElseThrow(() -> new EntityNotFoundException("Factura no encontrada: " + invoiceId));
+
+        if (invoice.getAppointment() == null) {
+            throw new BusinessRuleException(
+                    "La factura no tiene una cita asociada; no hay expediente clínico para sugerir ítems");
+        }
 
         UUID appointmentId = invoice.getAppointment().getId();
 
@@ -106,11 +116,11 @@ public class ItemSuggestionService {
 
         String userPrompt = buildPrompt(diagnoses, prescriptions, procedures, services, medications);
 
-        LlmResult llmResult = chatClient.prompt()
+        LlmResult llmResult = aiCallExecutor.call("items-suggest", () -> chatClient.prompt()
                 .system(SYSTEM_PROMPT)
                 .user(userPrompt)
                 .call()
-                .entity(LlmResult.class);
+                .entity(LlmResult.class));
 
         if (llmResult == null || llmResult.suggestedItems() == null) {
             return new ItemSuggestionResult(List.of());

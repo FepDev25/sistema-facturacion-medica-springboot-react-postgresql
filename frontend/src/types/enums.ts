@@ -1,67 +1,24 @@
 // Enums persisted as lowercase strings (AttributeConverter on backend)
 
-export type Gender =
-  | 'male'
-  | 'female'
-  | 'other'
-  | 'prefer_not_to_say'
+export type Gender = 'male' | 'female' | 'other' | 'prefer_not_to_say'
 
 export type AppointmentStatus =
-  | 'scheduled'
-  | 'confirmed'
-  | 'in_progress'
-  | 'completed'
-  | 'cancelled'
-  | 'no_show'
+  'scheduled' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show'
 
-export type InvoiceStatus =
-  | 'draft'
-  | 'pending'
-  | 'partial_paid'
-  | 'paid'
-  | 'cancelled'
-  | 'overdue'
+export type InvoiceStatus = 'draft' | 'pending' | 'partial_paid' | 'paid' | 'cancelled' | 'overdue'
 
-export type Severity =
-  | 'mild'
-  | 'moderate'
-  | 'severe'
-  | 'critical'
+export type Severity = 'mild' | 'moderate' | 'severe' | 'critical'
 
-export type ItemType =
-  | 'service'
-  | 'medication'
-  | 'procedure'
-  | 'other'
+export type ItemType = 'service' | 'medication' | 'procedure' | 'other'
 
 export type PaymentMethod =
-  | 'cash'
-  | 'credit_card'
-  | 'debit_card'
-  | 'bank_transfer'
-  | 'check'
-  | 'insurance'
-  | 'other'
+  'cash' | 'credit_card' | 'debit_card' | 'bank_transfer' | 'check' | 'insurance' | 'other'
 
 export type ServiceCategory =
-  | 'consultation'
-  | 'laboratory'
-  | 'imaging'
-  | 'surgery'
-  | 'therapy'
-  | 'emergency'
-  | 'other'
+  'consultation' | 'laboratory' | 'imaging' | 'surgery' | 'therapy' | 'emergency' | 'other'
 
 export type MedicationUnit =
-  | 'tablet'
-  | 'capsule'
-  | 'ml'
-  | 'mg'
-  | 'g'
-  | 'unit'
-  | 'box'
-  | 'vial'
-  | 'inhaler'
+  'tablet' | 'capsule' | 'ml' | 'mg' | 'g' | 'unit' | 'box' | 'vial' | 'inhaler'
 
 export type CatalogType = 'service' | 'medication'
 

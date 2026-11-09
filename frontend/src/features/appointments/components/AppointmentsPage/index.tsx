@@ -11,10 +11,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { DataTable } from '@/components/DataTable'
-import {
-  NO_PERMISSION_MESSAGE,
-  useRolePermissions,
-} from '@/features/auth/hooks/useRolePermissions'
+import { NO_PERMISSION_MESSAGE, useRolePermissions } from '@/features/auth/hooks/useRolePermissions'
 import { useLoggedInDoctorId } from '@/features/auth/hooks/useLoggedInDoctorId'
 import { APPOINTMENT_STATUS_LABELS } from '@/types/enums'
 import {
@@ -28,13 +25,7 @@ import { getAppointmentColumns } from '../appointmentColumns'
 import { AppointmentDrawer } from '../AppointmentDrawer'
 
 type AppointmentStatusFilter =
-  | 'all'
-  | 'scheduled'
-  | 'confirmed'
-  | 'in_progress'
-  | 'completed'
-  | 'cancelled'
-  | 'no_show'
+  'all' | 'scheduled' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'no_show'
 
 export function AppointmentsPage() {
   const { role, canManagePatients } = useRolePermissions()
@@ -94,13 +85,7 @@ export function AppointmentsPage() {
         },
         canOperate: canManagePatients,
       }),
-    [
-      cancelAppointment,
-      canManagePatients,
-      confirmAppointment,
-      noShowAppointment,
-      startAppointment,
-    ],
+    [cancelAppointment, canManagePatients, confirmAppointment, noShowAppointment, startAppointment],
   )
 
   return (
@@ -113,7 +98,7 @@ export function AppointmentsPage() {
       <div className="flex-1 px-6 py-5 overflow-auto">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3">
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <span className="text-sm text-slate-600">Estado:</span>
+            <span className="text-sm text-muted-foreground">Estado:</span>
             <Select
               value={statusFilter}
               onValueChange={(value) => {
@@ -163,7 +148,7 @@ export function AppointmentsPage() {
 
         {!isLoading && appointmentsPage && appointmentsPage.totalPages > 1 ? (
           <div className="mt-3 flex items-center justify-between px-1">
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-muted-foreground">
               Pagina {appointmentsPage.number + 1} de {appointmentsPage.totalPages} -{' '}
               {appointmentsPage.totalElements} citas
             </p>

@@ -1,6 +1,15 @@
 import { useState } from 'react'
 import { Link, useParams } from '@tanstack/react-router'
-import { ClipboardList, CreditCard, FileText, Loader2, Plus, Sparkles, Trash2, UserRound } from 'lucide-react'
+import {
+  ClipboardList,
+  CreditCard,
+  FileText,
+  Loader2,
+  Plus,
+  Sparkles,
+  Trash2,
+  UserRound,
+} from 'lucide-react'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -11,11 +20,9 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { BackToListButton } from '@/components/BackToListButton'
+import { DetailSkeleton, QueryError } from '@/components/DetailState'
 import { PageHeader } from '@/components/layout/PageHeader'
-import {
-  NO_PERMISSION_MESSAGE,
-  useRolePermissions,
-} from '@/features/auth/hooks/useRolePermissions'
+import { NO_PERMISSION_MESSAGE, useRolePermissions } from '@/features/auth/hooks/useRolePermissions'
 import { usePolicies } from '@/features/insurance/hooks/useInsurance'
 import { INVOICE_STATUS_LABELS, PAYMENT_METHOD_LABELS } from '@/types/enums'
 import { formatCurrency, formatDate, formatDateTime } from '@/lib/utils'
@@ -68,25 +75,36 @@ export function InvoiceDetailPage() {
   })
 
   if (invoiceQuery.isLoading) {
-    return <div className="px-6 py-8 text-sm text-slate-500">Cargando factura...</div>
+    return <DetailSkeleton label="Cargando factura" />
+  }
+
+  if (invoiceQuery.isError) {
+    return (
+      <QueryError
+        message="No se pudo cargar la factura. Revisa tu conexión e intenta de nuevo."
+        onRetry={() => void invoiceQuery.refetch()}
+      />
+    )
   }
 
   const invoice = invoiceQuery.data
   if (!invoice) {
     return (
       <div className="px-6 py-8">
-        <p className="text-sm text-slate-500 mb-4">No se encontro la factura.</p>
+        <p className="text-sm text-muted-foreground mb-4">No se encontro la factura.</p>
         <BackToListButton fallbackTo="/invoices" label="Volver a facturas" />
       </div>
     )
   }
 
   const selectedPolicyId =
-    policySelection?.invoiceId === id
-      ? policySelection.value
-      : (invoice.insurancePolicyId ?? '')
+    policySelection?.invoiceId === id ? policySelection.value : (invoice.insurancePolicyId ?? '')
   const payments = paymentsQuery.data ?? []
   const isDraft = invoice.status === 'draft'
+  const isPayable =
+    invoice.status === 'pending' ||
+    invoice.status === 'partial_paid' ||
+    invoice.status === 'overdue'
 
   return (
     <div className="flex flex-col h-full">
@@ -100,7 +118,9 @@ export function InvoiceDetailPage() {
                 size="sm"
                 variant="outline"
                 disabled={!canManageInvoices || invoice.total === 0 || confirmInvoice.isPending}
-                title={invoice.total === 0 ? 'Agrega ítems antes de confirmar' : 'Confirmar factura'}
+                title={
+                  invoice.total === 0 ? 'Agrega ítems antes de confirmar' : 'Confirmar factura'
+                }
                 onClick={() => {
                   if (!canManageInvoices) {
                     toast.error(NO_PERMISSION_MESSAGE)
@@ -114,7 +134,7 @@ export function InvoiceDetailPage() {
             )}
             <Button
               size="sm"
-              disabled={!canRegisterPayments || isDraft}
+              disabled={!canRegisterPayments || !isPayable}
               onClick={() => {
                 if (!canRegisterPayments) {
                   toast.error(NO_PERMISSION_MESSAGE)
@@ -132,10 +152,10 @@ export function InvoiceDetailPage() {
 
       <div className="flex-1 px-6 py-5 overflow-auto space-y-6">
         <section className="rounded-xl border border-border bg-card p-5 shadow-card">
-          <h2 className="text-sm font-semibold text-slate-900 mb-3">Resumen financiero</h2>
+          <h2 className="text-sm font-semibold text-foreground mb-3">Resumen financiero</h2>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
             <div>
-              <p className="text-xs text-slate-500">Estado</p>
+              <p className="text-xs text-muted-foreground">Estado</p>
               <div className="mt-1">
                 <StatusBadge
                   status={invoice.status}
@@ -144,44 +164,44 @@ export function InvoiceDetailPage() {
               </div>
             </div>
             <div>
-              <p className="text-xs text-slate-500">Emision</p>
-              <p className="text-sm text-slate-800">{formatDate(invoice.issueDate)}</p>
+              <p className="text-xs text-muted-foreground">Emision</p>
+              <p className="text-sm text-foreground">{formatDate(invoice.issueDate)}</p>
             </div>
             <div>
-              <p className="text-xs text-slate-500">Vencimiento</p>
-              <p className="text-sm text-slate-800">{formatDate(invoice.dueDate)}</p>
+              <p className="text-xs text-muted-foreground">Vencimiento</p>
+              <p className="text-sm text-foreground">{formatDate(invoice.dueDate)}</p>
             </div>
             <div>
-              <p className="text-xs text-slate-500">Subtotal</p>
-              <p className="text-sm text-slate-800">{formatCurrency(invoice.subtotal)}</p>
+              <p className="text-xs text-muted-foreground">Subtotal</p>
+              <p className="text-sm text-foreground">{formatCurrency(invoice.subtotal)}</p>
             </div>
             <div>
-              <p className="text-xs text-slate-500">Impuestos</p>
-              <p className="text-sm text-slate-800">{formatCurrency(invoice.tax)}</p>
+              <p className="text-xs text-muted-foreground">Impuestos</p>
+              <p className="text-sm text-foreground">{formatCurrency(invoice.tax)}</p>
             </div>
             <div>
-              <p className="text-xs text-slate-500">Total</p>
-              <p className="text-sm font-medium text-slate-900">{formatCurrency(invoice.total)}</p>
+              <p className="text-xs text-muted-foreground">Total</p>
+              <p className="text-sm font-medium text-foreground">{formatCurrency(invoice.total)}</p>
             </div>
             <div>
-              <p className="text-xs text-slate-500">Cobertura seguro</p>
-              <p className="text-sm text-slate-800">{formatCurrency(invoice.insuranceCoverage)}</p>
+              <p className="text-xs text-muted-foreground">Cobertura seguro</p>
+              <p className="text-sm text-foreground">{formatCurrency(invoice.insuranceCoverage)}</p>
             </div>
             <div>
-              <p className="text-xs text-slate-500">Responsabilidad paciente</p>
-              <p className="text-sm font-medium text-slate-900">
+              <p className="text-xs text-muted-foreground">Responsabilidad paciente</p>
+              <p className="text-sm font-medium text-foreground">
                 {formatCurrency(invoice.patientResponsibility)}
               </p>
             </div>
             <div>
-              <p className="text-xs text-slate-500">Pagado</p>
-              <p className="text-sm text-slate-800">
+              <p className="text-xs text-muted-foreground">Pagado</p>
+              <p className="text-sm text-foreground">
                 {formatCurrency(payments.reduce((acc, item) => acc + item.amount, 0))}
               </p>
             </div>
             <div>
-              <p className="text-xs text-slate-500">Saldo</p>
-              <p className="text-sm font-medium text-slate-900">
+              <p className="text-xs text-muted-foreground">Saldo</p>
+              <p className="text-sm font-medium text-foreground">
                 {formatCurrency(
                   Math.max(
                     invoice.patientResponsibility -
@@ -202,22 +222,50 @@ export function InvoiceDetailPage() {
 
         <section className="rounded-xl border border-border bg-card p-5 shadow-card">
           <div className="flex items-center gap-2 mb-3">
-            <UserRound className="h-4 w-4 text-slate-500" />
-            <h2 className="text-sm font-semibold text-slate-900">Paciente y cobertura</h2>
+            <UserRound className="h-4 w-4 text-muted-foreground" />
+            <h2 className="text-sm font-semibold text-foreground">Paciente y cobertura</h2>
           </div>
-          <p className="text-sm text-slate-800">
+          <p className="text-sm text-foreground">
             {invoice.patientFirstName} {invoice.patientLastName}
           </p>
+
+          {invoice.insurancePolicyId ? (
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <div>
+                <p className="text-xs text-muted-foreground">Póliza</p>
+                <p className="text-sm text-foreground">
+                  {invoice.insurancePolicyPolicyNumber ?? '—'}
+                  {invoice.insurancePolicyProviderName
+                    ? ` · ${invoice.insurancePolicyProviderName}`
+                    : ''}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Cobertura</p>
+                <p className="text-sm text-foreground">
+                  {invoice.insurancePolicyCoveragePercentage ?? 0}% ·{' '}
+                  {formatCurrency(invoice.insuranceCoverage)}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <p className="mt-2 text-xs text-muted-foreground">
+              {isDraft
+                ? 'Sin póliza asociada. Puedes aplicarla antes de confirmar la factura.'
+                : 'Sin póliza asociada: el paciente cubre el total.'}
+            </p>
+          )}
+
           {medicalRecordQuery.data && (
-            <div className="mt-3 rounded-md border border-green-200 bg-green-50 px-3 py-2 flex items-center justify-between">
+            <div className="mt-3 rounded-md border border-success/25 bg-success/10 px-3 py-2 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <ClipboardList className="h-4 w-4 text-green-700" />
-                <p className="text-xs font-medium text-green-800">Expediente médico asociado</p>
+                <ClipboardList className="h-4 w-4 text-success" />
+                <p className="text-xs font-medium text-success">Expediente médico asociado</p>
               </div>
               <Link
                 to="/medical-records/$id"
                 params={{ id: medicalRecordQuery.data.id }}
-                className="text-xs text-green-800 underline hover:text-green-900"
+                className="text-xs text-success underline hover:text-success"
               >
                 Ver expediente
               </Link>
@@ -227,7 +275,7 @@ export function InvoiceDetailPage() {
           {isDraft ? (
             <div className="mt-4 flex flex-col sm:flex-row sm:items-end gap-2">
               <div className="w-full sm:w-80">
-                <p className="text-xs text-slate-500 mb-1">Poliza para esta factura</p>
+                <p className="text-xs text-muted-foreground mb-1">Poliza para esta factura</p>
                 <Select value={selectedPolicyId} onValueChange={selectPolicy}>
                   <SelectTrigger>
                     <SelectValue placeholder="Sin poliza" />
@@ -281,8 +329,8 @@ export function InvoiceDetailPage() {
 
         <section className="rounded-xl border border-border bg-card p-5 shadow-card">
           <div className="flex items-center gap-2 mb-3">
-            <FileText className="h-4 w-4 text-slate-500" />
-            <h2 className="text-sm font-semibold text-slate-900">Items facturados</h2>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+            <h2 className="text-sm font-semibold text-foreground">Items facturados</h2>
             {isDraft && (
               <div className="ml-auto flex items-center gap-2">
                 <Button
@@ -333,16 +381,18 @@ export function InvoiceDetailPage() {
             {invoice.items.map((item) => (
               <div
                 key={item.id}
-                className="rounded-md border border-slate-100 bg-slate-50 px-3 py-2 flex items-center justify-between"
+                className="rounded-md border border-border/60 bg-muted/50 px-3 py-2 flex items-center justify-between"
               >
                 <div>
-                  <p className="text-sm text-slate-800">{item.description}</p>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-sm text-foreground">{item.description}</p>
+                  <p className="text-xs text-muted-foreground">
                     {item.quantity} x {formatCurrency(item.unitPrice)}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-slate-900">{formatCurrency(item.subtotal)}</p>
+                  <p className="text-sm font-medium text-foreground">
+                    {formatCurrency(item.subtotal)}
+                  </p>
                   {isDraft ? (
                     <Button
                       size="icon"
@@ -369,27 +419,33 @@ export function InvoiceDetailPage() {
 
         <section className="rounded-xl border border-border bg-card p-5 shadow-card">
           <div className="flex items-center gap-2 mb-3">
-            <CreditCard className="h-4 w-4 text-slate-500" />
-            <h2 className="text-sm font-semibold text-slate-900">Pagos registrados</h2>
+            <CreditCard className="h-4 w-4 text-muted-foreground" />
+            <h2 className="text-sm font-semibold text-foreground">Pagos registrados</h2>
           </div>
           {payments.length === 0 ? (
-            <p className="text-sm text-slate-500">No hay pagos registrados para esta factura.</p>
+            <p className="text-sm text-muted-foreground">
+              No hay pagos registrados para esta factura.
+            </p>
           ) : (
             <div className="space-y-2">
               {payments.map((payment) => (
                 <div
                   key={payment.id}
-                  className="rounded-md border border-slate-100 bg-slate-50 px-3 py-2"
+                  className="rounded-md border border-border/60 bg-muted/50 px-3 py-2"
                 >
                   <div className="flex items-center justify-between">
-                    <p className="text-sm text-slate-800">{formatCurrency(payment.amount)}</p>
-                    <p className="text-xs text-slate-500">{formatDateTime(payment.paymentDate)}</p>
+                    <p className="text-sm text-foreground">{formatCurrency(payment.amount)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatDateTime(payment.paymentDate)}
+                    </p>
                   </div>
-                  <p className="text-xs text-slate-500 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     Metodo: {PAYMENT_METHOD_LABELS[payment.paymentMethod]}
                     {payment.referenceNumber ? ` - Ref: ${payment.referenceNumber}` : ''}
                   </p>
-                  {payment.notes && <p className="text-xs text-slate-500 mt-1">{payment.notes}</p>}
+                  {payment.notes && (
+                    <p className="text-xs text-muted-foreground mt-1">{payment.notes}</p>
+                  )}
                 </div>
               ))}
             </div>

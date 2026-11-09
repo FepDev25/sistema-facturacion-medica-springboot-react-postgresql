@@ -52,7 +52,8 @@ export function useCreateProvider() {
       void qc.invalidateQueries({ queryKey: providerKeys.all })
       toast.success('Aseguradora creada')
     },
-    onError: (error) => toast.error(extractApiErrorMessage(error) ?? 'Error al crear la aseguradora'),
+    onError: (error) =>
+      toast.error(extractApiErrorMessage(error) ?? 'Error al crear la aseguradora'),
   })
 }
 
@@ -66,7 +67,8 @@ export function useUpdateProvider() {
       void qc.invalidateQueries({ queryKey: policyKeys.all })
       toast.success('Aseguradora actualizada')
     },
-    onError: (error) => toast.error(extractApiErrorMessage(error) ?? 'Error al actualizar la aseguradora'),
+    onError: (error) =>
+      toast.error(extractApiErrorMessage(error) ?? 'Error al actualizar la aseguradora'),
   })
 }
 
@@ -78,7 +80,8 @@ export function useDeactivateProvider() {
       void qc.invalidateQueries({ queryKey: providerKeys.all })
       toast.success('Aseguradora desactivada')
     },
-    onError: (error) => toast.error(extractApiErrorMessage(error) ?? 'Error al desactivar la aseguradora'),
+    onError: (error) =>
+      toast.error(extractApiErrorMessage(error) ?? 'Error al desactivar la aseguradora'),
   })
 }
 
@@ -126,6 +129,7 @@ export function useUpdatePolicy() {
       void qc.invalidateQueries({ queryKey: policyKeys.all })
       toast.success('Poliza actualizada')
     },
-    onError: (error) => toast.error(extractApiErrorMessage(error) ?? 'Error al actualizar la poliza'),
+    onError: (error) =>
+      toast.error(extractApiErrorMessage(error) ?? 'Error al actualizar la poliza'),
   })
 }

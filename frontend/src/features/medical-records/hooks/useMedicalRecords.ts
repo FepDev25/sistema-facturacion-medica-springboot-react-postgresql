@@ -24,7 +24,8 @@ export const medicalRecordKeys = {
     [...medicalRecordKeys.all, 'appointment', appointmentId] as const,
   byPatient: (patientId: string) => [...medicalRecordKeys.all, 'patient', patientId] as const,
   diagnoses: (recordId: string) => [...medicalRecordKeys.all, 'diagnoses', recordId] as const,
-  prescriptions: (recordId: string) => [...medicalRecordKeys.all, 'prescriptions', recordId] as const,
+  prescriptions: (recordId: string) =>
+    [...medicalRecordKeys.all, 'prescriptions', recordId] as const,
   procedures: (recordId: string) => [...medicalRecordKeys.all, 'procedures', recordId] as const,
 }
 
@@ -65,7 +66,8 @@ export function useMedicalRecordDiagnoses(recordId: string) {
 export function useMedicalRecordPrescriptions(recordId: string) {
   return useQuery({
     queryKey: medicalRecordKeys.prescriptions(recordId),
-    queryFn: () => medicalRecordsApi.getPrescriptionsByMedicalRecord(recordId, { page: 0, size: 100 }),
+    queryFn: () =>
+      medicalRecordsApi.getPrescriptionsByMedicalRecord(recordId, { page: 0, size: 100 }),
     enabled: !!recordId,
     select: (data) => data.content,
   })

@@ -12,15 +12,15 @@ Las fases 1 y 2 del proyecto establecen la capa de contratos de datos: los tipos
 
 Cada interfaz de TypeScript es el espejo directo del DTO correspondiente en el backend Java. El objetivo es que cuando se conecte el backend real, no sea necesario modificar ningún tipo del frontend. La correspondencia es:
 
-| Java (backend) | TypeScript (frontend) |
-|---|---|
-| `PatientResponse.java` | `PatientResponse` en `patient.ts` |
+| Java (backend)              | TypeScript (frontend)                  |
+| --------------------------- | -------------------------------------- |
+| `PatientResponse.java`      | `PatientResponse` en `patient.ts`      |
 | `InvoiceCreateRequest.java` | `InvoiceCreateRequest` en `invoice.ts` |
-| `String` (UUID) | `string` |
-| `LocalDate` | `string` (`"YYYY-MM-DD"`) |
-| `OffsetDateTime` | `string` (ISO 8601 con offset) |
-| `BigDecimal` | `number` |
-| Enum (AttributeConverter) | `type` union de strings en lowercase |
+| `String` (UUID)             | `string`                               |
+| `LocalDate`                 | `string` (`"YYYY-MM-DD"`)              |
+| `OffsetDateTime`            | `string` (ISO 8601 con offset)         |
+| `BigDecimal`                | `number`                               |
+| Enum (AttributeConverter)   | `type` union de strings en lowercase   |
 
 Todos los campos opcionales del backend (`@Nullable`, `Optional`) se mapean como `T | null` en la respuesta y como `T | null | undefined` en el request (porque en el formulario el campo puede estar ausente o explícitamente nulo).
 
@@ -28,11 +28,11 @@ Todos los campos opcionales del backend (`@Nullable`, `Optional`) se mapean como
 
 Cada dominio tiene tres categorías de tipos:
 
-| Sufijo | Uso |
-|---|---|
-| `CreateRequest` | Payload de POST — enviado por el cliente |
-| `UpdateRequest` | Payload de PUT/PATCH — enviado por el cliente |
-| `Response` | Objeto completo devuelto por la API (incluye `id`, `createdAt`, etc.) |
+| Sufijo            | Uso                                                                                      |
+| ----------------- | ---------------------------------------------------------------------------------------- |
+| `CreateRequest`   | Payload de POST — enviado por el cliente                                                 |
+| `UpdateRequest`   | Payload de PUT/PATCH — enviado por el cliente                                            |
+| `Response`        | Objeto completo devuelto por la API (incluye `id`, `createdAt`, etc.)                    |
 | `SummaryResponse` | Subconjunto reducido para embeber en otros objetos (evita respuestas anidadas profundas) |
 
 ### Estructura de Archivos
@@ -61,11 +61,11 @@ Tipos de infraestructura compartidos por todos los dominios.
 
 ```typescript
 export interface PageResponse<T> {
-  content: T[]        // elementos de la página actual
+  content: T[] // elementos de la página actual
   totalElements: number
   totalPages: number
-  number: number      // página actual (base 0)
-  size: number        // tamaño de la página
+  number: number // página actual (base 0)
+  size: number // tamaño de la página
   first: boolean
   last: boolean
   empty: boolean
@@ -81,7 +81,7 @@ export interface ApiError {
   error: string
   message: string
   path: string
-  fieldErrors?: FieldError[]  // presente en errores de validacion (400)
+  fieldErrors?: FieldError[] // presente en errores de validacion (400)
 }
 
 export interface FieldError {
@@ -98,17 +98,17 @@ Los enums del backend Java usan un `AttributeConverter` con `autoApply = true` q
 
 **Enums definidos:**
 
-| Nombre | Valores |
-|---|---|
-| `Gender` | `'male' \| 'female' \| 'other' \| 'prefer_not_to_say'` |
-| `AppointmentStatus` | `'scheduled' \| 'confirmed' \| 'in_progress' \| 'completed' \| 'cancelled' \| 'no_show'` |
-| `InvoiceStatus` | `'draft' \| 'pending' \| 'partial_paid' \| 'paid' \| 'cancelled' \| 'overdue'` |
-| `Severity` | `'mild' \| 'moderate' \| 'severe' \| 'critical'` |
-| `ItemType` | `'service' \| 'medication' \| 'procedure' \| 'other'` |
-| `PaymentMethod` | `'cash' \| 'credit_card' \| 'debit_card' \| 'bank_transfer' \| 'check' \| 'insurance' \| 'other'` |
-| `ServiceCategory` | `'consultation' \| 'laboratory' \| 'imaging' \| 'surgery' \| 'therapy' \| 'emergency' \| 'other'` |
-| `MedicationUnit` | `'tablet' \| 'capsule' \| 'ml' \| 'mg' \| 'g' \| 'unit' \| 'box' \| 'vial' \| 'inhaler'` |
-| `CatalogType` | `'service' \| 'medication'` |
+| Nombre              | Valores                                                                                           |
+| ------------------- | ------------------------------------------------------------------------------------------------- |
+| `Gender`            | `'male' \| 'female' \| 'other' \| 'prefer_not_to_say'`                                            |
+| `AppointmentStatus` | `'scheduled' \| 'confirmed' \| 'in_progress' \| 'completed' \| 'cancelled' \| 'no_show'`          |
+| `InvoiceStatus`     | `'draft' \| 'pending' \| 'partial_paid' \| 'paid' \| 'cancelled' \| 'overdue'`                    |
+| `Severity`          | `'mild' \| 'moderate' \| 'severe' \| 'critical'`                                                  |
+| `ItemType`          | `'service' \| 'medication' \| 'procedure' \| 'other'`                                             |
+| `PaymentMethod`     | `'cash' \| 'credit_card' \| 'debit_card' \| 'bank_transfer' \| 'check' \| 'insurance' \| 'other'` |
+| `ServiceCategory`   | `'consultation' \| 'laboratory' \| 'imaging' \| 'surgery' \| 'therapy' \| 'emergency' \| 'other'` |
+| `MedicationUnit`    | `'tablet' \| 'capsule' \| 'ml' \| 'mg' \| 'g' \| 'unit' \| 'box' \| 'vial' \| 'inhaler'`          |
+| `CatalogType`       | `'service' \| 'medication'`                                                                       |
 
 Junto a cada enum se exporta un mapa de etiquetas en español para el UI. Ejemplo:
 
@@ -133,14 +133,14 @@ El uso de `Record<EnumType, string>` garantiza exhaustividad: si se agrega un va
 
 ```typescript
 export interface VitalSigns {
-  bloodPressure?: string      // "120/80 mmHg"
-  heartRate?: number          // bpm
-  temperature?: number        // °C
-  oxygenSaturation?: number   // %
-  weight?: number             // kg
-  height?: number             // cm
-  glucose?: number            // mg/dL
-  [key: string]: string | number | undefined  // campos desconocidos
+  bloodPressure?: string // "120/80 mmHg"
+  heartRate?: number // bpm
+  temperature?: number // °C
+  oxygenSaturation?: number // %
+  weight?: number // kg
+  height?: number // cm
+  glucose?: number // mg/dL
+  [key: string]: string | number | undefined // campos desconocidos
 }
 ```
 
@@ -168,11 +168,11 @@ export interface InvoiceCreateRequest {
 // El servidor los devuelve calculados:
 export interface InvoiceResponse {
   id: string
-  invoiceNumber: string         // "FAC-00001"
-  subtotal: number              // suma de items
-  tax: number                   // IVA (0% en servicios médicos)
-  total: number                 // subtotal + tax
-  insuranceCoverage: number     // total * (coveragePercentage / 100)
+  invoiceNumber: string // "FAC-00001"
+  subtotal: number // suma de items
+  tax: number // IVA (0% en servicios médicos)
+  total: number // subtotal + tax
+  insuranceCoverage: number // total * (coveragePercentage / 100)
   patientResponsibility: number // total - insuranceCoverage
   // ...
 }
@@ -196,22 +196,22 @@ Cuando el backend esté disponible, las funciones de API pueden reemplazarse dir
 
 Los UUIDs en los seeds del backend usan el campo inicial para identificar la entidad visualmente. La secuencia completa es:
 
-| Prefijo | Entidad |
-|---|---|
-| `a0000000-...` | patients |
-| `b0000000-...` | doctors |
+| Prefijo        | Entidad             |
+| -------------- | ------------------- |
+| `a0000000-...` | patients            |
+| `b0000000-...` | doctors             |
 | `c0000000-...` | insurance_providers |
-| `d0000000-...` | insurance_policies |
-| `e0000000-...` | services_catalog |
+| `d0000000-...` | insurance_policies  |
+| `e0000000-...` | services_catalog    |
 | `f0000000-...` | medications_catalog |
-| `10000000-...` | appointments |
-| `20000000-...` | medical_records |
-| `30000000-...` | diagnoses |
-| `40000000-...` | prescriptions |
-| `50000000-...` | procedures |
-| `60000000-...` | invoices |
-| `70000000-...` | payments |
-| `80000000-...` | invoice_items |
+| `10000000-...` | appointments        |
+| `20000000-...` | medical_records     |
+| `30000000-...` | diagnoses           |
+| `40000000-...` | prescriptions       |
+| `50000000-...` | procedures          |
+| `60000000-...` | invoices            |
+| `70000000-...` | payments            |
+| `80000000-...` | invoice_items       |
 
 Los prefijos `a`-`f` son hexadecimales válidos. A partir de `g`, el formato UUID se vuelve inválido (solo acepta `0-9` y `a-f`). Por eso se usó la secuencia numérica `10`, `20`, `30`... para las entidades con prefijo mayor a `f`.
 
@@ -260,12 +260,12 @@ src/mocks/
 
 IDs `a0000000-...-00001` a `a0000000-...-00010`. Incluyen casos clínicamente relevantes para el UI:
 
-| Caso especial | Paciente |
-|---|---|
-| Alergias documentadas (`allergies` no nulo) | Pacientes 1, 9 |
-| Menor de edad | Paciente 4 |
-| Embarazo activo | Paciente 5 |
-| Sin seguro activo | Pacientes 1, 3, 6, 8, 9, 10 |
+| Caso especial                               | Paciente                    |
+| ------------------------------------------- | --------------------------- |
+| Alergias documentadas (`allergies` no nulo) | Pacientes 1, 9              |
+| Menor de edad                               | Paciente 4                  |
+| Embarazo activo                             | Paciente 5                  |
+| Sin seguro activo                           | Pacientes 1, 3, 6, 8, 9, 10 |
 
 El campo `allergies` es texto libre. En el UI se renderiza como `AllergyAlert` (banner amber/red) cuando está presente.
 
@@ -273,23 +273,23 @@ El campo `allergies` es texto libre. En el UI se renderiza como `AllergyAlert` (
 
 IDs `b0000000-...-00001` a `b0000000-...-00006`. Cinco especialidades representadas:
 
-| ID | Especialidad |
-|---|---|
-| `...001`, `...006` | Medicina General |
-| `...002` | Pediatría |
-| `...003` | Cardiología |
-| `...004` | Ginecología y Obstetricia |
-| `...005` | Traumatología y Ortopedia |
+| ID                 | Especialidad              |
+| ------------------ | ------------------------- |
+| `...001`, `...006` | Medicina General          |
+| `...002`           | Pediatría                 |
+| `...003`           | Cardiología               |
+| `...004`           | Ginecología y Obstetricia |
+| `...005`           | Traumatología y Ortopedia |
 
 #### Pólizas de Seguro (6)
 
 IDs `d0000000-...-00001` a `d0000000-...-00006`. Incluyen casos extremos:
 
-| Caso | Póliza |
-|---|---|
+| Caso                        | Póliza                 |
+| --------------------------- | ---------------------- |
 | Cobertura 100% (sin copago) | `d...003` — paciente 5 |
-| Póliza vencida | `d...004`, `d...006` |
-| Cobertura 60% | `d...005` — paciente 7 |
+| Póliza vencida              | `d...004`, `d...006`   |
+| Cobertura 60%               | `d...005` — paciente 7 |
 
 Las pólizas vencidas están marcadas con `isActive: false`. Los mocks de facturas que corresponden a pacientes con póliza vencida reflejan `insurancePolicy: null` e `insuranceCoverage: 0`.
 
@@ -297,14 +297,14 @@ Las pólizas vencidas están marcadas con `isActive: false`. Los mocks de factur
 
 IDs `e0000000-...-00001` a `e0000000-...-00015`. El ítem `e...015` está marcado `isActive: false` (servicio descontinuado). Categorías:
 
-| Categoría | IDs |
-|---|---|
-| `consultation` | `e...001`, `e...002`, `e...003` |
-| `laboratory` | `e...004`, `e...005`, `e...006`, `e...007` |
-| `imaging` | `e...008`, `e...009`, `e...010` |
-| `therapy` | `e...011`, `e...012`, `e...013` |
-| `emergency` | `e...014` |
-| `other` (descontinuado) | `e...015` |
+| Categoría               | IDs                                        |
+| ----------------------- | ------------------------------------------ |
+| `consultation`          | `e...001`, `e...002`, `e...003`            |
+| `laboratory`            | `e...004`, `e...005`, `e...006`, `e...007` |
+| `imaging`               | `e...008`, `e...009`, `e...010`            |
+| `therapy`               | `e...011`, `e...012`, `e...013`            |
+| `emergency`             | `e...014`                                  |
+| `other` (descontinuado) | `e...015`                                  |
 
 #### Medicamentos del Catálogo (20)
 
@@ -314,14 +314,14 @@ IDs `f0000000-...-00001` a `f0000000-...-00020`. El ítem `f...020` está marcad
 
 IDs `10000000-...-00001` a `10000000-...-00015`. Distribución de estados:
 
-| Estado | Cantidad | IDs |
-|---|---|---|
-| `completed` | 11 | 1–7, 9, 10, 14, 15 |
-| `cancelled` | 1 | 8 |
-| `no_show` | 1 | 11 |
-| `scheduled` | 1 | 12 |
-| `confirmed` | 1 | 13 |
-| `in_progress` | 1 | 14 |
+| Estado        | Cantidad | IDs                |
+| ------------- | -------- | ------------------ |
+| `completed`   | 11       | 1–7, 9, 10, 14, 15 |
+| `cancelled`   | 1        | 8                  |
+| `no_show`     | 1        | 11                 |
+| `scheduled`   | 1        | 12                 |
+| `confirmed`   | 1        | 13                 |
+| `in_progress` | 1        | 14                 |
 
 Las citas `scheduled`, `confirmed` e `in_progress` tienen fechas en el futuro (2026-02-06 a 2026-03-15) relativas a la fecha del sistema del proyecto.
 
@@ -342,29 +342,29 @@ Las recetas referencian los mismos medicamentos que aparecen en los items de fac
 
 IDs `60000000-...-00001` a `60000000-...-00010`. Formato de número: `FAC-00001` a `FAC-00010`. Distribución de estados:
 
-| Estado | Cantidad | Facturas |
-|---|---|---|
-| `paid` | 7 | FAC-00001, 00002, 00004, 00005, 00007, 00009, 00010 |
-| `partial_paid` | 1 | FAC-00006 |
-| `pending` | 1 | FAC-00008 |
-| `overdue` | 1 | FAC-00003 |
+| Estado         | Cantidad | Facturas                                            |
+| -------------- | -------- | --------------------------------------------------- |
+| `paid`         | 7        | FAC-00001, 00002, 00004, 00005, 00007, 00009, 00010 |
+| `partial_paid` | 1        | FAC-00006                                           |
+| `pending`      | 1        | FAC-00008                                           |
+| `overdue`      | 1        | FAC-00003                                           |
 
 **Nota sobre los seeds del backend:** El script `V5__seeds.sql` inserta la mayoría de las facturas con estado `'draft'` (el estado inicial por defecto en el esquema). Los mocks del frontend usan estados finales realistas en su lugar porque `draft` no representa ningún escenario clínico de las citas completadas. Esta discrepancia es intencional y documentada.
 
 **Calculo de cobertura:**
 
-| Factura | Póliza | Cobertura | Total | Responsabilidad paciente |
-|---|---|---|---|---|
-| FAC-00001 | Sin seguro | 0% | $2,210 | $2,210 |
-| FAC-00002 | d...001 | 80% | $4,400 | $880 |
-| FAC-00003 | Sin seguro | 0% | $950 | $950 |
-| FAC-00004 | d...002 | 90% | $975 | $97.50 |
-| FAC-00005 | d...003 | 100% | $3,200 | $0 |
-| FAC-00006 | Sin seguro (póliza vencida) | 0% | $4,380 | $4,380 |
-| FAC-00007 | d...005 | 60% | $1,720 | $688 |
-| FAC-00008 | Sin seguro | 0% | $1,575 | $1,575 |
-| FAC-00009 | Sin seguro | 0% | $600 | $600 |
-| FAC-00010 | d...005 | 60% | $2,650 | $1,060 |
+| Factura   | Póliza                      | Cobertura | Total  | Responsabilidad paciente |
+| --------- | --------------------------- | --------- | ------ | ------------------------ |
+| FAC-00001 | Sin seguro                  | 0%        | $2,210 | $2,210                   |
+| FAC-00002 | d...001                     | 80%       | $4,400 | $880                     |
+| FAC-00003 | Sin seguro                  | 0%        | $950   | $950                     |
+| FAC-00004 | d...002                     | 90%       | $975   | $97.50                   |
+| FAC-00005 | d...003                     | 100%      | $3,200 | $0                       |
+| FAC-00006 | Sin seguro (póliza vencida) | 0%        | $4,380 | $4,380                   |
+| FAC-00007 | d...005                     | 60%       | $1,720 | $688                     |
+| FAC-00008 | Sin seguro                  | 0%        | $1,575 | $1,575                   |
+| FAC-00009 | Sin seguro                  | 0%        | $600   | $600                     |
+| FAC-00010 | d...005                     | 60%       | $2,650 | $1,060                   |
 
 #### Items de Factura
 
@@ -372,10 +372,10 @@ IDs `80000000-...-00001` a `80000000-...-00025`. Cada item referencia o un `Serv
 
 El tipo de item (`itemType`) determina cuál campo se usa:
 
-| `itemType` | Campo con valor | Campo nulo |
-|---|---|---|
-| `'service'` | `service` | `medication` |
-| `'medication'` | `medication` | `service` |
+| `itemType`     | Campo con valor | Campo nulo   |
+| -------------- | --------------- | ------------ |
+| `'service'`    | `service`       | `medication` |
+| `'medication'` | `medication`    | `service`    |
 
 #### Pagos (10)
 
@@ -394,11 +394,11 @@ Este enfoque evita duplicar datos. Las facturas contienen sus pagos embebidos (c
 
 Facturas con múltiples pagos (abonos):
 
-| Factura | Pagos | Motivo |
-|---|---|---|
-| FAC-00001 | 2 ($1,000 + $1,210) | El paciente pagó en dos partes |
+| Factura   | Pagos               | Motivo                                   |
+| --------- | ------------------- | ---------------------------------------- |
+| FAC-00001 | 2 ($1,000 + $1,210) | El paciente pagó en dos partes           |
 | FAC-00006 | 2 ($2,000 + $1,000) | Pago acordado en abonos (póliza vencida) |
-| FAC-00010 | 2 ($560 + $500) | Transferencia + tarjeta de débito |
+| FAC-00010 | 2 ($560 + $500)     | Transferencia + tarjeta de débito        |
 
 ---
 

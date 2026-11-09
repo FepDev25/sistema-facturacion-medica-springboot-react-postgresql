@@ -5,8 +5,8 @@ import type { AppointmentStatus } from './enums'
 export interface AppointmentCreateRequest {
   patientId: string
   doctorId: string
-  scheduledAt: string          // OffsetDateTime → ISO string
-  durationMinutes: number      // 1–480
+  scheduledAt: string // OffsetDateTime → ISO string
+  durationMinutes: number // 1–480
   chiefComplaint: string | null
   notes?: string | null
 }

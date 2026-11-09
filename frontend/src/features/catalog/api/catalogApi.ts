@@ -135,9 +135,7 @@ export async function getMedications(
     },
   })
 
-  const details = await Promise.all(
-    response.data.content.map((item) => getMedicationById(item.id)),
-  )
+  const details = await Promise.all(response.data.content.map((item) => getMedicationById(item.id)))
 
   return {
     ...response.data,
@@ -150,9 +148,7 @@ export async function getMedicationById(id: string): Promise<MedicationResponse>
   return response.data
 }
 
-export async function createMedication(
-  data: MedicationCreateRequest,
-): Promise<MedicationResponse> {
+export async function createMedication(data: MedicationCreateRequest): Promise<MedicationResponse> {
   const response = await apiClient.post<MedicationResponse>('/catalog/medications', data)
   return response.data
 }

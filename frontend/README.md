@@ -6,24 +6,24 @@ Interfaz backoffice para la gestión integral de una clínica: agendamiento de c
 
 ## Stack Tecnológico
 
-| Capa | Tecnología | Versión |
-|---|---|---|
-| UI Runtime | React | 19.2 |
-| Lenguaje | TypeScript (strict) | 5.9 |
-| Build | Vite | 8.0 |
-| Routing | TanStack Router | 1.168 |
-| Estado del servidor | TanStack Query | 5.94 |
-| Tablas | TanStack Table | 8.21 |
-| Formularios | React Hook Form + Zod | 7.71 + 4.3 |
-| Componentes UI | Shadcn/ui + Radix UI | — |
-| Estilos | Tailwind CSS | 4.0 |
-| HTTP Client | Axios | 1.13 |
-| Notificaciones | Sonner | 2.0 |
-| Iconos | Lucide React | 0.577 |
-| Renderizado Markdown | react-markdown + remark-gfm | 9.x |
-| Tipografía | Geist Variable | — |
-| Testing unitario | Vitest + React Testing Library | 4.1 + 16.3 |
-| Testing E2E | Playwright | 1.59 |
+| Capa                 | Tecnología                     | Versión    |
+| -------------------- | ------------------------------ | ---------- |
+| UI Runtime           | React                          | 19.2       |
+| Lenguaje             | TypeScript (strict)            | 5.9        |
+| Build                | Vite                           | 8.0        |
+| Routing              | TanStack Router                | 1.168      |
+| Estado del servidor  | TanStack Query                 | 5.94       |
+| Tablas               | TanStack Table                 | 8.21       |
+| Formularios          | React Hook Form + Zod          | 7.71 + 4.3 |
+| Componentes UI       | Shadcn/ui + Radix UI           | —          |
+| Estilos              | Tailwind CSS                   | 4.0        |
+| HTTP Client          | Axios                          | 1.13       |
+| Notificaciones       | Sonner                         | 2.0        |
+| Iconos               | Lucide React                   | 0.577      |
+| Renderizado Markdown | react-markdown + remark-gfm    | 9.x        |
+| Tipografía           | Geist Variable                 | —          |
+| Testing unitario     | Vitest + React Testing Library | 4.1 + 16.3 |
+| Testing E2E          | Playwright                     | 1.59       |
 
 ---
 
@@ -117,12 +117,12 @@ Métricas operativas: pacientes totales, médicos activos, citas del día, citas
 
 Cuatro asistentes Claude conectados a las páginas de dominio. Siguen el mismo patrón `api/ → hooks/ → components/` del resto del sistema. No tienen datos mock — todas las llamadas van directamente al backend real.
 
-| Integración | Endpoint backend | Página | Componente |
-|---|---|---|---|
-| Sugerencia ICD-10 | `POST /ai/icd10/suggest` | `MedicalRecordDetailPage` | `Icd10Suggester` |
-| Extracción de notas clínicas | `POST /ai/records/extract` | `MedicalRecordDetailPage` | `ExtractionPanel` |
-| Consulta de historial | `POST /ai/patients/{id}/query` | `PatientDetailPage` | `PatientHistoryChat` |
-| Sugerencia de ítems | `POST /ai/invoices/{id}/suggest-items` | `InvoiceDetailPage` | `ItemSuggestionPanel` |
+| Integración                  | Endpoint backend                       | Página                    | Componente            |
+| ---------------------------- | -------------------------------------- | ------------------------- | --------------------- |
+| Sugerencia ICD-10            | `POST /ai/icd10/suggest`               | `MedicalRecordDetailPage` | `Icd10Suggester`      |
+| Extracción de notas clínicas | `POST /ai/records/extract`             | `MedicalRecordDetailPage` | `ExtractionPanel`     |
+| Consulta de historial        | `POST /ai/patients/{id}/query`         | `PatientDetailPage`       | `PatientHistoryChat`  |
+| Sugerencia de ítems          | `POST /ai/invoices/{id}/suggest-items` | `InvoiceDetailPage`       | `ItemSuggestionPanel` |
 
 **`Icd10Suggester`** — Busca códigos ICD-10 por texto libre dentro del dialog de diagnóstico. Muestra hasta 5 sugerencias con código y descripción; al hacer clic rellena automáticamente los campos del formulario.
 
@@ -133,6 +133,7 @@ Cuatro asistentes Claude conectados a las páginas de dominio. Siguen el mismo p
 **`ItemSuggestionPanel`** — Sheet con ítems de factura sugeridos a partir del expediente médico asociado. Solo disponible en estado `draft`. Cada ítem se agrega individualmente con loading state propio; los ítems sin `matchedCatalogId` se muestran deshabilitados.
 
 **Patrones transversales:**
+
 - `useMutation` con `isPending` para todos los estados de carga — ninguna operación bloquea la UI
 - Validación Zod en el frontend antes de enviar (queries vacías rechazadas sin llamada HTTP)
 - Manejo de errores diferenciado: el hook de sugerencia de ítems lee el status 422 del backend para mostrar el mensaje correcto ("La factura no tiene un expediente médico asociado")
@@ -144,18 +145,18 @@ Cuatro asistentes Claude conectados a las páginas de dominio. Siguen el mismo p
 
 ### Matriz de roles
 
-| Sección | ADMIN | DOCTOR | RECEPTIONIST |
-|---|---|---|---|
-| Dashboard | ✓ | ✓ | ✓ |
-| Pacientes | ✓ | — | ✓ |
-| Médicos | ✓ | — | — |
-| Citas | ✓ | ✓ | ✓ |
-| Completar cita | — | ✓ (propia) | — |
-| Facturas | ✓ | — | ✓ |
-| Registrar pago | ✓ | — | ✓ |
-| Seguros | ✓ | — | — |
-| Catálogo | ✓ | — | — |
-| Historias clínicas | ✓ | ✓ | ✓ |
+| Sección            | ADMIN | DOCTOR     | RECEPTIONIST |
+| ------------------ | ----- | ---------- | ------------ |
+| Dashboard          | ✓     | ✓          | ✓            |
+| Pacientes          | ✓     | —          | ✓            |
+| Médicos            | ✓     | —          | —            |
+| Citas              | ✓     | ✓          | ✓            |
+| Completar cita     | —     | ✓ (propia) | —            |
+| Facturas           | ✓     | —          | ✓            |
+| Registrar pago     | ✓     | —          | ✓            |
+| Seguros            | ✓     | —          | —            |
+| Catálogo           | ✓     | —          | —            |
+| Historias clínicas | ✓     | ✓          | ✓            |
 
 ### Implementación en tres niveles
 
@@ -184,6 +185,7 @@ Request Interceptor → Authorization: Bearer <accessToken>
 **Request** — Inyecta `Authorization: Bearer <token>` en todas las requests excepto los endpoints de auth.
 
 **Response** — Maneja:
+
 - `401`: refresca el access token con mutex para evitar múltiples llamadas simultáneas. Si falla, limpia sesión y redirige.
 - `403`: muestra toast con el mensaje del backend. Debounce de 1500 ms para evitar cascada de toasts.
 
@@ -215,38 +217,38 @@ Suite en dos capas complementarias. Documentación completa en [`docs/02-testing
 
 Ejecutados con **Vitest 4** + **React Testing Library 16** en entorno `jsdom`.
 
-| Área | Archivos | Descripción |
-|---|---|---|
-| Utilidades y schemas | 2 | `utils.test.ts`, `mock-utils.test.ts` |
-| API functions | 9 | Mock de `apiClient`, verificación de argumentos HTTP |
-| API integration | 9 | Tests con datos mock reales del dominio |
-| Hooks TanStack Query | 9 | `renderHook`, estados loading / error / data |
-| Columnas de tabla | 12 | Formato de celdas, badges, acciones, rendering condicional |
-| Componentes showcase | 3 | `AppointmentStatusFlow`, `InvoiceCoverageBar`, `AllergyAlert` |
-| Componentes compartidos | 4 | `AppShell`, `DataTable`, `BackToListButton`, `LoginPage` |
-| Pages con lógica condicional | 2 | `AppointmentDetailPage`, `InvoiceDetailPage` |
-| Auth store | 1 | `authSessionStore` — 21 tests |
+| Área                         | Archivos | Descripción                                                   |
+| ---------------------------- | -------- | ------------------------------------------------------------- |
+| Utilidades y schemas         | 2        | `utils.test.ts`, `mock-utils.test.ts`                         |
+| API functions                | 9        | Mock de `apiClient`, verificación de argumentos HTTP          |
+| API integration              | 9        | Tests con datos mock reales del dominio                       |
+| Hooks TanStack Query         | 9        | `renderHook`, estados loading / error / data                  |
+| Columnas de tabla            | 12       | Formato de celdas, badges, acciones, rendering condicional    |
+| Componentes showcase         | 3        | `AppointmentStatusFlow`, `InvoiceCoverageBar`, `AllergyAlert` |
+| Componentes compartidos      | 4        | `AppShell`, `DataTable`, `BackToListButton`, `LoginPage`      |
+| Pages con lógica condicional | 2        | `AppointmentDetailPage`, `InvoiceDetailPage`                  |
+| Auth store                   | 1        | `authSessionStore` — 21 tests                                 |
 
 Infraestructura en `src/test/`:
 
-| Archivo | Contenido |
-|---|---|
-| `setup.ts` | Importa `@testing-library/jest-dom/vitest` globalmente |
-| `test-utils.tsx` | `customRender` con `QueryClientProvider` (retry: false), `createTestQueryClient` |
-| `api-test-utils.ts` | `mockApiClient()` para aislar la capa HTTP |
-| `drawer-test-utils.tsx` | Helpers para componentes Radix Sheet / Dialog |
+| Archivo                 | Contenido                                                                        |
+| ----------------------- | -------------------------------------------------------------------------------- |
+| `setup.ts`              | Importa `@testing-library/jest-dom/vitest` globalmente                           |
+| `test-utils.tsx`        | `customRender` con `QueryClientProvider` (retry: false), `createTestQueryClient` |
+| `api-test-utils.ts`     | `mockApiClient()` para aislar la capa HTTP                                       |
+| `drawer-test-utils.tsx` | Helpers para componentes Radix Sheet / Dialog                                    |
 
 ### E2E — 126 tests, 5 archivos
 
 Ejecutados con **Playwright 1.59** sobre Chromium, secuencialmente (`fullyParallel: false`) para reproducibilidad con estado compartido.
 
-| Archivo | Tests | Flujos cubiertos |
-|---|---|---|
-| `auth-flow.spec.ts` | 27 | Login, logout, permisos por rol, redirección |
-| `patients-flow.spec.ts` | 25 | CRUD, búsqueda por DNI, paginación, drawer edición |
-| `appointments-flow.spec.ts` | 25 | Transiciones de estado, expedientes, diagnósticos |
-| `invoices-flow.spec.ts` | 25 | Confirmación, pagos, cobertura de seguro |
-| `role-permissions.spec.ts` | 24 | Acceso por rol: admin, doctor, recepcionista |
+| Archivo                     | Tests | Flujos cubiertos                                   |
+| --------------------------- | ----- | -------------------------------------------------- |
+| `auth-flow.spec.ts`         | 27    | Login, logout, permisos por rol, redirección       |
+| `patients-flow.spec.ts`     | 25    | CRUD, búsqueda por DNI, paginación, drawer edición |
+| `appointments-flow.spec.ts` | 25    | Transiciones de estado, expedientes, diagnósticos  |
+| `invoices-flow.spec.ts`     | 25    | Confirmación, pagos, cobertura de seguro           |
+| `role-permissions.spec.ts`  | 24    | Acceso por rol: admin, doctor, recepcionista       |
 
 ---
 
@@ -303,8 +305,8 @@ npm run lint
 
 ## Variables de Entorno
 
-| Variable | Default | Descripción |
-|---|---|---|
+| Variable       | Default                        | Descripción          |
+| -------------- | ------------------------------ | -------------------- |
 | `VITE_API_URL` | `http://localhost:8080/api/v1` | Base URL del backend |
 
 Crear `.env.local` en la raíz del frontend para sobreescribir en desarrollo local.

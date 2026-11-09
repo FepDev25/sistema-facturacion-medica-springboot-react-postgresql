@@ -16,6 +16,10 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
     // usado por InvoiceService
     boolean existsByInvoiceId(UUID invoiceId);
 
+    // total cobrado histórico para el dashboard
+    @Query("SELECT COALESCE(SUM(p.amount), 0) FROM Payment p")
+    BigDecimal sumAllAmounts();
+
     // listar pagos de una factura ordenados por fecha descendente
     Page<Payment> findByInvoiceIdOrderByPaymentDateDesc(UUID invoiceId, Pageable pageable);
 

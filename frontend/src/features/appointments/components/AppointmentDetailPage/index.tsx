@@ -6,11 +6,9 @@ import { Button } from '@/components/ui/button'
 import { StatusBadge } from '@/components/ui/status-badge'
 import { AllergyAlert } from '@/components/AllergyAlert'
 import { BackToListButton } from '@/components/BackToListButton'
+import { DetailSkeleton, QueryError } from '@/components/DetailState'
 import { PageHeader } from '@/components/layout/PageHeader'
-import {
-  NO_PERMISSION_MESSAGE,
-  useRolePermissions,
-} from '@/features/auth/hooks/useRolePermissions'
+import { NO_PERMISSION_MESSAGE, useRolePermissions } from '@/features/auth/hooks/useRolePermissions'
 import { useLoggedInDoctorId } from '@/features/auth/hooks/useLoggedInDoctorId'
 import { APPOINTMENT_STATUS_LABELS } from '@/types/enums'
 import { formatDateTime } from '@/lib/utils'
@@ -28,7 +26,14 @@ import {
 import { usePatient } from '@/features/patients/hooks/usePatients'
 
 export function AppointmentDetailPage() {
-  const { role, canCompleteAppointment, canManagePatients } = useRolePermissions()
+  const {
+    role,
+    canCompleteAppointment,
+    canManagePatients,
+    canManageInvoices,
+    canRegisterPayments,
+  } = useRolePermissions()
+  const canViewInvoices = canManageInvoices || canRegisterPayments
   const loggedInDoctorId = useLoggedInDoctorId()
   const { id } = useParams({ from: '/appointments/$id' })
   const [completeDrawerOpen, setCompleteDrawerOpen] = useState(false)
@@ -41,20 +46,30 @@ export function AppointmentDetailPage() {
   const noShowAppointment = useNoShowAppointment()
 
   if (appointmentQuery.isLoading) {
-    return <div className="px-6 py-8 text-sm text-slate-500">Cargando cita...</div>
+    return <DetailSkeleton label="Cargando cita" />
+  }
+
+  if (appointmentQuery.isError) {
+    return (
+      <QueryError
+        message="No se pudo cargar la cita. Revisa tu conexión e intenta de nuevo."
+        onRetry={() => void appointmentQuery.refetch()}
+      />
+    )
   }
 
   const appointment = appointmentQuery.data
   if (!appointment) {
     return (
       <div className="px-6 py-8">
-        <p className="text-sm text-slate-500 mb-4">No se encontró la cita.</p>
+        <p className="text-sm text-muted-foreground mb-4">No se encontró la cita.</p>
         <BackToListButton fallbackTo="/appointments" label="Volver a citas" />
       </div>
     )
   }
 
-  const isOwnAppointment = role !== 'DOCTOR' || !loggedInDoctorId || appointment.doctorId === loggedInDoctorId
+  const isOwnAppointment =
+    role !== 'DOCTOR' || !loggedInDoctorId || appointment.doctorId === loggedInDoctorId
   const canOperate = isOwnAppointment && canManagePatients
   const canComplete = isOwnAppointment && canCompleteAppointment
 
@@ -84,11 +99,13 @@ export function AppointmentDetailPage() {
 
       <div className="flex-1 px-6 py-5 overflow-auto space-y-6">
         {!isOwnAppointment && (
-          <div className="rounded-md border border-amber-200 bg-amber-50 p-4 flex items-center gap-3">
-            <ShieldAlert className="h-5 w-5 text-amber-600 shrink-0" />
+          <div className="rounded-md border border-warning/25 bg-warning/10 p-4 flex items-center gap-3">
+            <ShieldAlert className="h-5 w-5 text-warning shrink-0" />
             <div>
-              <p className="text-sm font-medium text-amber-800">Solo lectura</p>
-              <p className="text-xs text-amber-700">Esta cita pertenece a otro médico. No puedes modificarla.</p>
+              <p className="text-sm font-medium text-warning">Solo lectura</p>
+              <p className="text-xs text-warning">
+                Esta cita pertenece a otro médico. No puedes modificarla.
+              </p>
             </div>
           </div>
         )}
@@ -137,10 +154,10 @@ export function AppointmentDetailPage() {
         />
 
         <section className="rounded-xl border border-border bg-card p-5 shadow-card">
-          <h2 className="text-sm font-semibold text-slate-900 mb-3">Resumen de atención</h2>
+          <h2 className="text-sm font-semibold text-foreground mb-3">Resumen de atención</h2>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
             <div>
-              <p className="text-xs text-slate-500">Estado</p>
+              <p className="text-xs text-muted-foreground">Estado</p>
               <div className="mt-1">
                 <StatusBadge
                   status={appointment.status}
@@ -149,78 +166,84 @@ export function AppointmentDetailPage() {
               </div>
             </div>
             <div>
-              <p className="text-xs text-slate-500">Duración</p>
-              <p className="text-sm text-slate-800">{appointment.durationMinutes} minutos</p>
+              <p className="text-xs text-muted-foreground">Duración</p>
+              <p className="text-sm text-foreground">{appointment.durationMinutes} minutos</p>
             </div>
             <div>
-              <p className="text-xs text-slate-500">Inicio</p>
-              <p className="text-sm text-slate-800">{formatDateTime(appointment.scheduledAt)}</p>
+              <p className="text-xs text-muted-foreground">Inicio</p>
+              <p className="text-sm text-foreground">{formatDateTime(appointment.scheduledAt)}</p>
             </div>
             <div>
-              <p className="text-xs text-slate-500">Fin estimado</p>
-              <p className="text-sm text-slate-800">{formatDateTime(appointment.scheduledEndAt)}</p>
+              <p className="text-xs text-muted-foreground">Fin estimado</p>
+              <p className="text-sm text-foreground">
+                {formatDateTime(appointment.scheduledEndAt)}
+              </p>
             </div>
           </div>
         </section>
 
         <section className="rounded-xl border border-border bg-card p-5 shadow-card">
           <div className="flex items-center gap-2 mb-3">
-            <UserRound className="h-4 w-4 text-slate-500" />
-            <h2 className="text-sm font-semibold text-slate-900">Paciente</h2>
+            <UserRound className="h-4 w-4 text-muted-foreground" />
+            <h2 className="text-sm font-semibold text-foreground">Paciente</h2>
           </div>
-          <p className="text-sm text-slate-800">
+          <p className="text-sm text-foreground">
             {appointment.patientFirstName} {appointment.patientLastName}
           </p>
         </section>
 
         <section className="rounded-xl border border-border bg-card p-5 shadow-card">
           <div className="flex items-center gap-2 mb-3">
-            <Stethoscope className="h-4 w-4 text-slate-500" />
-            <h2 className="text-sm font-semibold text-slate-900">Médico</h2>
+            <Stethoscope className="h-4 w-4 text-muted-foreground" />
+            <h2 className="text-sm font-semibold text-foreground">Médico</h2>
           </div>
-          <p className="text-sm text-slate-800">
+          <p className="text-sm text-foreground">
             Dr. {appointment.doctorFirstName} {appointment.doctorLastName}
           </p>
         </section>
 
         <section className="rounded-xl border border-border bg-card p-5 shadow-card">
           <div className="flex items-center gap-2 mb-3">
-            <ClipboardCheck className="h-4 w-4 text-slate-500" />
-            <h2 className="text-sm font-semibold text-slate-900">Notas clínicas</h2>
+            <ClipboardCheck className="h-4 w-4 text-muted-foreground" />
+            <h2 className="text-sm font-semibold text-foreground">Notas clínicas</h2>
           </div>
-          <p className="text-sm text-slate-800 mb-3">{appointment.chiefComplaint ?? 'Sin motivo registrado.'}</p>
-          <p className="text-sm text-slate-600">{appointment.notes ?? 'Sin notas adicionales.'}</p>
+          <p className="text-sm text-foreground mb-3">
+            {appointment.chiefComplaint ?? 'Sin motivo registrado.'}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            {appointment.notes ?? 'Sin notas adicionales.'}
+          </p>
           {medicalRecord && (
-            <div className="mt-4 rounded-md border border-green-200 bg-green-50 px-3 py-2 flex items-center justify-between">
+            <div className="mt-4 rounded-md border border-success/25 bg-success/10 px-3 py-2 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <ClipboardCheck className="h-4 w-4 text-green-700" />
+                <ClipboardCheck className="h-4 w-4 text-success" />
                 <div>
-                  <p className="text-xs font-medium text-green-800">Expediente generado</p>
-                  <p className="text-xs text-green-700">{formatDateTime(medicalRecord.recordDate)}</p>
+                  <p className="text-xs font-medium text-success">Expediente generado</p>
+                  <p className="text-xs text-success">{formatDateTime(medicalRecord.recordDate)}</p>
                 </div>
               </div>
               <Link
                 to="/medical-records/$id"
                 params={{ id: medicalRecord.id }}
-                className="text-xs text-green-800 underline hover:text-green-900"
+                className="text-xs text-success underline hover:text-success"
               >
                 Ver expediente
               </Link>
             </div>
           )}
-          {appointment.invoiceId && appointment.invoiceNumber ? (
-            <div className="mt-3 rounded-md border border-cyan-200 bg-cyan-50 px-3 py-2 flex items-center justify-between">
+          {canViewInvoices && appointment.invoiceId && appointment.invoiceNumber ? (
+            <div className="mt-3 rounded-md border border-info/25 bg-info/10 px-3 py-2 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <FileText className="h-4 w-4 text-cyan-700" />
+                <FileText className="h-4 w-4 text-info" />
                 <div>
-                  <p className="text-xs font-medium text-cyan-800">Factura generada</p>
-                  <p className="text-xs text-cyan-700 font-mono">{appointment.invoiceNumber}</p>
+                  <p className="text-xs font-medium text-info">Factura generada</p>
+                  <p className="text-xs text-info font-mono">{appointment.invoiceNumber}</p>
                 </div>
               </div>
               <Link
                 to="/invoices/$id"
                 params={{ id: appointment.invoiceId }}
-                className="text-xs text-cyan-800 underline hover:text-cyan-900"
+                className="text-xs text-info underline hover:text-info"
               >
                 Ver factura
               </Link>

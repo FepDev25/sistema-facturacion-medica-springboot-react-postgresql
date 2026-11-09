@@ -16,8 +16,7 @@ interface RefreshTokenResponse {
   username: string
 }
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL ?? 'http://localhost:8080/api/v1'
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080/api/v1'
 
 const AUTH_ENDPOINTS = ['/auth/login', '/auth/refresh', '/auth/logout']
 
@@ -93,7 +92,7 @@ function hasPermissionMessage(message?: string): boolean {
   )
 }
 
-async function refreshAccessToken(): Promise<string | null> {
+export async function refreshAccessToken(): Promise<string | null> {
   const refreshToken = getAuthSessionState().refreshToken
   if (!refreshToken) {
     clearAuthSession()
@@ -152,47 +151,45 @@ apiClient.interceptors.request.use((config) => {
   return config
 })
 
-apiClient.interceptors.response.use(
-  (response) => response,
-  async (error: unknown) => {
-    const axiosError = error as AxiosError
-    const originalRequest = axiosError.config as
-      | (typeof axiosError.config & { _retry?: boolean })
-      | undefined
+export async function handleResponseError(error: unknown) {
+  const axiosError = error as AxiosError
+  const originalRequest = axiosError.config as
+    (typeof axiosError.config & { _retry?: boolean }) | undefined
 
-    if (!originalRequest) {
-      return Promise.reject(error)
+  if (!originalRequest) {
+    return Promise.reject(error)
+  }
+
+  const status = axiosError.response?.status
+  const apiError = getApiErrorPayload(axiosError.response?.data)
+
+  if (status === 403 && !isAuthEndpoint(originalRequest.url)) {
+    if (apiError?.path === '/error') {
+      toast.error('Error interno del servidor. Intenta nuevamente en unos segundos.')
+    } else if (hasPermissionMessage(apiError?.message)) {
+      notifyForbiddenOnce(apiError?.message)
+    } else {
+      toast.error(apiError?.message ?? 'No se pudo completar la solicitud (403).')
     }
+    return Promise.reject(error)
+  }
 
-    const status = axiosError.response?.status
-    const apiError = getApiErrorPayload(axiosError.response?.data)
+  if (status !== 401 || originalRequest._retry || isAuthEndpoint(originalRequest.url)) {
+    return Promise.reject(error)
+  }
 
-    if (status === 403 && !isAuthEndpoint(originalRequest.url)) {
-      if (apiError?.path === '/error') {
-        toast.error('Error interno del servidor. Intenta nuevamente en unos segundos.')
-      } else if (hasPermissionMessage(apiError?.message)) {
-        notifyForbiddenOnce(apiError?.message)
-      } else {
-        toast.error(apiError?.message ?? 'No se pudo completar la solicitud (403).')
-      }
-      return Promise.reject(error)
-    }
+  originalRequest._retry = true
 
-    if (status !== 401 || originalRequest._retry || isAuthEndpoint(originalRequest.url)) {
-      return Promise.reject(error)
-    }
+  const refreshedAccessToken = await refreshAccessToken()
+  if (!refreshedAccessToken) {
+    redirectToLogin()
+    return Promise.reject(error)
+  }
 
-    originalRequest._retry = true
+  originalRequest.headers = originalRequest.headers ?? {}
+  originalRequest.headers.Authorization = `Bearer ${refreshedAccessToken}`
 
-    const refreshedAccessToken = await refreshAccessToken()
-    if (!refreshedAccessToken) {
-      redirectToLogin()
-      return Promise.reject(error)
-    }
+  return apiClient(originalRequest)
+}
 
-    originalRequest.headers = originalRequest.headers ?? {}
-    originalRequest.headers.Authorization = `Bearer ${refreshedAccessToken}`
-
-    return apiClient(originalRequest)
-  },
-)
+apiClient.interceptors.response.use((response) => response, handleResponseError)

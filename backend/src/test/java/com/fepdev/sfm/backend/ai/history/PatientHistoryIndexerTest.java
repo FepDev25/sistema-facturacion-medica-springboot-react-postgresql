@@ -168,13 +168,62 @@ class PatientHistoryIndexerTest {
         ReflectionTestUtils.setField(record, "recordDate", OffsetDateTime.now());
         ReflectionTestUtils.setField(record, "clinicalNotes", "Notas");
 
-        when(jdbc.update(anyString(), anyString())).thenReturn(1);
+        when(jdbc.update(anyString(), anyString(), anyString())).thenReturn(1);
         when(medicalRecordRepository.findByIdWithPatient(recordId)).thenReturn(Optional.of(record));
         when(diagnosisRepository.findByMedicalRecordId(recordId)).thenReturn(List.of());
         when(prescriptionRepository.findAllByMedicalRecordIdEager(recordId)).thenReturn(List.of());
         when(procedureRepository.findAllByMedicalRecordId(recordId)).thenReturn(List.of());
 
         indexer.reindexRecord(recordId);
+
+        verify(vectorStore).add(org.mockito.ArgumentMatchers.anyList());
+    }
+
+    @Test
+    void isPatientFullyIndexed_trueWhenIndexedCoversAllRecords() {
+        UUID patientId = UUID.randomUUID();
+        when(medicalRecordRepository.countByPatientId(patientId)).thenReturn(3L);
+        when(jdbc.queryForObject(anyString(), eq(Integer.class), anyString())).thenReturn(3);
+
+        assertThat(indexer.isPatientFullyIndexed(patientId)).isTrue();
+    }
+
+    @Test
+    void isPatientFullyIndexed_falseWhenIndexIsPartial() {
+        UUID patientId = UUID.randomUUID();
+        when(medicalRecordRepository.countByPatientId(patientId)).thenReturn(3L);
+        when(jdbc.queryForObject(anyString(), eq(Integer.class), anyString())).thenReturn(2);
+
+        assertThat(indexer.isPatientFullyIndexed(patientId)).isFalse();
+    }
+
+    @Test
+    void isPatientFullyIndexed_trueWhenPatientHasNoRecords() {
+        UUID patientId = UUID.randomUUID();
+        when(medicalRecordRepository.countByPatientId(patientId)).thenReturn(0L);
+
+        assertThat(indexer.isPatientFullyIndexed(patientId)).isTrue();
+    }
+
+    @Test
+    void scheduleReindex_withoutTransaction_reindexesImmediately() {
+        UUID recordId = UUID.randomUUID();
+        Patient patient = new Patient();
+        ReflectionTestUtils.setField(patient, "id", UUID.randomUUID());
+
+        MedicalRecord record = new MedicalRecord();
+        ReflectionTestUtils.setField(record, "id", recordId);
+        ReflectionTestUtils.setField(record, "patient", patient);
+        ReflectionTestUtils.setField(record, "recordDate", OffsetDateTime.now());
+        ReflectionTestUtils.setField(record, "clinicalNotes", "Notas");
+
+        when(medicalRecordRepository.findByIdWithPatient(recordId)).thenReturn(Optional.of(record));
+        when(diagnosisRepository.findByMedicalRecordId(recordId)).thenReturn(List.of());
+        when(prescriptionRepository.findAllByMedicalRecordIdEager(recordId)).thenReturn(List.of());
+        when(procedureRepository.findAllByMedicalRecordId(recordId)).thenReturn(List.of());
+        when(jdbc.update(anyString(), anyString(), anyString())).thenReturn(1);
+
+        indexer.scheduleReindex(recordId);
 
         verify(vectorStore).add(org.mockito.ArgumentMatchers.anyList());
     }

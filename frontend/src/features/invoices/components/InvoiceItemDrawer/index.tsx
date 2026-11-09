@@ -1,13 +1,7 @@
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import {
-  Sheet,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import {
   Form,
   FormControl,
@@ -26,6 +20,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ITEM_TYPE_LABELS } from '@/types/invoice'
+import { useRolePermissions } from '@/features/auth/hooks/useRolePermissions'
 import { useMedications, useServices } from '@/features/catalog/hooks/useCatalog'
 import {
   InvoiceItemFormSchema,
@@ -55,7 +50,12 @@ export function InvoiceItemDrawer({ invoiceId, open, onOpenChange }: InvoiceItem
     defaultValues: DEFAULT_VALUES,
   })
 
+  const { role } = useRolePermissions()
   const itemType = form.watch('itemType')
+  const usesCatalog = itemType === 'service' || itemType === 'medication'
+  // El backend ignora el precio/descripción del cliente para ítems de catálogo; solo
+  // ADMIN puede hacer override. La UI acompaña esa regla.
+  const catalogFieldsLocked = usesCatalog && role !== 'ADMIN'
 
   const { data: services = [] } = useServices()
   const { data: medications = [] } = useMedications()
@@ -89,7 +89,10 @@ export function InvoiceItemDrawer({ invoiceId, open, onOpenChange }: InvoiceItem
         </SheetHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 overflow-hidden">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col flex-1 overflow-hidden"
+          >
             <div className="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-5">
               <FormField
                 control={form.control}
@@ -103,6 +106,8 @@ export function InvoiceItemDrawer({ invoiceId, open, onOpenChange }: InvoiceItem
                         field.onChange(value)
                         form.setValue('serviceId', '')
                         form.setValue('medicationId', '')
+                        form.setValue('description', '')
+                        form.setValue('unitPrice', 0)
                       }}
                     >
                       <FormControl>
@@ -204,8 +209,17 @@ export function InvoiceItemDrawer({ invoiceId, open, onOpenChange }: InvoiceItem
                   <FormItem>
                     <FormLabel>Descripcion</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Detalle del item" />
+                      <Input
+                        {...field}
+                        placeholder="Detalle del item"
+                        readOnly={catalogFieldsLocked}
+                      />
                     </FormControl>
+                    {catalogFieldsLocked ? (
+                      <p className="text-xs text-muted-foreground">
+                        Tomada del catálogo. Solo un administrador puede modificarla.
+                      </p>
+                    ) : null}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -245,15 +259,21 @@ export function InvoiceItemDrawer({ invoiceId, open, onOpenChange }: InvoiceItem
                           step={0.01}
                           value={field.value}
                           onChange={(event) => field.onChange(event.target.valueAsNumber)}
+                          readOnly={catalogFieldsLocked}
                         />
                       </FormControl>
+                      {catalogFieldsLocked ? (
+                        <p className="text-xs text-muted-foreground">
+                          Precio del catálogo. Solo un administrador puede modificarlo.
+                        </p>
+                      ) : null}
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
 
-              <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+              <div className="rounded-md border border-border bg-muted/50 px-3 py-2 text-sm text-foreground">
                 Subtotal estimado: <span className="font-medium">${subtotal}</span>
               </div>
             </div>

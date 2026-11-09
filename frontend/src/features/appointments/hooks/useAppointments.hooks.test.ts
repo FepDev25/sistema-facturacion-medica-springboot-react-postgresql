@@ -36,7 +36,9 @@ beforeEach(() => {
 describe('appointmentKeys', () => {
   it('creates correct list key with filters', () => {
     expect(appointmentKeys.list({ doctorId: 'doc-1', status: 'confirmed' })).toEqual([
-      'appointments', 'list', { doctorId: 'doc-1', status: 'confirmed' },
+      'appointments',
+      'list',
+      { doctorId: 'doc-1', status: 'confirmed' },
     ])
   })
 
@@ -52,20 +54,44 @@ describe('appointmentKeys', () => {
 describe('useAppointments', () => {
   it('fetches appointments with default params', async () => {
     vi.mocked(appointmentsApi.getAppointments).mockResolvedValue({
-      content: [], totalElements: 0, totalPages: 0, number: 0, size: 20, first: true, last: true, empty: true,
+      content: [],
+      totalElements: 0,
+      totalPages: 0,
+      number: 0,
+      size: 20,
+      first: true,
+      last: true,
+      empty: true,
     })
     const { result } = renderHook(() => useAppointments(), { wrapper: createAllProviders() })
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    expect(appointmentsApi.getAppointments).toHaveBeenCalledWith({ doctorId: undefined, patientId: undefined, status: undefined, page: 0, size: 20 })
+    expect(appointmentsApi.getAppointments).toHaveBeenCalledWith({
+      doctorId: undefined,
+      patientId: undefined,
+      status: undefined,
+      page: 0,
+      size: 20,
+    })
   })
 
   it('passes doctorId filter', async () => {
     vi.mocked(appointmentsApi.getAppointments).mockResolvedValue({
-      content: [], totalElements: 0, totalPages: 0, number: 0, size: 20, first: true, last: true, empty: true,
+      content: [],
+      totalElements: 0,
+      totalPages: 0,
+      number: 0,
+      size: 20,
+      first: true,
+      last: true,
+      empty: true,
     })
-    const { result } = renderHook(() => useAppointments({ doctorId: 'doc-1' }), { wrapper: createAllProviders() })
+    const { result } = renderHook(() => useAppointments({ doctorId: 'doc-1' }), {
+      wrapper: createAllProviders(),
+    })
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    expect(appointmentsApi.getAppointments).toHaveBeenCalledWith(expect.objectContaining({ doctorId: 'doc-1' }))
+    expect(appointmentsApi.getAppointments).toHaveBeenCalledWith(
+      expect.objectContaining({ doctorId: 'doc-1' }),
+    )
   })
 })
 
@@ -77,10 +103,19 @@ describe('useAppointment', () => {
 
   it('fetches appointment by id', async () => {
     vi.mocked(appointmentsApi.getAppointmentById).mockResolvedValue({
-      id: 'apt-1', patientId: 'p-1', patientFirstName: 'Juan', patientLastName: 'Perez',
-      doctorId: 'doc-1', doctorFirstName: 'Maria', doctorLastName: 'Garcia',
-      scheduledAt: '2025-06-20T10:00:00Z', durationMinutes: 30, status: 'scheduled',
-      chiefComplaint: null, notes: null, createdAt: '2025-01-01T00:00:00Z',
+      id: 'apt-1',
+      patientId: 'p-1',
+      patientFirstName: 'Juan',
+      patientLastName: 'Perez',
+      doctorId: 'doc-1',
+      doctorFirstName: 'Maria',
+      doctorLastName: 'Garcia',
+      scheduledAt: '2025-06-20T10:00:00Z',
+      durationMinutes: 30,
+      status: 'scheduled',
+      chiefComplaint: null,
+      notes: null,
+      createdAt: '2025-01-01T00:00:00Z',
     })
     const { result } = renderHook(() => useAppointment('apt-1'), { wrapper: createAllProviders() })
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
@@ -92,7 +127,12 @@ describe('useCreateAppointment', () => {
   it('calls createAppointment and shows success toast', async () => {
     vi.mocked(appointmentsApi.createAppointment).mockResolvedValue({ id: 'apt-1' } as never)
     const { result } = renderHook(() => useCreateAppointment(), { wrapper: createAllProviders() })
-    result.current.mutate({ patientId: 'p-1', doctorId: 'doc-1', scheduledAt: '2025-06-20T10:00:00Z', durationMinutes: 30 })
+    result.current.mutate({
+      patientId: 'p-1',
+      doctorId: 'doc-1',
+      scheduledAt: '2025-06-20T10:00:00Z',
+      durationMinutes: 30,
+    })
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
     expect(appointmentsApi.createAppointment).toHaveBeenCalled()
     expect(toast.success).toHaveBeenCalledWith('Cita creada')
@@ -101,7 +141,12 @@ describe('useCreateAppointment', () => {
   it('shows error toast on failure', async () => {
     vi.mocked(appointmentsApi.createAppointment).mockRejectedValue(new Error('conflict'))
     const { result } = renderHook(() => useCreateAppointment(), { wrapper: createAllProviders() })
-    result.current.mutate({ patientId: 'p-1', doctorId: 'doc-1', scheduledAt: '2025-06-20T10:00:00Z', durationMinutes: 30 })
+    result.current.mutate({
+      patientId: 'p-1',
+      doctorId: 'doc-1',
+      scheduledAt: '2025-06-20T10:00:00Z',
+      durationMinutes: 30,
+    })
     await waitFor(() => expect(result.current.isError).toBe(true))
     expect(toast.error).toHaveBeenCalledWith('Error al crear la cita')
   })
@@ -109,7 +154,10 @@ describe('useCreateAppointment', () => {
 
 describe('useConfirmAppointment', () => {
   it('calls confirmAppointment and shows success toast', async () => {
-    vi.mocked(appointmentsApi.confirmAppointment).mockResolvedValue({ id: 'apt-1', status: 'confirmed' } as never)
+    vi.mocked(appointmentsApi.confirmAppointment).mockResolvedValue({
+      id: 'apt-1',
+      status: 'confirmed',
+    } as never)
     const { result } = renderHook(() => useConfirmAppointment(), { wrapper: createAllProviders() })
     result.current.mutate('apt-1')
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
@@ -128,7 +176,10 @@ describe('useConfirmAppointment', () => {
 
 describe('useStartAppointment', () => {
   it('calls startAppointment and shows success toast', async () => {
-    vi.mocked(appointmentsApi.startAppointment).mockResolvedValue({ id: 'apt-1', status: 'in_progress' } as never)
+    vi.mocked(appointmentsApi.startAppointment).mockResolvedValue({
+      id: 'apt-1',
+      status: 'in_progress',
+    } as never)
     const { result } = renderHook(() => useStartAppointment(), { wrapper: createAllProviders() })
     result.current.mutate('apt-1')
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
@@ -147,7 +198,10 @@ describe('useStartAppointment', () => {
 
 describe('useCancelAppointment', () => {
   it('calls cancelAppointment and shows success toast', async () => {
-    vi.mocked(appointmentsApi.cancelAppointment).mockResolvedValue({ id: 'apt-1', status: 'cancelled' } as never)
+    vi.mocked(appointmentsApi.cancelAppointment).mockResolvedValue({
+      id: 'apt-1',
+      status: 'cancelled',
+    } as never)
     const { result } = renderHook(() => useCancelAppointment(), { wrapper: createAllProviders() })
     result.current.mutate('apt-1')
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
@@ -166,7 +220,10 @@ describe('useCancelAppointment', () => {
 
 describe('useNoShowAppointment', () => {
   it('calls noShowAppointment and shows success toast', async () => {
-    vi.mocked(appointmentsApi.noShowAppointment).mockResolvedValue({ id: 'apt-1', status: 'no_show' } as never)
+    vi.mocked(appointmentsApi.noShowAppointment).mockResolvedValue({
+      id: 'apt-1',
+      status: 'no_show',
+    } as never)
     const { result } = renderHook(() => useNoShowAppointment(), { wrapper: createAllProviders() })
     result.current.mutate('apt-1')
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
@@ -185,8 +242,16 @@ describe('useNoShowAppointment', () => {
 
 describe('useCompleteAppointment', () => {
   it('calls completeAppointment with id and data and shows success toast', async () => {
-    vi.mocked(appointmentsApi.completeAppointment).mockResolvedValue({ id: 'apt-1', medicalRecordId: 'mr-1' } as never)
-    const data = { appointmentId: 'apt-1', clinicalNotes: 'Notes', physicalExam: null, vitalSigns: null }
+    vi.mocked(appointmentsApi.completeAppointment).mockResolvedValue({
+      id: 'apt-1',
+      medicalRecordId: 'mr-1',
+    } as never)
+    const data = {
+      appointmentId: 'apt-1',
+      clinicalNotes: 'Notes',
+      physicalExam: null,
+      vitalSigns: null,
+    }
     const { result } = renderHook(() => useCompleteAppointment(), { wrapper: createAllProviders() })
     result.current.mutate({ id: 'apt-1', data })
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
@@ -196,7 +261,12 @@ describe('useCompleteAppointment', () => {
 
   it('shows error toast on failure', async () => {
     vi.mocked(appointmentsApi.completeAppointment).mockRejectedValue(new Error('bad'))
-    const data = { appointmentId: 'apt-1', clinicalNotes: 'Notes', physicalExam: null, vitalSigns: null }
+    const data = {
+      appointmentId: 'apt-1',
+      clinicalNotes: 'Notes',
+      physicalExam: null,
+      vitalSigns: null,
+    }
     const { result } = renderHook(() => useCompleteAppointment(), { wrapper: createAllProviders() })
     result.current.mutate({ id: 'apt-1', data })
     await waitFor(() => expect(result.current.isError).toBe(true))

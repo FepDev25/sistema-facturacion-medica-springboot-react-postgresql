@@ -2,14 +2,14 @@ import { cn } from '@/lib/utils'
 
 /** Soft tints — each person gets a stable color derived from their name. */
 const PALETTE = [
-  'bg-rose-100 text-rose-700',
-  'bg-amber-100 text-amber-700',
-  'bg-emerald-100 text-emerald-700',
-  'bg-cyan-100 text-cyan-700',
-  'bg-blue-100 text-blue-700',
-  'bg-violet-100 text-violet-700',
-  'bg-fuchsia-100 text-fuchsia-700',
-  'bg-teal-100 text-teal-700',
+  'bg-destructive/15 text-destructive',
+  'bg-warning/15 text-warning',
+  'bg-success/15 text-success',
+  'bg-info/15 text-info',
+  'bg-info/15 text-info',
+  'bg-primary/15 text-primary',
+  'bg-info/15 text-info',
+  'bg-primary/15 text-primary',
 ]
 
 function getInitials(firstName?: string, lastName?: string) {

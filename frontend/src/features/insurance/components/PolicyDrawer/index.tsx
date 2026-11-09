@@ -1,13 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import {
-  Sheet,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import {
   Form,
   FormControl,
@@ -105,7 +99,9 @@ export function PolicyDrawer({ open, onOpenChange, item }: PolicyDrawerProps) {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-md flex flex-col gap-0 p-0">
         <SheetHeader className="px-6 py-4 border-b">
-          <SheetTitle className="text-base">{isEditing ? 'Editar Poliza' : 'Nueva Poliza'}</SheetTitle>
+          <SheetTitle className="text-base">
+            {isEditing ? 'Editar Poliza' : 'Nueva Poliza'}
+          </SheetTitle>
         </SheetHeader>
 
         <Form {...form}>
@@ -131,12 +127,12 @@ export function PolicyDrawer({ open, onOpenChange, item }: PolicyDrawerProps) {
                       }}
                     />
                     {patientResults.length > 0 && (
-                      <div className="mt-1 max-h-40 overflow-y-auto rounded-md border border-slate-200">
+                      <div className="mt-1 max-h-40 overflow-y-auto rounded-md border border-border">
                         {patientResults.map((patient) => (
                           <button
                             key={patient.id}
                             type="button"
-                            className="w-full text-left px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+                            className="w-full text-left px-3 py-1.5 text-sm text-foreground hover:bg-muted/50 transition-colors"
                             onClick={() => {
                               field.onChange(patient.id)
                               setPatientQuery(`${patient.firstName} ${patient.lastName}`)

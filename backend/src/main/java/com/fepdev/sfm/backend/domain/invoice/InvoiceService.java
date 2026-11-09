@@ -7,9 +7,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +38,8 @@ import jakarta.persistence.EntityNotFoundException;
 
 @Service
 public class InvoiceService {
+
+    private static final Logger log = LoggerFactory.getLogger(InvoiceService.class);
 
     @Value("${billing.tax.rate:0.15}")
     private BigDecimal taxRate;
@@ -178,6 +184,7 @@ public class InvoiceService {
 
         InvoiceItem item = invoiceItemMapper.toEntity(request);
         item.setInvoice(invoice);
+        boolean canOverrideCatalog = isCurrentUserAdmin();
 
         switch (request.itemType()) {
             case SERVICE -> {
@@ -192,6 +199,8 @@ public class InvoiceService {
                     throw new BusinessRuleException("El servicio con ID: " + request.serviceId() + " no está activo");
                 }
                 item.setService(service);
+                applyCatalogValues(item, service.getName(), service.getPrice(),
+                        request.description(), request.unitPrice(), canOverrideCatalog, invoiceId);
             }
             case MEDICATION -> {
                 if (request.medicationId() == null) {
@@ -219,13 +228,25 @@ public class InvoiceService {
                     }
                 }
                 item.setMedication(medication);
+                applyCatalogValues(item, medication.getName(), medication.getPrice(),
+                        request.description(), request.unitPrice(), canOverrideCatalog, invoiceId);
             }
             default -> {
-                // PROCEDURE y OTHER no requieren referencia a catálogo
+                // PROCEDURE y OTHER no tienen catálogo: descripción y precio son obligatorios.
+                if (request.description() == null || request.description().isBlank()) {
+                    throw new BusinessRuleException("La descripción es obligatoria para ítems de tipo "
+                            + request.itemType());
+                }
+                if (request.unitPrice() == null || request.unitPrice().signum() <= 0) {
+                    throw new BusinessRuleException("El precio unitario es obligatorio y debe ser mayor a cero para ítems de tipo "
+                            + request.itemType());
+                }
+                item.setDescription(request.description().trim());
+                item.setUnitPrice(request.unitPrice());
             }
         }
         // subtotal calculado en el servidor: quantity * unitPrice (RN del roadmap)
-        item.setSubtotal(toMoney(request.unitPrice().multiply(BigDecimal.valueOf(request.quantity()))));
+        item.setSubtotal(toMoney(item.getUnitPrice().multiply(BigDecimal.valueOf(request.quantity()))));
 
         InvoiceItem savedItem = invoiceItemRepository.save(item);
 
@@ -233,6 +254,47 @@ public class InvoiceService {
         recalculateTotals(invoiceId);
 
         return invoiceItemMapper.toResponse(savedItem);
+    }
+
+    // Para ítems de catálogo el servidor manda: descripción y precio salen del catálogo.
+    // Solo ADMIN puede enviar valores distintos, y el override queda registrado en el log
+    // (además del AuditLog que ya genera AuditAspect con el ítem resultante).
+    private void applyCatalogValues(InvoiceItem item, String catalogDescription, BigDecimal catalogPrice,
+            String requestedDescription, BigDecimal requestedPrice, boolean canOverride, UUID invoiceId) {
+
+        if (catalogPrice == null) {
+            throw new BusinessRuleException(
+                    "El catálogo no tiene precio configurado para: " + catalogDescription);
+        }
+
+        String description = catalogDescription;
+        if (canOverride && requestedDescription != null && !requestedDescription.isBlank()
+                && !requestedDescription.trim().equalsIgnoreCase(catalogDescription)) {
+            description = requestedDescription.trim();
+            log.warn("Override de descripción de catálogo en factura {}: '{}' -> '{}' por {}",
+                    invoiceId, catalogDescription, description, currentUsername());
+        }
+
+        BigDecimal unitPrice = catalogPrice;
+        if (canOverride && requestedPrice != null && requestedPrice.compareTo(catalogPrice) != 0) {
+            unitPrice = requestedPrice;
+            log.warn("Override de precio de catálogo en factura {}: {} -> {} por {}",
+                    invoiceId, catalogPrice, unitPrice, currentUsername());
+        }
+
+        item.setDescription(description);
+        item.setUnitPrice(unitPrice);
+    }
+
+    private boolean isCurrentUserAdmin() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth != null && auth.getAuthorities().stream()
+                .anyMatch(authority -> "ADMIN".equals(authority.getAuthority()));
+    }
+
+    private String currentUsername() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth != null ? auth.getName() : "system";
     }
 
     // metodo para eliminar ítem de factura DRAFT, con validaciones para asegurar que el ítem pertenece a la factura y que la factura está en estado DRAFT
@@ -319,7 +381,14 @@ public class InvoiceService {
         // Recalcular totales para asegurar que estén correctos antes de confirmar
         recalculateTotals(invoiceId);
 
-        invoice.setStatus(InvoiceStatus.PENDING);
+        // Si la poliza cubre el 100 % no hay saldo que cobrar: la factura nace saldada.
+        // Dejarla en PENDING la volvia incobrable porque no se admiten pagos por cero.
+        if (invoice.getPatientResponsibility() != null
+                && invoice.getPatientResponsibility().signum() == 0) {
+            invoice.setStatus(InvoiceStatus.PAID);
+        } else {
+            invoice.setStatus(InvoiceStatus.PENDING);
+        }
         invoiceRepository.save(invoice);
     }
 

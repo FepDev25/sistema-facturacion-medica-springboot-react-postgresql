@@ -129,6 +129,7 @@ class AuthControllerWebMvcTest {
         when(userDetailsService.loadUserByUsername("admin")).thenReturn(user);
         when(jwtService.isRefreshTokenValid("refresh-token", user)).thenReturn(true);
         when(jwtService.generateAccessToken(user)).thenReturn("new-access-token");
+        when(jwtService.generateRefreshToken(user)).thenReturn("new-refresh-token");
 
         String body = """
                 {
@@ -141,7 +142,7 @@ class AuthControllerWebMvcTest {
                 .andExpect(jsonPath("$.accessToken").value("new-access-token"))
                 .andExpect(jsonPath("$.role").value("ADMIN"))
                 .andExpect(jsonPath("$.tokenType").value("Bearer"))
-                .andExpect(jsonPath("$.refreshToken").value(nullValue()))
+                .andExpect(jsonPath("$.refreshToken").value("new-refresh-token"))
                 .andExpect(jsonPath("$.userId").value("11111111-1111-1111-1111-111111111111"))
                 .andExpect(jsonPath("$.username").value("admin"));
     }

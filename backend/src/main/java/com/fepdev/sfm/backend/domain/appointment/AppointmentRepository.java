@@ -14,6 +14,23 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface AppointmentRepository extends JpaRepository<Appointment, UUID> {
 
+    // métricas del dashboard: citas del día y próximas, solo estados que ocupan agenda
+    @Query("""
+        SELECT COUNT(a) FROM Appointment a
+        WHERE a.status IN :statuses
+        AND a.scheduledAt >= :start
+        AND a.scheduledAt < :end""")
+    long countByStatusInAndScheduledAtBetween(@Param("statuses") List<Status> statuses,
+                                              @Param("start") OffsetDateTime start,
+                                              @Param("end") OffsetDateTime end);
+
+    @Query("""
+        SELECT COUNT(a) FROM Appointment a
+        WHERE a.status IN :statuses
+        AND a.scheduledAt > :now""")
+    long countUpcomingByStatusIn(@Param("statuses") List<Status> statuses,
+                                 @Param("now") OffsetDateTime now);
+
     // historial de citas de un paciente ordenado por fecha descendente, con paginacion
     @Query("""
         SELECT a FROM Appointment a

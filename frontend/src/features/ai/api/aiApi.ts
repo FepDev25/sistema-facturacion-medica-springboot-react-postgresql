@@ -28,9 +28,8 @@ export async function queryHistory(
   patientId: string,
   question: string,
 ): Promise<PatientHistoryAnswer> {
-  const response = await apiClient.post<PatientHistoryAnswer>(
-    `/ai/patients/${patientId}/query`,
-    { question },
-  )
+  const response = await apiClient.post<PatientHistoryAnswer>(`/ai/patients/${patientId}/query`, {
+    question,
+  })
   return response.data
 }

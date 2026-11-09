@@ -3,6 +3,7 @@ import { CalendarClock, FileHeart, Shield } from 'lucide-react'
 import { AllergyAlert } from '@/components/AllergyAlert'
 import { DataTable } from '@/components/DataTable'
 import { BackToListButton } from '@/components/BackToListButton'
+import { DetailSkeleton, QueryError } from '@/components/DetailState'
 import { PageHeader } from '@/components/layout/PageHeader'
 import { GENDER_LABELS } from '@/types/enums'
 import { formatDate, formatDateTime } from '@/lib/utils'
@@ -31,15 +32,22 @@ export function PatientDetailPage() {
   const patient = patientQuery.data
 
   if (patientQuery.isLoading) {
+    return <DetailSkeleton label="Cargando paciente" />
+  }
+
+  if (patientQuery.isError) {
     return (
-      <div className="px-6 py-8 text-sm text-slate-500">Cargando paciente...</div>
+      <QueryError
+        message="No se pudo cargar el paciente. Revisa tu conexión e intenta de nuevo."
+        onRetry={() => void patientQuery.refetch()}
+      />
     )
   }
 
   if (!patient) {
     return (
       <div className="px-6 py-8">
-        <p className="text-sm text-slate-500 mb-4">No se encontró el paciente.</p>
+        <p className="text-sm text-muted-foreground mb-4">No se encontró el paciente.</p>
         <BackToListButton fallbackTo="/patients" label="Volver a pacientes" />
       </div>
     )
@@ -60,59 +68,59 @@ export function PatientDetailPage() {
         />
 
         <section className="rounded-xl border border-border bg-card p-5 shadow-card">
-          <h2 className="text-sm font-semibold text-slate-900 mb-3">Información general</h2>
+          <h2 className="text-sm font-semibold text-foreground mb-3">Información general</h2>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
             <div>
-              <p className="text-xs text-slate-500">DNI</p>
-              <p className="font-mono text-sm text-slate-700">{patient.dni}</p>
+              <p className="text-xs text-muted-foreground">DNI</p>
+              <p className="font-mono text-sm text-foreground">{patient.dni}</p>
             </div>
             <div>
-              <p className="text-xs text-slate-500">Género</p>
-              <p className="text-sm text-slate-800">{GENDER_LABELS[patient.gender]}</p>
+              <p className="text-xs text-muted-foreground">Género</p>
+              <p className="text-sm text-foreground">{GENDER_LABELS[patient.gender]}</p>
             </div>
             <div>
-              <p className="text-xs text-slate-500">Nacimiento</p>
-              <p className="text-sm text-slate-800">{formatDate(patient.birthDate)}</p>
+              <p className="text-xs text-muted-foreground">Nacimiento</p>
+              <p className="text-sm text-foreground">{formatDate(patient.birthDate)}</p>
             </div>
             <div>
-              <p className="text-xs text-slate-500">Teléfono</p>
-              <p className="text-sm text-slate-800">{patient.phone}</p>
+              <p className="text-xs text-muted-foreground">Teléfono</p>
+              <p className="text-sm text-foreground">{patient.phone}</p>
             </div>
             <div>
-              <p className="text-xs text-slate-500">Email</p>
-              <p className="text-sm text-slate-800">{patient.email ?? '—'}</p>
+              <p className="text-xs text-muted-foreground">Email</p>
+              <p className="text-sm text-foreground">{patient.email ?? '—'}</p>
             </div>
             <div>
-              <p className="text-xs text-slate-500">Tipo de sangre</p>
-              <p className="text-sm text-slate-800">{patient.bloodType ?? '—'}</p>
+              <p className="text-xs text-muted-foreground">Tipo de sangre</p>
+              <p className="text-sm text-foreground">{patient.bloodType ?? '—'}</p>
             </div>
             <div className="md:col-span-2 lg:col-span-2">
-              <p className="text-xs text-slate-500">Dirección</p>
-              <p className="text-sm text-slate-800">{patient.address ?? '—'}</p>
+              <p className="text-xs text-muted-foreground">Dirección</p>
+              <p className="text-sm text-foreground">{patient.address ?? '—'}</p>
             </div>
             <div className="md:col-span-2 lg:col-span-4">
-              <p className="text-xs text-slate-500">Alergias</p>
+              <p className="text-xs text-muted-foreground">Alergias</p>
               {patient.allergies ? (
-                <p className="text-sm text-slate-800">{patient.allergies}</p>
+                <p className="text-sm text-foreground">{patient.allergies}</p>
               ) : (
-                <p className="text-sm text-slate-400">—</p>
+                <p className="text-sm text-muted-foreground/70">—</p>
               )}
             </div>
             <div>
-              <p className="text-xs text-slate-500">Creado</p>
-              <p className="text-sm text-slate-800">{formatDateTime(patient.createdAt)}</p>
+              <p className="text-xs text-muted-foreground">Creado</p>
+              <p className="text-sm text-foreground">{formatDateTime(patient.createdAt)}</p>
             </div>
             <div>
-              <p className="text-xs text-slate-500">Actualizado</p>
-              <p className="text-sm text-slate-800">{formatDateTime(patient.updatedAt)}</p>
+              <p className="text-xs text-muted-foreground">Actualizado</p>
+              <p className="text-sm text-foreground">{formatDateTime(patient.updatedAt)}</p>
             </div>
           </div>
         </section>
 
         <section className="rounded-xl border border-border bg-card p-5 shadow-card">
           <div className="flex items-center gap-2 mb-3">
-            <CalendarClock className="h-4 w-4 text-slate-500" />
-            <h2 className="text-sm font-semibold text-slate-900">Citas del paciente</h2>
+            <CalendarClock className="h-4 w-4 text-muted-foreground" />
+            <h2 className="text-sm font-semibold text-foreground">Citas del paciente</h2>
           </div>
           <DataTable
             columns={getPatientAppointmentColumns()}
@@ -125,8 +133,8 @@ export function PatientDetailPage() {
 
         <section className="rounded-xl border border-border bg-card p-5 shadow-card">
           <div className="flex items-center gap-2 mb-3">
-            <Shield className="h-4 w-4 text-slate-500" />
-            <h2 className="text-sm font-semibold text-slate-900">Pólizas de seguro</h2>
+            <Shield className="h-4 w-4 text-muted-foreground" />
+            <h2 className="text-sm font-semibold text-foreground">Pólizas de seguro</h2>
           </div>
           <DataTable
             columns={getPatientPolicyColumns()}
@@ -139,8 +147,8 @@ export function PatientDetailPage() {
 
         <section className="rounded-xl border border-border bg-card p-5 shadow-card">
           <div className="flex items-center gap-2 mb-3">
-            <Shield className="h-4 w-4 text-slate-500" />
-            <h2 className="text-sm font-semibold text-slate-900">Facturas del paciente</h2>
+            <Shield className="h-4 w-4 text-muted-foreground" />
+            <h2 className="text-sm font-semibold text-foreground">Facturas del paciente</h2>
           </div>
           <DataTable
             columns={getPatientInvoiceColumns()}
@@ -153,8 +161,8 @@ export function PatientDetailPage() {
 
         <section className="rounded-xl border border-border bg-card p-5 shadow-card">
           <div className="flex items-center gap-2 mb-3">
-            <FileHeart className="h-4 w-4 text-slate-500" />
-            <h2 className="text-sm font-semibold text-slate-900">Expedientes clinicos</h2>
+            <FileHeart className="h-4 w-4 text-muted-foreground" />
+            <h2 className="text-sm font-semibold text-foreground">Expedientes clinicos</h2>
           </div>
           <DataTable
             columns={getPatientMedicalRecordColumns()}

@@ -1,13 +1,7 @@
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import {
-  Sheet,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import {
   Form,
   FormControl,
@@ -137,7 +131,7 @@ export function PatientDrawer({ open, onOpenChange, patientId }: PatientDrawerPr
                       />
                     </FormControl>
                     {isEditing && (
-                      <p className="text-xs text-slate-400">El DNI no es editable</p>
+                      <p className="text-xs text-muted-foreground/70">El DNI no es editable</p>
                     )}
                     <FormMessage />
                   </FormItem>
@@ -195,7 +189,11 @@ export function PatientDrawer({ open, onOpenChange, patientId }: PatientDrawerPr
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Género</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value} disabled={isEditing}>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        disabled={isEditing}
+                      >
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Seleccionar" />
@@ -237,7 +235,7 @@ export function PatientDrawer({ open, onOpenChange, patientId }: PatientDrawerPr
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Email <span className="text-slate-400 font-normal">(opcional)</span>
+                      Email <span className="text-muted-foreground/70 font-normal">(opcional)</span>
                     </FormLabel>
                     <FormControl>
                       <Input {...field} type="email" placeholder="paciente@email.com" />
@@ -253,7 +251,8 @@ export function PatientDrawer({ open, onOpenChange, patientId }: PatientDrawerPr
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Dirección <span className="text-slate-400 font-normal">(opcional)</span>
+                      Dirección{' '}
+                      <span className="text-muted-foreground/70 font-normal">(opcional)</span>
                     </FormLabel>
                     <FormControl>
                       <Textarea
@@ -276,7 +275,7 @@ export function PatientDrawer({ open, onOpenChange, patientId }: PatientDrawerPr
                     <FormItem>
                       <FormLabel>
                         Tipo de sangre{' '}
-                        <span className="text-slate-400 font-normal">(opcional)</span>
+                        <span className="text-muted-foreground/70 font-normal">(opcional)</span>
                       </FormLabel>
                       <FormControl>
                         <Input {...field} placeholder="O+" />
@@ -292,7 +291,8 @@ export function PatientDrawer({ open, onOpenChange, patientId }: PatientDrawerPr
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        Alergias <span className="text-slate-400 font-normal">(opcional)</span>
+                        Alergias{' '}
+                        <span className="text-muted-foreground/70 font-normal">(opcional)</span>
                       </FormLabel>
                       <FormControl>
                         <Input {...field} placeholder="Penicilina" />

@@ -21,6 +21,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.fepdev.sfm.backend.domain.appointment.Appointment;
@@ -289,6 +292,8 @@ class InvoiceServiceTest {
         MedicationsCatalog med = new MedicationsCatalog();
         med.setActive(true);
         med.setRequiresPrescription(true);
+        med.setName("Amoxicilina");
+        med.setPrice(new BigDecimal("15.00"));
 
         com.fepdev.sfm.backend.domain.appointment.Appointment appointment =
                 new com.fepdev.sfm.backend.domain.appointment.Appointment();
@@ -324,6 +329,8 @@ class InvoiceServiceTest {
 
         ServicesCatalog service = new ServicesCatalog();
         service.setIsActive(true);
+        service.setName("Consulta");
+        service.setPrice(new BigDecimal("50.00"));
 
         InvoiceItemRequest req = new InvoiceItemRequest(
             serviceId, null, ItemType.SERVICE, "Consulta", 2, new BigDecimal("50.00"));
@@ -350,6 +357,110 @@ class InvoiceServiceTest {
         assertThat(result).isEqualTo(itemResponse);
         verify(invoiceItemRepository).save(item);
         verify(invoiceRepository).save(invoice);
+    }
+
+    @Test
+    void addItem_serviceType_ignoresClientPriceAndUsesCatalog() {
+        UUID invoiceId = UUID.randomUUID();
+        UUID serviceId = UUID.randomUUID();
+
+        ServicesCatalog service = new ServicesCatalog();
+        service.setIsActive(true);
+        service.setName("Consulta general");
+        service.setPrice(new BigDecimal("120.00"));
+
+        // el cliente intenta facturar el servicio a 1.00 y con otra descripción
+        InvoiceItemRequest req = new InvoiceItemRequest(
+                serviceId, null, ItemType.SERVICE, "Precio inventado", 1, new BigDecimal("1.00"));
+        InvoiceItem item = new InvoiceItem();
+        Invoice invoice = draftInvoice();
+
+        when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
+        when(servicesCatalogRepository.findById(serviceId)).thenReturn(Optional.of(service));
+        when(invoiceItemMapper.toEntity(req)).thenReturn(item);
+        when(invoiceItemRepository.save(item)).thenReturn(item);
+        when(invoiceItemRepository.findByInvoiceId(invoiceId)).thenReturn(List.of(item));
+        when(invoiceRepository.save(any(Invoice.class))).thenReturn(invoice);
+        when(invoiceItemMapper.toResponse(item)).thenReturn(null);
+
+        invoiceService.addItem(invoiceId, req);
+
+        assertThat(item.getDescription()).isEqualTo("Consulta general");
+        assertThat(item.getUnitPrice()).isEqualByComparingTo("120.00");
+        assertThat(item.getSubtotal()).isEqualByComparingTo("120.00");
+    }
+
+    @Test
+    void addItem_serviceType_adminCanOverrideCatalogPrice() {
+        UUID invoiceId = UUID.randomUUID();
+        UUID serviceId = UUID.randomUUID();
+
+        ServicesCatalog service = new ServicesCatalog();
+        service.setIsActive(true);
+        service.setName("Consulta general");
+        service.setPrice(new BigDecimal("120.00"));
+
+        InvoiceItemRequest req = new InvoiceItemRequest(
+                serviceId, null, ItemType.SERVICE, "Consulta general", 1, new BigDecimal("100.00"));
+        InvoiceItem item = new InvoiceItem();
+        Invoice invoice = draftInvoice();
+
+        when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
+        when(servicesCatalogRepository.findById(serviceId)).thenReturn(Optional.of(service));
+        when(invoiceItemMapper.toEntity(req)).thenReturn(item);
+        when(invoiceItemRepository.save(item)).thenReturn(item);
+        when(invoiceItemRepository.findByInvoiceId(invoiceId)).thenReturn(List.of(item));
+        when(invoiceRepository.save(any(Invoice.class))).thenReturn(invoice);
+        when(invoiceItemMapper.toResponse(item)).thenReturn(null);
+
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("admin", null,
+                        List.of(new SimpleGrantedAuthority("ADMIN"))));
+        try {
+            invoiceService.addItem(invoiceId, req);
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
+
+        assertThat(item.getUnitPrice()).isEqualByComparingTo("100.00");
+        assertThat(item.getSubtotal()).isEqualByComparingTo("100.00");
+    }
+
+    @Test
+    void addItem_procedureType_withoutPrice_throwsBusinessRuleException() {
+        UUID invoiceId = UUID.randomUUID();
+        InvoiceItemRequest req = new InvoiceItemRequest(
+                null, null, ItemType.PROCEDURE, "Procedimiento", 1, null);
+
+        when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(draftInvoice()));
+        when(invoiceItemMapper.toEntity(req)).thenReturn(new InvoiceItem());
+
+        assertThatThrownBy(() -> invoiceService.addItem(invoiceId, req))
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("precio unitario");
+    }
+
+    @Test
+    void addItem_otherType_withFreePrice_savesItem() {
+        UUID invoiceId = UUID.randomUUID();
+        InvoiceItemRequest req = new InvoiceItemRequest(
+                null, null, ItemType.OTHER, "Insumo especial", 2, new BigDecimal("25.00"));
+
+        InvoiceItem item = new InvoiceItem();
+        Invoice invoice = draftInvoice();
+
+        when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
+        when(invoiceItemMapper.toEntity(req)).thenReturn(item);
+        when(invoiceItemRepository.save(item)).thenReturn(item);
+        when(invoiceItemRepository.findByInvoiceId(invoiceId)).thenReturn(List.of(item));
+        when(invoiceRepository.save(any(Invoice.class))).thenReturn(invoice);
+        when(invoiceItemMapper.toResponse(item)).thenReturn(null);
+
+        invoiceService.addItem(invoiceId, req);
+
+        assertThat(item.getDescription()).isEqualTo("Insumo especial");
+        assertThat(item.getUnitPrice()).isEqualByComparingTo("25.00");
+        assertThat(item.getSubtotal()).isEqualByComparingTo("50.00");
     }
 
     // =========================================================
@@ -395,6 +506,36 @@ class InvoiceServiceTest {
         invoiceService.confirmInvoice(invoiceId);
 
         assertThat(invoice.getStatus()).isEqualTo(InvoiceStatus.PENDING);
+    }
+
+    @Test
+    void confirmInvoice_whenPolicyCoversEverything_setsStatusPaid() {
+        UUID invoiceId = UUID.randomUUID();
+        Invoice invoice = draftInvoice();
+
+        InsuranceProvider provider = new InsuranceProvider();
+        provider.setActive(true);
+
+        InsurancePolicy policy = new InsurancePolicy();
+        policy.setActive(true);
+        policy.setProvider(provider);
+        policy.setStartDate(LocalDate.now().minusDays(1));
+        policy.setEndDate(LocalDate.now().plusDays(30));
+        policy.setCoveragePercentage(new BigDecimal("100.00"));
+        policy.setDeductible(BigDecimal.ZERO);
+        invoice.setInsurancePolicy(policy);
+
+        InvoiceItem item = new InvoiceItem();
+        item.setSubtotal(new BigDecimal("100.00"));
+
+        when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
+        when(invoiceItemRepository.findByInvoiceId(invoiceId)).thenReturn(List.of(item));
+        when(invoiceRepository.save(any(Invoice.class))).thenReturn(invoice);
+
+        invoiceService.confirmInvoice(invoiceId);
+
+        assertThat(invoice.getPatientResponsibility()).isEqualByComparingTo("0.00");
+        assertThat(invoice.getStatus()).isEqualTo(InvoiceStatus.PAID);
     }
 
     @Test

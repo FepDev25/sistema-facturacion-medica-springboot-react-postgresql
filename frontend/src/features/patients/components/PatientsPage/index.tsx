@@ -5,10 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { DataTable } from '@/components/DataTable'
 import { PageHeader } from '@/components/layout/PageHeader'
-import {
-  NO_PERMISSION_MESSAGE,
-  useRolePermissions,
-} from '@/features/auth/hooks/useRolePermissions'
+import { NO_PERMISSION_MESSAGE, useRolePermissions } from '@/features/auth/hooks/useRolePermissions'
 import { usePatientsPage } from '../../hooks/usePatients'
 import { getPatientColumns } from '../patientColumns'
 import { PatientDrawer } from '../PatientDrawer'
@@ -55,7 +52,7 @@ export function PatientsPage() {
       <div className="flex-1 px-6 py-5 overflow-auto">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3">
           <div className="relative w-full sm:w-auto">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/70" />
             <Input
               value={search}
               onChange={(event) => {
@@ -90,12 +87,14 @@ export function PatientsPage() {
           data={patients}
           isLoading={isLoading}
           pageSize={20}
-          emptyMessage={search ? 'Sin resultados para la búsqueda.' : 'No hay pacientes registrados.'}
+          emptyMessage={
+            search ? 'Sin resultados para la búsqueda.' : 'No hay pacientes registrados.'
+          }
         />
 
         {!isLoading && patientsPage && patientsPage.totalPages > 1 ? (
           <div className="mt-3 flex items-center justify-between px-1">
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-muted-foreground">
               Pagina {patientsPage.number + 1} de {patientsPage.totalPages} -{' '}
               {patientsPage.totalElements} pacientes
             </p>

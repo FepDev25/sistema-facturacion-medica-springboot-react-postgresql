@@ -9,8 +9,18 @@ export function MockSheet({ open, children }: { open: boolean; children?: ReactN
   return <div data-testid="sheet">{children}</div>
 }
 
-export function MockSheetContent({ children, className }: { children?: ReactNode; className?: string }) {
-  return <div className={className} data-slot="sheet-content">{children}</div>
+export function MockSheetContent({
+  children,
+  className,
+}: {
+  children?: ReactNode
+  className?: string
+}) {
+  return (
+    <div className={className} data-slot="sheet-content">
+      {children}
+    </div>
+  )
 }
 
 export function MockSheetHeader({ children }: { children?: ReactNode }) {
@@ -25,7 +35,11 @@ export function MockSheetFooter({ children }: { children?: ReactNode }) {
   return <div data-slot="sheet-footer">{children}</div>
 }
 
-export function MockSelect({ children, onValueChange, value }: {
+export function MockSelect({
+  children,
+  onValueChange,
+  value,
+}: {
   children?: ReactNode
   onValueChange?: (value: string) => void
   value?: string
@@ -33,11 +47,7 @@ export function MockSelect({ children, onValueChange, value }: {
   return (
     <div data-testid="select" data-value={value}>
       {children}
-      <input
-        type="hidden"
-        value={value ?? ''}
-        onChange={(e) => onValueChange?.(e.target.value)}
-      />
+      <input type="hidden" value={value ?? ''} onChange={(e) => onValueChange?.(e.target.value)} />
     </div>
   )
 }
@@ -61,7 +71,10 @@ export function MockSelectItem({ children, value }: { children?: ReactNode; valu
         if (select) {
           const hidden = select.querySelector('input[type="hidden"]')
           if (hidden) {
-            const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set
+            const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
+              window.HTMLInputElement.prototype,
+              'value',
+            )?.set
             nativeInputValueSetter?.call(hidden, value)
             hidden.dispatchEvent(new Event('change', { bubbles: true }))
           }
@@ -77,7 +90,10 @@ export function MockSelectValue({ placeholder }: { placeholder?: string }) {
   return <span data-slot="select-value">{placeholder}</span>
 }
 
-export function MockCheckbox({ checked, onCheckedChange }: {
+export function MockCheckbox({
+  checked,
+  onCheckedChange,
+}: {
   checked?: boolean
   onCheckedChange?: (checked: boolean) => void
 }) {

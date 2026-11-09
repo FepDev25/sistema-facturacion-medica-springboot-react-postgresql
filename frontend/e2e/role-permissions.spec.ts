@@ -155,14 +155,21 @@ test.describe('RECEPTIONIST permissions', () => {
     await page.locator('aside nav').getByRole('link', { name: 'Facturas' }).click()
 
     const detailLinks = page.getByRole('link', { name: 'Ver detalle de la factura' })
-    if (await detailLinks.count() > 0) {
-      await detailLinks.first().click()
+    const count = await detailLinks.count()
+
+    for (let i = 0; i < count; i++) {
+      await detailLinks.nth(i).click()
       const payBtn = page.getByRole('button', { name: 'Registrar pago' })
-      if (await payBtn.isVisible()) {
+
+      if ((await payBtn.isVisible()) && (await payBtn.isEnabled())) {
         await expect(payBtn).toBeEnabled()
         return
       }
+
+      await page.goBack()
+      await expect(page).toHaveURL(/\/invoices/)
     }
+
     test.skip(true, 'No se encontró factura que acepte pagos')
   })
 
@@ -226,7 +233,7 @@ test.describe('DOCTOR permissions', () => {
     await page.locator('aside nav').getByRole('link', { name: 'Citas' }).click()
 
     const detailLinks = page.getByRole('link', { name: 'Ver detalle de la cita' })
-    if (await detailLinks.count() > 0) {
+    if ((await detailLinks.count()) > 0) {
       await detailLinks.first().click()
       await expect(page.getByRole('heading', { name: 'Detalle de cita' })).toBeVisible()
     } else {
@@ -246,7 +253,7 @@ test.describe('DOCTOR permissions', () => {
       await detailLinks.first().click()
       const completeBtn = page.getByRole('button', { name: 'Completar cita' }).first()
 
-      if (await completeBtn.isVisible() && await completeBtn.isEnabled()) {
+      if ((await completeBtn.isVisible()) && (await completeBtn.isEnabled())) {
         await expect(completeBtn).toBeEnabled()
         return
       }
@@ -265,13 +272,17 @@ test.describe('Permission error messages', () => {
     await loginAs(page, DOCTOR_USER, DOCTOR_PASS)()
 
     await page.goto('/doctors')
-    await expect(page).toHaveURL(/\/login/)
+    // Autenticado pero sin rol: requireRole muestra la página 403.
+    await expect(page).toHaveURL(/\/forbidden/)
+    await expect(page.getByRole('heading', { name: 'No tienes permisos' })).toBeVisible()
   })
 
   test('MANAGE_INVOICES actions are restricted to non-ADMIN/RECEPTIONIST', async ({ page }) => {
     if (!DOCTOR_USER) test.skip(true, 'E2E_DOCTOR_USER not set')
     await loginAs(page, DOCTOR_USER, DOCTOR_PASS)()
     await page.goto('/invoices')
-    await expect(page).toHaveURL(/\/login/)
+    // Autenticado pero sin rol: requireRole muestra la página 403.
+    await expect(page).toHaveURL(/\/forbidden/)
+    await expect(page.getByRole('heading', { name: 'No tienes permisos' })).toBeVisible()
   })
 })

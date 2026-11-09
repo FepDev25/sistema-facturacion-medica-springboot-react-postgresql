@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,6 +57,19 @@ public class PatientHistoryIndexer {
                 "SELECT COUNT(*) FROM vector_store WHERE metadata->>'patientId' = ?",
                 Integer.class, patientId.toString());
         return count != null && count > 0;
+    }
+
+    // Un índice parcial (menos documentos que expedientes) también cuenta como no indexado:
+    // así la consulta repara pacientes a los que les falló un embedding a mitad de carga.
+    public boolean isPatientFullyIndexed(UUID patientId) {
+        long expected = medicalRecordRepository.countByPatientId(patientId);
+        if (expected == 0) {
+            return true;
+        }
+        Integer indexed = jdbc.queryForObject(
+                "SELECT COUNT(*) FROM vector_store WHERE metadata->>'patientId' = ?",
+                Integer.class, patientId.toString());
+        return indexed != null && indexed >= expected;
     }
 
     // topK dinámico: escala con el número de expedientes indexados para no perder
@@ -140,47 +155,97 @@ public class PatientHistoryIndexer {
     // Indexa todos los expedientes de un paciente. Cada repositorio abre su propia transacción
     // corta; findByPatientIdEager y findAllByMedicalRecordIdEager hacen JOIN FETCH de las
     // asociaciones lazy para evitar LazyInitializationException fuera de sesión.
-    public void indexPatient(UUID patientId) {
+    public int indexPatient(UUID patientId) {
         List<MedicalRecord> records = medicalRecordRepository.findByPatientIdEager(patientId);
         if (records.isEmpty()) {
+            // sin expedientes, cualquier documento previo es obsoleto
+            jdbc.update("DELETE FROM vector_store WHERE metadata->>'patientId' = ?", patientId.toString());
             log.info("Paciente {} no tiene expedientes para indexar", patientId);
-            return;
+            return 0;
         }
+
+        // Se agregan los documentos nuevos antes de borrar los viejos: si el embedding
+        // falla, el índice anterior sigue disponible para las consultas.
         List<Document> docs = records.stream().map(this::buildDocument).toList();
         vectorStore.add(docs);
+        removeStaleDocuments(patientId, records);
         log.info("Paciente {}: {} expediente(s) indexado(s)", patientId, docs.size());
+        return docs.size();
+    }
+
+    private void removeStaleDocuments(UUID patientId, List<MedicalRecord> records) {
+        Set<String> currentIds = records.stream()
+                .map(record -> record.getId().toString())
+                .collect(Collectors.toSet());
+
+        List<String> indexedIds = jdbc.queryForList(
+                "SELECT metadata->>'medicalRecordId' FROM vector_store WHERE metadata->>'patientId' = ?",
+                String.class, patientId.toString());
+
+        for (String indexedId : indexedIds) {
+            if (indexedId != null && !currentIds.contains(indexedId)) {
+                jdbc.update("DELETE FROM vector_store WHERE metadata->>'medicalRecordId' = ?", indexedId);
+            }
+        }
     }
 
     // Elimina el documento existente del expediente y lo re-indexa con el estado actual de la BD.
     // Llamado de forma asíncrona después de que la transacción del servicio hace commit.
     public void reindexRecord(UUID medicalRecordId) {
-        jdbc.update("DELETE FROM vector_store WHERE metadata->>'medicalRecordId' = ?",
-                medicalRecordId.toString());
-
         MedicalRecord record = medicalRecordRepository.findByIdWithPatient(medicalRecordId).orElse(null);
         if (record == null) {
+            jdbc.update("DELETE FROM vector_store WHERE metadata->>'medicalRecordId' = ?",
+                    medicalRecordId.toString());
             log.warn("Re-indexación: expediente {} no encontrado — probablemente eliminado", medicalRecordId);
             return;
         }
-        vectorStore.add(List.of(buildDocument(record)));
+
+        // Orden seguro: primero el documento nuevo, después se eliminan los anteriores.
+        // Si el embedding falla, el expediente sigue en el índice con su versión previa.
+        Document document = buildDocument(record);
+        vectorStore.add(List.of(document));
+        jdbc.update("DELETE FROM vector_store WHERE metadata->>'medicalRecordId' = ? AND id <> ?",
+                medicalRecordId.toString(), document.getId());
         log.debug("Expediente {} re-indexado (paciente {})", medicalRecordId, record.getPatient().getId());
     }
 
     // Registra un re-índice asíncrono post-commit. Llamado desde servicios de dominio cuando
     // se agrega o modifica contenido clínico asociado a un expediente.
     public void scheduleReindex(UUID medicalRecordId) {
+        // Si no hay transacción activa (llamadas desde jobs, tests o scripts) no se puede
+        // registrar un afterCommit: se reindexa de inmediato en vez de lanzar IllegalStateException.
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            reindexSafely(medicalRecordId);
+            return;
+        }
+
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
             public void afterCommit() {
-                CompletableFuture.runAsync(() -> {
-                    try {
-                        reindexRecord(medicalRecordId);
-                    } catch (Exception e) {
-                        log.error("Error re-indexando expediente {}", medicalRecordId, e);
-                    }
-                });
+                CompletableFuture.runAsync(() -> reindexSafely(medicalRecordId));
             }
         });
+    }
+
+    private void reindexSafely(UUID medicalRecordId) {
+        for (int attempt = 1; attempt <= 3; attempt++) {
+            try {
+                reindexRecord(medicalRecordId);
+                return;
+            } catch (Exception e) {
+                if (attempt == 3) {
+                    log.error("Error re-indexando expediente {} tras {} intentos", medicalRecordId, attempt, e);
+                    return;
+                }
+                log.warn("Error re-indexando expediente {} (intento {}/3): {}", medicalRecordId, attempt, e.getMessage());
+                try {
+                    Thread.sleep(200L * attempt);
+                } catch (InterruptedException interrupted) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+            }
+        }
     }
 
     private Document buildDocument(MedicalRecord record) {
