@@ -26,6 +26,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ITEM_TYPE_LABELS } from '@/types/invoice'
+import { useRolePermissions } from '@/features/auth/hooks/useRolePermissions'
 import { useMedications, useServices } from '@/features/catalog/hooks/useCatalog'
 import {
   InvoiceItemFormSchema,
@@ -55,7 +56,12 @@ export function InvoiceItemDrawer({ invoiceId, open, onOpenChange }: InvoiceItem
     defaultValues: DEFAULT_VALUES,
   })
 
+  const { role } = useRolePermissions()
   const itemType = form.watch('itemType')
+  const usesCatalog = itemType === 'service' || itemType === 'medication'
+  // El backend ignora el precio/descripción del cliente para ítems de catálogo; solo
+  // ADMIN puede hacer override. La UI acompaña esa regla.
+  const catalogFieldsLocked = usesCatalog && role !== 'ADMIN'
 
   const { data: services = [] } = useServices()
   const { data: medications = [] } = useMedications()
@@ -103,6 +109,8 @@ export function InvoiceItemDrawer({ invoiceId, open, onOpenChange }: InvoiceItem
                         field.onChange(value)
                         form.setValue('serviceId', '')
                         form.setValue('medicationId', '')
+                        form.setValue('description', '')
+                        form.setValue('unitPrice', 0)
                       }}
                     >
                       <FormControl>
@@ -204,8 +212,13 @@ export function InvoiceItemDrawer({ invoiceId, open, onOpenChange }: InvoiceItem
                   <FormItem>
                     <FormLabel>Descripcion</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Detalle del item" />
+                      <Input {...field} placeholder="Detalle del item" readOnly={catalogFieldsLocked} />
                     </FormControl>
+                    {catalogFieldsLocked ? (
+                      <p className="text-xs text-muted-foreground">
+                        Tomada del catálogo. Solo un administrador puede modificarla.
+                      </p>
+                    ) : null}
                     <FormMessage />
                   </FormItem>
                 )}
@@ -245,8 +258,14 @@ export function InvoiceItemDrawer({ invoiceId, open, onOpenChange }: InvoiceItem
                           step={0.01}
                           value={field.value}
                           onChange={(event) => field.onChange(event.target.valueAsNumber)}
+                          readOnly={catalogFieldsLocked}
                         />
                       </FormControl>
+                      {catalogFieldsLocked ? (
+                        <p className="text-xs text-muted-foreground">
+                          Precio del catálogo. Solo un administrador puede modificarlo.
+                        </p>
+                      ) : null}
                       <FormMessage />
                     </FormItem>
                   )}

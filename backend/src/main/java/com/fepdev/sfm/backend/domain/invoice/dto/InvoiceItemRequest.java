@@ -5,10 +5,9 @@ import java.util.UUID;
 
 import com.fepdev.sfm.backend.domain.invoice.ItemType;
 
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 
 public record InvoiceItemRequest(
 
@@ -20,14 +19,14 @@ public record InvoiceItemRequest(
     @NotNull(message = "El tipo de ítem es obligatorio")
     ItemType itemType,
 
-    @NotBlank(message = "La descripción del ítem es obligatoria")
+    // Para SERVICE/MEDICATION la descripción y el precio salen del catálogo; solo
+    // ADMIN puede enviar un override. Para PROCEDURE/OTHER son obligatorios.
+    @Size(max = 255, message = "La descripción no puede exceder los 255 caracteres")
     String description,
 
     @NotNull(message = "La cantidad es obligatoria")
     @Positive(message = "La cantidad debe ser un valor positivo")
     Integer quantity,
 
-    @NotNull(message = "El precio unitario es obligatorio")
-    @DecimalMin(value = "0.00", inclusive = false, message = "El precio unitario debe ser mayor a cero")
     BigDecimal unitPrice
 ) {}
