@@ -22,9 +22,9 @@ type MetricTone = 'primary' | 'neutral' | 'success' | 'warning'
 
 const TONE_ICON: Record<MetricTone, string> = {
   primary: 'bg-primary/10 text-primary',
-  neutral: 'bg-slate-100 text-slate-600',
-  success: 'bg-emerald-50 text-emerald-600',
-  warning: 'bg-amber-50 text-amber-600',
+  neutral: 'bg-muted text-muted-foreground',
+  success: 'bg-success/10 text-success',
+  warning: 'bg-warning/10 text-warning',
 }
 
 interface MetricCardProps {

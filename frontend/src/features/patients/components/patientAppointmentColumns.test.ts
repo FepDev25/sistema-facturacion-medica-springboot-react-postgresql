@@ -8,10 +8,9 @@ describe('getPatientAppointmentColumns', () => {
 
   it('has correct accessorKey columns', () => {
     const cols = getPatientAppointmentColumns()
-    expect(cols.filter((c) => 'accessorKey' in c).map((c) => (c as { accessorKey: string }).accessorKey)).toEqual([
-      'scheduledAt',
-      'status',
-    ])
+    expect(
+      cols.filter((c) => 'accessorKey' in c).map((c) => (c as { accessorKey: string }).accessorKey),
+    ).toEqual(['scheduledAt', 'status'])
   })
 
   it('has correct id columns', () => {

@@ -10,17 +10,19 @@ describe('getPolicyColumns', () => {
 
   it('has correct accessorKey columns', () => {
     const cols = getPolicyColumns(opts)
-    expect(cols.filter((c) => 'accessorKey' in c).map((c) => (c as { accessorKey: string }).accessorKey)).toEqual([
-      'policyNumber',
-      'coveragePercentage',
-      'deductible',
-      'isActive',
-    ])
+    expect(
+      cols.filter((c) => 'accessorKey' in c).map((c) => (c as { accessorKey: string }).accessorKey),
+    ).toEqual(['policyNumber', 'coveragePercentage', 'deductible', 'isActive'])
   })
 
   it('has correct id columns', () => {
     const cols = getPolicyColumns(opts)
-    expect(cols.filter((c) => 'id' in c).map((c) => c.id)).toEqual(['patient', 'provider', 'validity', 'actions'])
+    expect(cols.filter((c) => 'id' in c).map((c) => c.id)).toEqual([
+      'patient',
+      'provider',
+      'validity',
+      'actions',
+    ])
   })
 
   it('defines correct headers', () => {

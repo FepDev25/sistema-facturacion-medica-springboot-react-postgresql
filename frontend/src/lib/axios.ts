@@ -16,8 +16,7 @@ interface RefreshTokenResponse {
   username: string
 }
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL ?? 'http://localhost:8080/api/v1'
+const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080/api/v1'
 
 const AUTH_ENDPOINTS = ['/auth/login', '/auth/refresh', '/auth/logout']
 
@@ -155,8 +154,7 @@ apiClient.interceptors.request.use((config) => {
 export async function handleResponseError(error: unknown) {
   const axiosError = error as AxiosError
   const originalRequest = axiosError.config as
-    | (typeof axiosError.config & { _retry?: boolean })
-    | undefined
+    (typeof axiosError.config & { _retry?: boolean }) | undefined
 
   if (!originalRequest) {
     return Promise.reject(error)

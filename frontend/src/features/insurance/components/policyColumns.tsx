@@ -20,7 +20,7 @@ export function getPolicyColumns({
       header: 'Poliza',
       size: 150,
       cell: ({ row }) => (
-        <span className="font-mono text-xs text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
+        <span className="font-mono text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
           {row.original.policyNumber}
         </span>
       ),
@@ -29,7 +29,7 @@ export function getPolicyColumns({
       id: 'patient',
       header: 'Paciente',
       cell: ({ row }) => (
-        <p className="font-medium text-slate-900">
+        <p className="font-medium text-foreground">
           {row.original.patientFirstName} {row.original.patientLastName}
         </p>
       ),
@@ -37,14 +37,16 @@ export function getPolicyColumns({
     {
       id: 'provider',
       header: 'Aseguradora',
-      cell: ({ row }) => <span className="text-sm text-slate-700">{row.original.providerName}</span>,
+      cell: ({ row }) => (
+        <span className="text-sm text-foreground">{row.original.providerName}</span>
+      ),
     },
     {
       accessorKey: 'coveragePercentage',
       header: () => <div className="text-right">Cobertura</div>,
       size: 110,
       cell: ({ row }) => (
-        <div className="text-right text-sm font-medium tabular-nums text-slate-800">
+        <div className="text-right text-sm font-medium tabular-nums text-foreground">
           {row.original.coveragePercentage}%
         </div>
       ),
@@ -54,7 +56,7 @@ export function getPolicyColumns({
       header: () => <div className="text-right">Deducible</div>,
       size: 120,
       cell: ({ row }) => (
-        <div className="text-right text-sm font-medium tabular-nums text-slate-800">
+        <div className="text-right text-sm font-medium tabular-nums text-foreground">
           {formatCurrency(row.original.deductible)}
         </div>
       ),
@@ -64,7 +66,7 @@ export function getPolicyColumns({
       header: 'Vigencia',
       size: 170,
       cell: ({ row }) => (
-        <span className="text-xs text-slate-600">
+        <span className="text-xs text-muted-foreground">
           {formatDate(row.original.startDate)} - {formatDate(row.original.endDate)}
         </span>
       ),
@@ -75,9 +77,9 @@ export function getPolicyColumns({
       size: 100,
       cell: ({ row }) =>
         row.original.isActive ? (
-          <Badge className="bg-green-100 text-green-800 hover:bg-green-100 border-0">Activa</Badge>
+          <Badge className="bg-success/15 text-success hover:bg-success/15 border-0">Activa</Badge>
         ) : (
-          <Badge variant="secondary" className="text-slate-400">
+          <Badge variant="secondary" className="text-muted-foreground/70">
             Inactiva
           </Badge>
         ),
@@ -90,7 +92,7 @@ export function getPolicyColumns({
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7 text-slate-500 hover:text-slate-900"
+            className="h-7 w-7 text-muted-foreground hover:text-foreground"
             aria-label="Editar poliza"
             disabled={!canManage}
             onClick={() => onEdit(row.original)}

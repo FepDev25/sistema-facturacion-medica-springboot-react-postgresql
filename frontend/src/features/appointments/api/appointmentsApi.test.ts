@@ -60,7 +60,10 @@ describe('AppointmentFormSchema', () => {
   })
 
   it('rejects non-number durationMinutes', () => {
-    const result = AppointmentFormSchema.safeParse({ ...validData, durationMinutes: '30' as unknown as number })
+    const result = AppointmentFormSchema.safeParse({
+      ...validData,
+      durationMinutes: '30' as unknown as number,
+    })
     expect(result.success).toBe(false)
   })
 

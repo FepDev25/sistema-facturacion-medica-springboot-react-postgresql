@@ -37,7 +37,9 @@ describe('AppointmentStatusFlow', () => {
     })
 
     it('renders arrow separators between statuses', () => {
-      const { container } = render(<AppointmentStatusFlow status="scheduled" {...makeCallbacks()} />)
+      const { container } = render(
+        <AppointmentStatusFlow status="scheduled" {...makeCallbacks()} />,
+      )
       const arrows = container.querySelectorAll('svg.lucide-arrow-right')
       expect(arrows).toHaveLength(5)
     })
@@ -107,7 +109,9 @@ describe('AppointmentStatusFlow', () => {
     })
 
     it('disables Completar when canComplete is false', () => {
-      render(<AppointmentStatusFlow status="in_progress" {...makeCallbacks()} canComplete={false} />)
+      render(
+        <AppointmentStatusFlow status="in_progress" {...makeCallbacks()} canComplete={false} />,
+      )
       expect(screen.getByRole('button', { name: 'Completar' })).toBeDisabled()
     })
 

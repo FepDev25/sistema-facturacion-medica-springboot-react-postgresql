@@ -14,20 +14,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { DataTable } from '@/components/DataTable'
-import {
-  NO_PERMISSION_MESSAGE,
-  useRolePermissions,
-} from '@/features/auth/hooks/useRolePermissions'
-import type {
-  InsurancePolicyResponse,
-  InsuranceProviderResponse,
-} from '@/types/insurance'
+import { NO_PERMISSION_MESSAGE, useRolePermissions } from '@/features/auth/hooks/useRolePermissions'
+import type { InsurancePolicyResponse, InsuranceProviderResponse } from '@/types/insurance'
 import { usePatients } from '@/features/patients/hooks/usePatients'
-import {
-  useDeactivateProvider,
-  usePoliciesPage,
-  useProvidersPage,
-} from '../../hooks/useInsurance'
+import { useDeactivateProvider, usePoliciesPage, useProvidersPage } from '../../hooks/useInsurance'
 import { getProviderColumns } from '../providerColumns'
 import { getPolicyColumns } from '../policyColumns'
 import { ProviderDrawer } from '../ProviderDrawer'
@@ -45,8 +35,7 @@ export function InsurancePage() {
   const pageSize = 20
 
   const [providerDrawerOpen, setProviderDrawerOpen] = useState(false)
-  const [selectedProvider, setSelectedProvider] =
-    useState<InsuranceProviderResponse | null>(null)
+  const [selectedProvider, setSelectedProvider] = useState<InsuranceProviderResponse | null>(null)
 
   const [policyDrawerOpen, setPolicyDrawerOpen] = useState(false)
   const [selectedPolicy, setSelectedPolicy] = useState<InsurancePolicyResponse | null>(null)
@@ -69,8 +58,7 @@ export function InsurancePage() {
   const deactivateProvider = useDeactivateProvider()
 
   const filteredProviders = useMemo(
-    () =>
-      providers.filter((provider) => (showInactiveProviders ? true : provider.isActive)),
+    () => providers.filter((provider) => (showInactiveProviders ? true : provider.isActive)),
     [providers, showInactiveProviders],
   )
 
@@ -126,16 +114,23 @@ export function InsurancePage() {
       />
 
       <div className="flex-1 px-6 py-5 overflow-auto">
-        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'providers' | 'policies')}>
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) => setActiveTab(value as 'providers' | 'policies')}
+        >
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4 gap-3">
             <TabsList className="h-8">
               <TabsTrigger value="providers" className="text-xs px-4">
                 Aseguradoras
-                <span className="ml-1.5 text-slate-400 font-normal">({filteredProviders.length})</span>
+                <span className="ml-1.5 text-muted-foreground/70 font-normal">
+                  ({filteredProviders.length})
+                </span>
               </TabsTrigger>
               <TabsTrigger value="policies" className="text-xs px-4">
                 Polizas
-                <span className="ml-1.5 text-slate-400 font-normal">({filteredPolicies.length})</span>
+                <span className="ml-1.5 text-muted-foreground/70 font-normal">
+                  ({filteredPolicies.length})
+                </span>
               </TabsTrigger>
             </TabsList>
 
@@ -153,7 +148,7 @@ export function InsurancePage() {
                     />
                     <Label
                       htmlFor="show-inactive-providers"
-                      className="text-sm text-slate-600 cursor-pointer"
+                      className="text-sm text-muted-foreground cursor-pointer"
                     >
                       Mostrar inactivas
                     </Label>
@@ -213,7 +208,7 @@ export function InsurancePage() {
                     />
                     <Label
                       htmlFor="show-inactive-policies"
-                      className="text-sm text-slate-600 cursor-pointer"
+                      className="text-sm text-muted-foreground cursor-pointer"
                     >
                       Mostrar inactivas
                     </Label>
@@ -250,7 +245,7 @@ export function InsurancePage() {
             />
             {!providersLoading && providersData && providersData.totalPages > 1 ? (
               <div className="mt-3 flex items-center justify-between px-1">
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   Pagina {providersData.number + 1} de {providersData.totalPages} -{' '}
                   {providersData.totalElements} aseguradoras
                 </p>
@@ -294,7 +289,7 @@ export function InsurancePage() {
             />
             {!policiesLoading && policiesData && policiesData.totalPages > 1 ? (
               <div className="mt-3 flex items-center justify-between px-1">
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   Pagina {policiesData.number + 1} de {policiesData.totalPages} -{' '}
                   {policiesData.totalElements} polizas
                 </p>

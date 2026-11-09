@@ -24,21 +24,21 @@ Esto produce la estructura mínima de Vite con `vite.config.ts`, `tsconfig.app.j
 
 ## Stack Tecnologico
 
-| Tecnología | Version | Rol |
-|---|---|---|
-| React | 19.x | UI framework |
-| TypeScript | 5.9.x | Tipado estricto |
-| Vite | 8.x | Build tool y dev server |
-| TanStack Query v5 | 5.x | Estado del servidor (fetch, cache, sync) |
-| TanStack Router | 1.x | Routing type-safe (code-based) |
-| TanStack Table | 8.x | Tablas genéricas con `ColumnDef<T>[]` |
-| React Hook Form | 7.x | Formularios |
-| Zod | 4.x | Validación de esquemas |
-| Shadcn/ui | 4.x | Componentes UI basados en Radix |
-| Tailwind CSS | 4.x | Utilidades CSS |
-| Axios | 1.x | Cliente HTTP |
-| Sonner | 2.x | Notificaciones (toasts) |
-| Geist Variable | 5.x | Tipografía |
+| Tecnología        | Version | Rol                                      |
+| ----------------- | ------- | ---------------------------------------- |
+| React             | 19.x    | UI framework                             |
+| TypeScript        | 5.9.x   | Tipado estricto                          |
+| Vite              | 8.x     | Build tool y dev server                  |
+| TanStack Query v5 | 5.x     | Estado del servidor (fetch, cache, sync) |
+| TanStack Router   | 1.x     | Routing type-safe (code-based)           |
+| TanStack Table    | 8.x     | Tablas genéricas con `ColumnDef<T>[]`    |
+| React Hook Form   | 7.x     | Formularios                              |
+| Zod               | 4.x     | Validación de esquemas                   |
+| Shadcn/ui         | 4.x     | Componentes UI basados en Radix          |
+| Tailwind CSS      | 4.x     | Utilidades CSS                           |
+| Axios             | 1.x     | Cliente HTTP                             |
+| Sonner            | 2.x     | Notificaciones (toasts)                  |
+| Geist Variable    | 5.x     | Tipografía                               |
 
 ---
 
@@ -69,6 +69,7 @@ npx shadcn@latest init -b radix -p nova --template vite -y
 ```
 
 Este comando instala automáticamente:
+
 - `radix-ui` (primitivos accesibles)
 - `class-variance-authority` (variantes de componentes)
 - `clsx` + `tailwind-merge` (composición de clases)
@@ -154,13 +155,13 @@ Configuracion de TypeScript en modo estricto completo. El alias `@/*` debe decla
 
 Flags de linting relevantes:
 
-| Flag | Efecto |
-|---|---|
-| `strict` | Activa `strictNullChecks`, `noImplicitAny` y todos los checks del grupo strict |
-| `noUnusedLocals` | Error en variables locales declaradas pero no usadas |
-| `noUnusedParameters` | Error en parámetros de función no usados |
-| `erasableSyntaxOnly` | Prohíbe `enum` y `namespace` no erasables; fuerza el uso de `type` |
-| `verbatimModuleSyntax` | Requiere `import type` explícito en imports de tipos |
+| Flag                   | Efecto                                                                         |
+| ---------------------- | ------------------------------------------------------------------------------ |
+| `strict`               | Activa `strictNullChecks`, `noImplicitAny` y todos los checks del grupo strict |
+| `noUnusedLocals`       | Error en variables locales declaradas pero no usadas                           |
+| `noUnusedParameters`   | Error en parámetros de función no usados                                       |
+| `erasableSyntaxOnly`   | Prohíbe `enum` y `namespace` no erasables; fuerza el uso de `type`             |
+| `verbatimModuleSyntax` | Requiere `import type` explícito en imports de tipos                           |
 
 ### `tsconfig.json` (root)
 
@@ -169,10 +170,7 @@ El archivo raíz también debe declarar el alias. Sin esto, shadcn CLI falla al 
 ```json
 {
   "files": [],
-  "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
-  ],
+  "references": [{ "path": "./tsconfig.app.json" }, { "path": "./tsconfig.node.json" }],
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
@@ -187,11 +185,12 @@ El archivo raíz también debe declarar el alias. Sin esto, shadcn CLI falla al 
 Tailwind v4 abandona el enfoque de directivas (`@tailwind base`, `@tailwind components`, `@tailwind utilities`) en favor de un import CSS nativo. El archivo centraliza cuatro responsabilidades:
 
 **1. Imports de Tailwind y plugins:**
+
 ```css
-@import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+@import '@fontsource-variable/geist';
 ```
 
 **2. Mapeo de variables CSS a utilidades de Tailwind (`@theme inline`):**
@@ -226,13 +225,16 @@ Shadcn genera las variables CSS del tema (como `--primary`, `--border`, `--ring`
 El acento cyan-600 se aplica a botones primarios, links, estados activos del sidebar y badges de estado.
 
 **4. Estilos base:**
+
 ```css
 * {
   @apply border-border outline-ring/50;
 }
 body {
   @apply bg-background text-foreground;
-  font-feature-settings: "rlig" 1, "calt" 1;
+  font-feature-settings:
+    'rlig' 1,
+    'calt' 1;
 }
 ```
 
@@ -295,13 +297,13 @@ createRoot(document.getElementById('root')!).render(
 )
 ```
 
-| Provider | Proposito |
-|---|---|
-| `StrictMode` | Doble render en desarrollo para detectar efectos secundarios |
-| `QueryClientProvider` | Contexto global de TanStack Query |
-| `RouterProvider` | Monta el router de TanStack Router |
-| `Toaster` | Notificaciones en la esquina superior derecha |
-| `ReactQueryDevtools` | Solo en desarrollo: inspector de cache de queries |
+| Provider              | Proposito                                                    |
+| --------------------- | ------------------------------------------------------------ |
+| `StrictMode`          | Doble render en desarrollo para detectar efectos secundarios |
+| `QueryClientProvider` | Contexto global de TanStack Query                            |
+| `RouterProvider`      | Monta el router de TanStack Router                           |
+| `Toaster`             | Notificaciones en la esquina superior derecha                |
+| `ReactQueryDevtools`  | Solo en desarrollo: inspector de cache de queries            |
 
 ### `src/lib/queryClient.ts`
 
@@ -309,8 +311,8 @@ createRoot(document.getElementById('root')!).render(
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 30 * 1000,       // 30 segundos antes de considerar stale
-      retry: 1,                    // un reintento en caso de error
+      staleTime: 30 * 1000, // 30 segundos antes de considerar stale
+      retry: 1, // un reintento en caso de error
       refetchOnWindowFocus: false, // no refetch al volver al tab
     },
   },
@@ -358,7 +360,9 @@ const routeTree = rootRoute.addChildren([indexRoute])
 export const router = createRouter({ routeTree })
 
 declare module '@tanstack/react-router' {
-  interface Register { router: typeof router }
+  interface Register {
+    router: typeof router
+  }
 }
 ```
 
@@ -411,8 +415,16 @@ export function paginateArray<T>(items: T[], page = 0, size = 20): PageResponse<
   const totalPages = Math.ceil(totalElements / size)
   const start = page * size
   const content = items.slice(start, start + size)
-  return { content, totalElements, totalPages, number: page, size,
-           first: page === 0, last: page >= totalPages - 1, empty: content.length === 0 }
+  return {
+    content,
+    totalElements,
+    totalPages,
+    number: page,
+    size,
+    first: page === 0,
+    last: page >= totalPages - 1,
+    empty: content.length === 0,
+  }
 }
 ```
 
@@ -482,10 +494,7 @@ Agregar `compilerOptions.paths` al `tsconfig.json` raíz además de en `tsconfig
 // tsconfig.json (raiz del proyecto)
 {
   "files": [],
-  "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
-  ],
+  "references": [{ "path": "./tsconfig.app.json" }, { "path": "./tsconfig.node.json" }],
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
@@ -516,17 +525,20 @@ Tailwind v3 esperaba que estos tokens se declararan en `tailwind.config.js` bajo
 **Solucion: migración completa a Tailwind v4**
 
 1. Desinstalar Tailwind v3 y PostCSS:
+
 ```bash
 npm uninstall tailwindcss postcss autoprefixer
 rm tailwind.config.js postcss.config.js
 ```
 
 2. Instalar Tailwind v4 con el plugin de Vite:
+
 ```bash
 npm install --save-dev tailwindcss @tailwindcss/vite
 ```
 
 3. Configurar el plugin en `vite.config.ts`:
+
 ```typescript
 import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
@@ -535,6 +547,7 @@ export default defineConfig({
 ```
 
 4. Agregar el bloque `@theme inline` en `src/index.css` para mapear cada variable CSS a una utilidad de Tailwind:
+
 ```css
 @theme inline {
   --color-background: var(--background);

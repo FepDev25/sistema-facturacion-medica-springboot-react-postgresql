@@ -31,10 +31,7 @@ export function getPatientColumns({
       header: 'Nombre completo',
       cell: ({ row }) => (
         <div className="flex items-center gap-2.5">
-          <AvatarInitials
-            firstName={row.original.firstName}
-            lastName={row.original.lastName}
-          />
+          <AvatarInitials firstName={row.original.firstName} lastName={row.original.lastName} />
           <p className="font-medium text-foreground">
             {row.original.firstName} {row.original.lastName}
           </p>
@@ -45,7 +42,9 @@ export function getPatientColumns({
       accessorKey: 'phone',
       header: 'Teléfono',
       size: 180,
-      cell: ({ row }) => <span className="text-sm text-muted-foreground">{row.original.phone}</span>,
+      cell: ({ row }) => (
+        <span className="text-sm text-muted-foreground">{row.original.phone}</span>
+      ),
     },
     {
       id: 'actions',
@@ -56,7 +55,7 @@ export function getPatientColumns({
             asChild
             variant="ghost"
             size="icon"
-            className="h-7 w-7 text-slate-500 hover:text-slate-900"
+            className="h-7 w-7 text-muted-foreground hover:text-foreground"
             aria-label="Ver detalle del paciente"
             title="Ver detalle"
           >
@@ -67,7 +66,7 @@ export function getPatientColumns({
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7 text-slate-500 hover:text-slate-900"
+            className="h-7 w-7 text-muted-foreground hover:text-foreground"
             aria-label="Editar paciente"
             disabled={!canEdit}
             onClick={() => onEdit(row.original as unknown as PatientResponse)}

@@ -10,13 +10,13 @@ Estrategia pragmatica: unit tests donde hay logica condicional compleja (hooks, 
 
 ## Stack de Testing
 
-| Herramienta | Version | Rol |
-|---|---|---|
-| Vitest | 4.x | Test runner y assertion library |
-| React Testing Library | 16.x | Renderizado de componentes en jsdom |
-| jsdom | 26.x | Entorno DOM simulado |
-| @testing-library/jest-dom | 6.x | Matchers extendidos (`toBeInTheDocument`, `toHaveTextContent`, etc.) |
-| Playwright | 1.x | E2E tests en navegador real |
+| Herramienta               | Version | Rol                                                                  |
+| ------------------------- | ------- | -------------------------------------------------------------------- |
+| Vitest                    | 4.x     | Test runner y assertion library                                      |
+| React Testing Library     | 16.x    | Renderizado de componentes en jsdom                                  |
+| jsdom                     | 26.x    | Entorno DOM simulado                                                 |
+| @testing-library/jest-dom | 6.x     | Matchers extendidos (`toBeInTheDocument`, `toHaveTextContent`, etc.) |
+| Playwright                | 1.x     | E2E tests en navegador real                                          |
 
 ---
 
@@ -89,14 +89,21 @@ e2e/
 export default defineConfig({
   plugins: [react()],
   test: {
-    globals: true,                           // describe, it, expect sin importar
-    environment: 'jsdom',                    // entorno DOM simulado
-    setupFiles: ['./src/test/setup.ts'],     // jest-dom matchers
+    globals: true, // describe, it, expect sin importar
+    environment: 'jsdom', // entorno DOM simulado
+    setupFiles: ['./src/test/setup.ts'], // jest-dom matchers
     include: ['src/**/*.test.{ts,tsx}'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
-      exclude: ['node_modules/', 'e2e/', 'src/test/', '**/*.d.ts', '**/*.config.*', 'src/routeTree.gen.tsx'],
+      exclude: [
+        'node_modules/',
+        'e2e/',
+        'src/test/',
+        '**/*.d.ts',
+        '**/*.config.*',
+        'src/routeTree.gen.tsx',
+      ],
     },
   },
   resolve: { alias: { '@': path.resolve(__dirname, './src') } },
@@ -151,7 +158,11 @@ export { customRender as render, createTestQueryClient, createAllProviders }
 // Crea un mock de apiClient con todos los metodos HTTP
 function mockApiClient() {
   return {
-    get: vi.fn(), post: vi.fn(), put: vi.fn(), patch: vi.fn(), delete: vi.fn(),
+    get: vi.fn(),
+    post: vi.fn(),
+    put: vi.fn(),
+    patch: vi.fn(),
+    delete: vi.fn(),
     interceptors: { request: { use: vi.fn() }, response: { use: vi.fn() } },
     defaults: { headers: { common: {} } },
   }
@@ -327,27 +338,27 @@ screen.getByText(/Descripción/)
 
 ### Unit Tests: 614 tests en 49 archivos
 
-| Area | Archivos | Tests | Descripcion |
-|---|---|---|---|
-| Utilidades y schemas | 2 | ~10 | `utils.test.ts`, `mock-utils.test.ts` |
-| Capas API (funciones) | 9 | ~50 | Mock de `apiClient`, verificacion de args HTTP |
-| Capas API (enpoints) | 9 | ~64 | Tests de integracion con datos mock reales |
-| Hooks | 9 | ~83 | TanStack Query, `renderHook`, estados loading/error/data |
-| Definiciones de columna | 12 | ~60 | Formateo, badges, acciones, conditional rendering |
-| Componentes showcase | 3 | ~46 | AppointmentStatusFlow, InvoiceCoverageBar, AllergyAlert |
-| Componentes compartidos | 4 | ~30 | DataTable, BackToListButton, LoginPage, AppShell |
-| Pages con logica condicional | 3 | ~52 | AppointmentDetailPage, InvoiceDetailPage |
-| Auth store | 1 | 21 | authSessionStore (useSyncExternalStore) |
+| Area                         | Archivos | Tests | Descripcion                                              |
+| ---------------------------- | -------- | ----- | -------------------------------------------------------- |
+| Utilidades y schemas         | 2        | ~10   | `utils.test.ts`, `mock-utils.test.ts`                    |
+| Capas API (funciones)        | 9        | ~50   | Mock de `apiClient`, verificacion de args HTTP           |
+| Capas API (enpoints)         | 9        | ~64   | Tests de integracion con datos mock reales               |
+| Hooks                        | 9        | ~83   | TanStack Query, `renderHook`, estados loading/error/data |
+| Definiciones de columna      | 12       | ~60   | Formateo, badges, acciones, conditional rendering        |
+| Componentes showcase         | 3        | ~46   | AppointmentStatusFlow, InvoiceCoverageBar, AllergyAlert  |
+| Componentes compartidos      | 4        | ~30   | DataTable, BackToListButton, LoginPage, AppShell         |
+| Pages con logica condicional | 3        | ~52   | AppointmentDetailPage, InvoiceDetailPage                 |
+| Auth store                   | 1        | 21    | authSessionStore (useSyncExternalStore)                  |
 
 ### E2E Tests: 126 tests en 5 archivos
 
-| Archivo | Tests | Flujos cubiertos |
-|---|---|---|
-| `auth-flow.spec.ts` | 27 | Login, logout, permisos por rol |
-| `patients-flow.spec.ts` | 25 | CRUD, busqueda, paginacion, drawer de edicion |
-| `appointments-flow.spec.ts` | 25 | Estados, transiciones, expedientes, diagnostico |
-| `invoices-flow.spec.ts` | 25 | Creacion, confirmacion, pagos, cobertura de seguro |
-| `role-permissions.spec.ts` | 24 | Permisos por rol: admin, doctor, asistente |
+| Archivo                     | Tests | Flujos cubiertos                                   |
+| --------------------------- | ----- | -------------------------------------------------- |
+| `auth-flow.spec.ts`         | 27    | Login, logout, permisos por rol                    |
+| `patients-flow.spec.ts`     | 25    | CRUD, busqueda, paginacion, drawer de edicion      |
+| `appointments-flow.spec.ts` | 25    | Estados, transiciones, expedientes, diagnostico    |
+| `invoices-flow.spec.ts`     | 25    | Creacion, confirmacion, pagos, cobertura de seguro |
+| `role-permissions.spec.ts`  | 24    | Permisos por rol: admin, doctor, asistente         |
 
 **Total: 740 tests** (614 unit + 126 E2E)
 

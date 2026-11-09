@@ -154,9 +154,7 @@ describe('LoginPage', () => {
 
     it('clears previous error on new submit attempt', async () => {
       const user = userEvent.setup()
-      mockMutateAsync
-        .mockRejectedValueOnce(new Error('fail'))
-        .mockResolvedValueOnce({})
+      mockMutateAsync.mockRejectedValueOnce(new Error('fail')).mockResolvedValueOnce({})
 
       render(<LoginPage />)
 

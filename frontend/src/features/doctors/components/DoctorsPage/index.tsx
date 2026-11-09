@@ -7,10 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { DataTable } from '@/components/DataTable'
-import {
-  NO_PERMISSION_MESSAGE,
-  useRolePermissions,
-} from '@/features/auth/hooks/useRolePermissions'
+import { NO_PERMISSION_MESSAGE, useRolePermissions } from '@/features/auth/hooks/useRolePermissions'
 import { useDeactivateDoctor, useDoctorsPage } from '../../hooks/useDoctors'
 import { getDoctorColumns } from '../doctorColumns'
 import { DoctorDrawer } from '../DoctorDrawer'
@@ -69,7 +66,7 @@ export function DoctorsPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-3">
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
             <div className="relative w-full sm:w-auto">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/70" />
               <Input
                 value={search}
                 onChange={(event) => {
@@ -90,7 +87,10 @@ export function DoctorsPage() {
                   setPage(0)
                 }}
               />
-              <Label htmlFor="show-inactive-doctors" className="text-sm text-slate-600 cursor-pointer">
+              <Label
+                htmlFor="show-inactive-doctors"
+                className="text-sm text-muted-foreground cursor-pointer"
+              >
                 Mostrar inactivos
               </Label>
             </div>
@@ -124,7 +124,7 @@ export function DoctorsPage() {
 
         {!isLoading && doctorsPage && doctorsPage.totalPages > 1 ? (
           <div className="mt-3 flex items-center justify-between px-1">
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-muted-foreground">
               Pagina {doctorsPage.number + 1} de {doctorsPage.totalPages} -{' '}
               {doctorsPage.totalElements} medicos
             </p>

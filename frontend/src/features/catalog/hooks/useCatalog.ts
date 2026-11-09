@@ -6,7 +6,7 @@ import type { ServiceUpdateRequest, MedicationUpdateRequest } from '@/types/cata
 import type { MedicationResponse, ServiceResponse } from '@/types/catalog'
 import type { PageResponse } from '@/types/common'
 
-// Query Keys 
+// Query Keys
 
 export const serviceKeys = {
   all: ['catalog', 'services'] as const,
@@ -28,13 +28,16 @@ export function useServices(params: { includeInactive?: boolean } = {}) {
   })
 }
 
-export function useFilteredServicesPage(params: {
-  category?: 'consultation' | 'laboratory' | 'imaging' | 'surgery' | 'therapy' | 'emergency' | 'other'
-  includeInactive?: boolean
-  q?: string
-  page?: number
-  size?: number
-} = {}) {
+export function useFilteredServicesPage(
+  params: {
+    category?:
+      'consultation' | 'laboratory' | 'imaging' | 'surgery' | 'therapy' | 'emergency' | 'other'
+    includeInactive?: boolean
+    q?: string
+    page?: number
+    size?: number
+  } = {},
+) {
   return useQuery({
     queryKey: serviceKeys.list(params),
     queryFn: async (): Promise<PageResponse<ServiceResponse>> => {
@@ -46,7 +49,9 @@ export function useFilteredServicesPage(params: {
         const start = page * size
         const end = start + size
         const pageItems = filtered.slice(start, end)
-        const details = await Promise.all(pageItems.map((item) => catalogApi.getServiceById(item.id)))
+        const details = await Promise.all(
+          pageItems.map((item) => catalogApi.getServiceById(item.id)),
+        )
 
         return {
           content: details,
@@ -100,7 +105,8 @@ export function useUpdateService() {
       void qc.invalidateQueries({ queryKey: serviceKeys.all })
       toast.success('Servicio actualizado')
     },
-    onError: (error) => toast.error(extractApiErrorMessage(error) ?? 'Error al actualizar el servicio'),
+    onError: (error) =>
+      toast.error(extractApiErrorMessage(error) ?? 'Error al actualizar el servicio'),
   })
 }
 
@@ -126,14 +132,16 @@ export function useMedications(params: { includeInactive?: boolean } = {}) {
   })
 }
 
-export function useFilteredMedicationsPage(params: {
-  includeInactive?: boolean
-  unit?: 'tablet' | 'capsule' | 'ml' | 'mg' | 'g' | 'unit' | 'box' | 'vial' | 'inhaler'
-  requiresPrescription?: boolean
-  q?: string
-  page?: number
-  size?: number
-} = {}) {
+export function useFilteredMedicationsPage(
+  params: {
+    includeInactive?: boolean
+    unit?: 'tablet' | 'capsule' | 'ml' | 'mg' | 'g' | 'unit' | 'box' | 'vial' | 'inhaler'
+    requiresPrescription?: boolean
+    q?: string
+    page?: number
+    size?: number
+  } = {},
+) {
   return useQuery({
     queryKey: medicationKeys.list(params),
     queryFn: async (): Promise<PageResponse<MedicationResponse>> => {
@@ -166,7 +174,8 @@ export function useCreateMedication() {
       void qc.invalidateQueries({ queryKey: medicationKeys.all })
       toast.success('Medicamento creado')
     },
-    onError: (error) => toast.error(extractApiErrorMessage(error) ?? 'Error al crear el medicamento'),
+    onError: (error) =>
+      toast.error(extractApiErrorMessage(error) ?? 'Error al crear el medicamento'),
   })
 }
 
@@ -179,7 +188,8 @@ export function useUpdateMedication() {
       void qc.invalidateQueries({ queryKey: medicationKeys.all })
       toast.success('Medicamento actualizado')
     },
-    onError: (error) => toast.error(extractApiErrorMessage(error) ?? 'Error al actualizar el medicamento'),
+    onError: (error) =>
+      toast.error(extractApiErrorMessage(error) ?? 'Error al actualizar el medicamento'),
   })
 }
 

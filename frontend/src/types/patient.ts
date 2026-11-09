@@ -6,7 +6,7 @@ export interface PatientCreateRequest {
   dni: string
   firstName: string
   lastName: string
-  birthDate: string       // LocalDate → ISO "YYYY-MM-DD"
+  birthDate: string // LocalDate → ISO "YYYY-MM-DD"
   gender: Gender
   phone: string
   email?: string | null
@@ -42,7 +42,7 @@ export interface PatientResponse {
   address: string | null
   bloodType: string | null
   allergies: string | null
-  createdAt: string       // OffsetDateTime → ISO string
+  createdAt: string // OffsetDateTime → ISO string
   updatedAt: string
 }
 

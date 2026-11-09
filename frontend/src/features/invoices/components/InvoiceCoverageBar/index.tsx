@@ -26,35 +26,37 @@ export function InvoiceCoverageBar({
   return (
     <section className="rounded-xl border border-border bg-card p-5 shadow-card">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-sm font-semibold text-slate-900">Distribución de cobertura</h2>
-        <p className="text-xs text-slate-500">Total {formatCurrency(normalizedTotal)}</p>
+        <h2 className="text-sm font-semibold text-foreground">Distribución de cobertura</h2>
+        <p className="text-xs text-muted-foreground">Total {formatCurrency(normalizedTotal)}</p>
       </div>
 
-      <div className="h-3 w-full rounded-full bg-slate-100 overflow-hidden flex">
+      <div className="h-3 w-full rounded-full bg-muted overflow-hidden flex">
         <div
-          className="h-full bg-cyan-500 transition-all"
+          className="h-full bg-info/100 transition-all"
           style={{ width: `${insurancePercent}%` }}
           aria-label="Cobertura del seguro"
         />
         <div
-          className="h-full bg-slate-400 transition-all"
+          className="h-full bg-muted-foreground/40 transition-all"
           style={{ width: `${patientPercent}%` }}
           aria-label="Responsabilidad del paciente"
         />
       </div>
 
       {normalizedTotal <= 0 ? (
-        <p className="text-[11px] text-slate-500 mt-2">Aun no hay montos para calcular cobertura.</p>
+        <p className="text-[11px] text-muted-foreground mt-2">
+          Aun no hay montos para calcular cobertura.
+        </p>
       ) : null}
 
       <div className="mt-3 grid grid-cols-2 gap-3 text-xs">
-        <div className="rounded-md border border-cyan-100 bg-cyan-50 px-3 py-2">
-          <p className="text-cyan-700">Seguro ({insurancePercent.toFixed(1)}%)</p>
-          <p className="font-medium text-cyan-800">{formatCurrency(insuranceCoverage)}</p>
+        <div className="rounded-md border border-info/15 bg-info/10 px-3 py-2">
+          <p className="text-info">Seguro ({insurancePercent.toFixed(1)}%)</p>
+          <p className="font-medium text-info">{formatCurrency(insuranceCoverage)}</p>
         </div>
-        <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
-          <p className="text-slate-600">Paciente ({patientPercent.toFixed(1)}%)</p>
-          <p className="font-medium text-slate-800">{formatCurrency(patientResponsibility)}</p>
+        <div className="rounded-md border border-border bg-muted/50 px-3 py-2">
+          <p className="text-muted-foreground">Paciente ({patientPercent.toFixed(1)}%)</p>
+          <p className="font-medium text-foreground">{formatCurrency(patientResponsibility)}</p>
         </div>
       </div>
     </section>

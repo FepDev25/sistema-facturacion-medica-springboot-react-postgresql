@@ -6,12 +6,12 @@ type StatusTone = 'success' | 'warning' | 'info' | 'progress' | 'active' | 'neut
 
 /** Single source of truth for status pill colors across the whole app. */
 const TONE_CLASS: Record<StatusTone, string> = {
-  success: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-  warning: 'border-amber-200 bg-amber-50 text-amber-700',
-  info: 'border-blue-200 bg-blue-50 text-blue-700',
-  progress: 'border-cyan-200 bg-cyan-50 text-cyan-700',
-  active: 'border-indigo-200 bg-indigo-50 text-indigo-700',
-  neutral: 'border-slate-200 bg-slate-50 text-slate-600',
+  success: 'border-success/25 bg-success/10 text-success',
+  warning: 'border-warning/25 bg-warning/10 text-warning',
+  info: 'border-info/25 bg-info/10 text-info',
+  progress: 'border-info/25 bg-info/10 text-info',
+  active: 'border-primary/25 bg-primary/10 text-primary',
+  neutral: 'border-border bg-muted/50 text-muted-foreground',
 }
 
 /** Maps every domain status (appointments + invoices) to a visual tone. */

@@ -30,16 +30,10 @@ vi.mock('sonner', () => ({
   toast: { error: mocks.toastError },
 }))
 
-const {
-  handleResponseError,
-  refreshAccessToken,
-} = await import('@/lib/axios')
+const { handleResponseError, refreshAccessToken } = await import('@/lib/axios')
 
-const {
-  clearAuthSession,
-  getAuthSessionState,
-  setAuthSession,
-} = await import('@/features/auth/store/authSessionStore')
+const { clearAuthSession, getAuthSessionState, setAuthSession } =
+  await import('@/features/auth/store/authSessionStore')
 
 const adminSession = {
   accessToken: 'access-123',

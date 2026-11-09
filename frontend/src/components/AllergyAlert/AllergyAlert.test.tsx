@@ -43,7 +43,9 @@ describe('AllergyAlert', () => {
 
     it('includes verification warning text', () => {
       render(<AllergyAlert allergies="Latex" />)
-      expect(screen.getByText(/Verifica antes de prescribir o administrar medicación/)).toBeInTheDocument()
+      expect(
+        screen.getByText(/Verifica antes de prescribir o administrar medicación/),
+      ).toBeInTheDocument()
     })
 
     it('renders ShieldAlert icon in full mode', () => {

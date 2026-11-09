@@ -14,14 +14,14 @@ export function getPatientAppointmentColumns(): ColumnDef<AppointmentSummaryResp
       header: 'Fecha y hora',
       size: 180,
       cell: ({ row }) => (
-        <span className="text-sm text-slate-700">{formatDateTime(row.original.scheduledAt)}</span>
+        <span className="text-sm text-foreground">{formatDateTime(row.original.scheduledAt)}</span>
       ),
     },
     {
       id: 'patient',
       header: 'Paciente',
       cell: ({ row }) => (
-        <p className="font-medium text-slate-900">
+        <p className="font-medium text-foreground">
           {row.original.patientFirstName} {row.original.patientLastName}
         </p>
       ),
@@ -30,7 +30,7 @@ export function getPatientAppointmentColumns(): ColumnDef<AppointmentSummaryResp
       id: 'doctor',
       header: 'Médico',
       cell: ({ row }) => (
-        <p className="text-sm text-slate-700">
+        <p className="text-sm text-foreground">
           Dr. {row.original.doctorFirstName} {row.original.doctorLastName}
         </p>
       ),
@@ -55,7 +55,7 @@ export function getPatientAppointmentColumns(): ColumnDef<AppointmentSummaryResp
             asChild
             variant="ghost"
             size="icon"
-            className="h-7 w-7 text-slate-500 hover:text-slate-900"
+            className="h-7 w-7 text-muted-foreground hover:text-foreground"
             aria-label="Ver detalle de la cita"
             title="Ver detalle"
           >

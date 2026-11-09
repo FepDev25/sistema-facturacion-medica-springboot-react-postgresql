@@ -13,10 +13,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import {
-  LoginFormSchema,
-  type LoginFormValues,
-} from '../../api/authApi'
+import { LoginFormSchema, type LoginFormValues } from '../../api/authApi'
 import { useLogin } from '../../hooks/useAuth'
 
 const DEFAULT_VALUES: LoginFormValues = {
@@ -48,10 +45,7 @@ export function LoginPage() {
     try {
       await login.mutateAsync(values)
 
-      const target =
-        search.redirect && search.redirect.startsWith('/')
-          ? search.redirect
-          : '/'
+      const target = search.redirect && search.redirect.startsWith('/') ? search.redirect : '/'
 
       await navigate({ to: target })
     } catch {
@@ -62,7 +56,7 @@ export function LoginPage() {
   return (
     <div className="grid min-h-screen bg-background lg:grid-cols-2">
       {/* Brand panel */}
-      <div className="relative hidden flex-col justify-between overflow-hidden p-12 text-white lg:flex bg-[linear-gradient(150deg,oklch(0.52_0.14_205)_0%,oklch(0.40_0.12_222)_100%)]">
+      <div className="relative hidden flex-col justify-between overflow-hidden p-12 text-white lg:flex bg-gradient-to-br from-primary to-primary/60">
         <div
           aria-hidden
           className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-white/10 blur-2xl"
@@ -159,7 +153,7 @@ export function LoginPage() {
               />
 
               {submitError && (
-                <p className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">
+                <p className="rounded-md border border-destructive/25 bg-destructive/10 px-3 py-2 text-xs text-destructive">
                   {submitError}
                 </p>
               )}

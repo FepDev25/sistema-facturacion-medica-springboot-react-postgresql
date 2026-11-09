@@ -10,13 +10,9 @@ describe('getServiceColumns', () => {
 
   it('has correct accessorKey columns', () => {
     const cols = getServiceColumns(opts)
-    expect(cols.filter((c) => 'accessorKey' in c).map((c) => (c as { accessorKey: string }).accessorKey)).toEqual([
-      'code',
-      'name',
-      'category',
-      'price',
-      'isActive',
-    ])
+    expect(
+      cols.filter((c) => 'accessorKey' in c).map((c) => (c as { accessorKey: string }).accessorKey),
+    ).toEqual(['code', 'name', 'category', 'price', 'isActive'])
   })
 
   it('has correct id columns', () => {

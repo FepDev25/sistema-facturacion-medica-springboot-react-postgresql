@@ -47,11 +47,7 @@ export function Icd10Suggester({ onSelect }: Icd10SuggesterProps) {
           onClick={handleSearch}
           className="shrink-0"
         >
-          {suggest.isPending ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            'Buscar'
-          )}
+          {suggest.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Buscar'}
         </Button>
       </div>
 

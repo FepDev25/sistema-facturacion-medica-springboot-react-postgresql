@@ -15,7 +15,7 @@ async function clickFirstEnabled(locator: import('@playwright/test').Locator): P
   const total = await locator.count()
   for (let i = 0; i < total; i += 1) {
     const candidate = locator.nth(i)
-    if (await candidate.isVisible() && await candidate.isEnabled()) {
+    if ((await candidate.isVisible()) && (await candidate.isEnabled())) {
       await candidate.click()
       return true
     }
@@ -163,7 +163,7 @@ test.describe('Appointments list page', () => {
     await openAppointments(page)
 
     const newButton = page.getByRole('button', { name: /Nueva cita/ })
-    if (await newButton.isVisible() && await newButton.isEnabled()) {
+    if ((await newButton.isVisible()) && (await newButton.isEnabled())) {
       await newButton.click()
       await expect(page.getByRole('heading', { name: 'Nueva Cita' })).toBeVisible()
       await expect(page.getByLabel('Buscar paciente por DNI')).toBeVisible()
@@ -243,7 +243,7 @@ test.describe('Appointment detail page', () => {
       const noMotive = page.getByText('Sin motivo registrado')
       const noNotes = page.getByText('Sin notas adicionales')
 
-      if (await noMotive.isVisible() && await noNotes.isVisible()) {
+      if ((await noMotive.isVisible()) && (await noNotes.isVisible())) {
         await expect(noMotive).toBeVisible()
         await expect(noNotes).toBeVisible()
         return
@@ -323,7 +323,9 @@ test.describe('Status transitions', () => {
     await openAppointments(page)
 
     const table = page.getByRole('table')
-    await expect(table.getByText(/Programada|Confirmada|En curso|Completada|Cancelada|No se presentó/).first()).toBeVisible()
+    await expect(
+      table.getByText(/Programada|Confirmada|En curso|Completada|Cancelada|No se presentó/).first(),
+    ).toBeVisible()
     const statusLabels = ['Programada', 'Confirmada', 'En curso', 'Completada', 'Cancelada']
     const foundLabels: string[] = []
 
@@ -349,7 +351,7 @@ test.describe('Complete appointment drawer', () => {
       await detailLinks.first().click()
       const completeBtn = page.getByRole('button', { name: 'Completar cita' }).first()
 
-      if (await completeBtn.isVisible() && await completeBtn.isEnabled()) {
+      if ((await completeBtn.isVisible()) && (await completeBtn.isEnabled())) {
         await completeBtn.click()
         await expect(page.getByText('Completar cita')).toBeVisible()
         await expect(page.getByLabel('Notas clinicas')).toBeVisible()

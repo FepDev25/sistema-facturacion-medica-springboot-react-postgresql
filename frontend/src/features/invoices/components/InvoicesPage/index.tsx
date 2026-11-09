@@ -22,10 +22,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { DataTable } from '@/components/DataTable'
-import {
-  NO_PERMISSION_MESSAGE,
-  useRolePermissions,
-} from '@/features/auth/hooks/useRolePermissions'
+import { NO_PERMISSION_MESSAGE, useRolePermissions } from '@/features/auth/hooks/useRolePermissions'
 import { INVOICE_STATUS_LABELS } from '@/types/enums'
 import {
   useCancelInvoice,
@@ -37,13 +34,7 @@ import { getInvoiceColumns } from '../invoiceColumns'
 import type { InvoiceListViewResponse } from '@/types/invoice'
 
 type InvoiceStatusFilter =
-  | 'all'
-  | 'draft'
-  | 'pending'
-  | 'partial_paid'
-  | 'paid'
-  | 'cancelled'
-  | 'overdue'
+  'all' | 'draft' | 'pending' | 'partial_paid' | 'paid' | 'cancelled' | 'overdue'
 
 export function InvoicesPage() {
   const { canManageInvoices } = useRolePermissions()
@@ -148,7 +139,7 @@ export function InvoicesPage() {
       <div className="flex-1 px-6 py-5 overflow-auto">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
           <div className="flex items-center gap-2">
-            <span className="text-sm text-slate-600">Estado:</span>
+            <span className="text-sm text-muted-foreground">Estado:</span>
             <Select
               value={statusFilter}
               onValueChange={(value) => {
@@ -172,7 +163,7 @@ export function InvoicesPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-sm text-slate-600">Desde:</span>
+            <span className="text-sm text-muted-foreground">Desde:</span>
             <Input
               type="date"
               className="h-8 w-full sm:w-36 text-sm"
@@ -185,7 +176,7 @@ export function InvoicesPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-sm text-slate-600">Hasta:</span>
+            <span className="text-sm text-muted-foreground">Hasta:</span>
             <Input
               type="date"
               className="h-8 w-full sm:w-36 text-sm"
@@ -198,12 +189,7 @@ export function InvoicesPage() {
           </div>
 
           {(statusFilter !== 'all' || startDate || endDate) && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 text-xs"
-              onClick={resetFilters}
-            >
+            <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={resetFilters}>
               Limpiar filtros
             </Button>
           )}
@@ -219,7 +205,7 @@ export function InvoicesPage() {
 
         {!isLoading && invoicesPage && invoicesPage.totalPages > 1 ? (
           <div className="mt-3 flex items-center justify-between px-1">
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-muted-foreground">
               Pagina {invoicesPage.number + 1} de {invoicesPage.totalPages} -{' '}
               {invoicesPage.totalElements} facturas
             </p>
@@ -253,7 +239,12 @@ export function InvoicesPage() {
         ) : null}
       </div>
 
-      <AlertDialog open={!!confirmAction} onOpenChange={(open) => { if (!open) setConfirmAction(null) }}>
+      <AlertDialog
+        open={!!confirmAction}
+        onOpenChange={(open) => {
+          if (!open) setConfirmAction(null)
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>

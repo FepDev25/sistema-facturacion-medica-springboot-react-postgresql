@@ -1,7 +1,4 @@
-import type {
-  InsuranceProviderResponse,
-  InsuranceProviderSummaryResponse,
-} from '@/types/insurance'
+import type { InsuranceProviderResponse, InsuranceProviderSummaryResponse } from '@/types/insurance'
 
 export const INSURANCE_PROVIDERS_MOCK: InsuranceProviderResponse[] = [
   {
@@ -42,10 +39,7 @@ export const INSURANCE_PROVIDERS_MOCK: InsuranceProviderResponse[] = [
   },
 ]
 
-export const INSURANCE_PROVIDER_SUMMARIES: Record<
-  string,
-  InsuranceProviderSummaryResponse
-> = {
+export const INSURANCE_PROVIDER_SUMMARIES: Record<string, InsuranceProviderSummaryResponse> = {
   'c0000000-0000-0000-0000-000000000001': {
     id: 'c0000000-0000-0000-0000-000000000001',
     name: 'Seguros Médicos del Pacífico',

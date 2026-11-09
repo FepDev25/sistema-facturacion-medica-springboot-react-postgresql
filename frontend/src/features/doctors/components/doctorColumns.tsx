@@ -22,10 +22,7 @@ export function getDoctorColumns({
       header: 'Nombre completo',
       cell: ({ row }) => (
         <div className="flex items-center gap-2.5">
-          <AvatarInitials
-            firstName={row.original.firstName}
-            lastName={row.original.lastName}
-          />
+          <AvatarInitials firstName={row.original.firstName} lastName={row.original.lastName} />
           <p className="font-medium text-foreground">
             {row.original.firstName} {row.original.lastName}
           </p>
@@ -35,7 +32,9 @@ export function getDoctorColumns({
     {
       accessorKey: 'specialty',
       header: 'Especialidad',
-      cell: ({ row }) => <span className="text-sm text-muted-foreground">{row.original.specialty}</span>,
+      cell: ({ row }) => (
+        <span className="text-sm text-muted-foreground">{row.original.specialty}</span>
+      ),
     },
     {
       id: 'actions',
@@ -46,7 +45,7 @@ export function getDoctorColumns({
             asChild
             variant="ghost"
             size="icon"
-            className="h-7 w-7 text-slate-500 hover:text-slate-900"
+            className="h-7 w-7 text-muted-foreground hover:text-foreground"
             aria-label="Ver detalle del médico"
             title="Ver detalle"
           >
@@ -57,7 +56,7 @@ export function getDoctorColumns({
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7 text-slate-500 hover:text-slate-900"
+            className="h-7 w-7 text-muted-foreground hover:text-foreground"
             aria-label="Editar médico"
             disabled={!canManage}
             onClick={() => onEdit(row.original)}
@@ -68,7 +67,7 @@ export function getDoctorColumns({
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7 text-slate-500 hover:text-slate-900"
+            className="h-7 w-7 text-muted-foreground hover:text-foreground"
             aria-label="Desactivar médico"
             disabled={!canManage}
             onClick={() => onDeactivate(row.original)}

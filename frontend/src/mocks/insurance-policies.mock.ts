@@ -1,7 +1,4 @@
-import type {
-  InsurancePolicyResponse,
-  InsurancePolicySummaryResponse,
-} from '@/types/insurance'
+import type { InsurancePolicyResponse, InsurancePolicySummaryResponse } from '@/types/insurance'
 import { PATIENT_SUMMARIES } from './patients.mock'
 import { INSURANCE_PROVIDER_SUMMARIES } from './insurance-providers.mock'
 
@@ -74,10 +71,7 @@ export const INSURANCE_POLICIES_MOCK: InsurancePolicyResponse[] = [
   },
 ]
 
-export const INSURANCE_POLICY_SUMMARIES: Record<
-  string,
-  InsurancePolicySummaryResponse
-> = {
+export const INSURANCE_POLICY_SUMMARIES: Record<string, InsurancePolicySummaryResponse> = {
   'd0000000-0000-0000-0000-000000000001': {
     id: 'd0000000-0000-0000-0000-000000000001',
     policyNumber: 'POL-2025-001234',

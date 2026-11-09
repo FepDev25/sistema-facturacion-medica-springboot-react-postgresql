@@ -1,13 +1,7 @@
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import {
-  Sheet,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import {
   Form,
   FormControl,
@@ -32,7 +26,12 @@ import {
   toDoctorCreateRequest,
   toDoctorUpdateRequest,
 } from '../../api/doctorsApi'
-import { useCreateDoctor, useDoctorById, useSystemUsers, useUpdateDoctor } from '../../hooks/useDoctors'
+import {
+  useCreateDoctor,
+  useDoctorById,
+  useSystemUsers,
+  useUpdateDoctor,
+} from '../../hooks/useDoctors'
 
 const DEFAULT_VALUES: DoctorFormValues = {
   licenseNumber: '',
@@ -133,7 +132,7 @@ export function DoctorDrawer({ open, onOpenChange, doctorId }: DoctorDrawerProps
                       />
                     </FormControl>
                     {isEditing && (
-                      <p className="text-xs text-slate-400">La licencia no es editable</p>
+                      <p className="text-xs text-muted-foreground/70">La licencia no es editable</p>
                     )}
                     <FormMessage />
                   </FormItem>
@@ -219,7 +218,7 @@ export function DoctorDrawer({ open, onOpenChange, doctorId }: DoctorDrawerProps
                   <FormItem>
                     <FormLabel>
                       Usuario del sistema{' '}
-                      <span className="text-slate-400 font-normal">(opcional)</span>
+                      <span className="text-muted-foreground/70 font-normal">(opcional)</span>
                     </FormLabel>
                     <Select
                       value={field.value ?? 'none'}
@@ -241,7 +240,9 @@ export function DoctorDrawer({ open, onOpenChange, doctorId }: DoctorDrawerProps
                       </SelectContent>
                     </Select>
                     {isEditing && doctor?.userId && (
-                      <p className="text-xs text-slate-400">El usuario vinculado no es editable</p>
+                      <p className="text-xs text-muted-foreground/70">
+                        El usuario vinculado no es editable
+                      </p>
                     )}
                     <FormMessage />
                   </FormItem>

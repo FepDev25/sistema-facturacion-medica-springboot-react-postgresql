@@ -16,20 +16,20 @@ export const invoiceKeys = {
 }
 
 export function useInvoices(
-  params: { status?: string; startDate?: string; endDate?: string; page?: number; size?: number } = {},
+  params: {
+    status?: string
+    startDate?: string
+    endDate?: string
+    page?: number
+    size?: number
+  } = {},
 ) {
   return useQuery({
     queryKey: invoiceKeys.list(params),
     queryFn: () =>
       invoicesApi.getInvoices({
         status: params.status as
-          | 'draft'
-          | 'pending'
-          | 'partial_paid'
-          | 'paid'
-          | 'cancelled'
-          | 'overdue'
-          | undefined,
+          'draft' | 'pending' | 'partial_paid' | 'paid' | 'cancelled' | 'overdue' | undefined,
         startDate: params.startDate,
         endDate: params.endDate,
         page: params.page ?? 0,

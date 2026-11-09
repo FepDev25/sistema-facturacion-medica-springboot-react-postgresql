@@ -131,7 +131,10 @@ export function toAppointmentCreateRequest(
     doctorId: values.doctorId,
     scheduledAt: new Date(values.scheduledAt).toISOString(),
     durationMinutes: values.durationMinutes,
-    chiefComplaint: values.chiefComplaint && values.chiefComplaint.trim().length > 0 ? values.chiefComplaint.trim() : null,
+    chiefComplaint:
+      values.chiefComplaint && values.chiefComplaint.trim().length > 0
+        ? values.chiefComplaint.trim()
+        : null,
     notes: values.notes && values.notes.trim().length > 0 ? values.notes.trim() : null,
   }
 }

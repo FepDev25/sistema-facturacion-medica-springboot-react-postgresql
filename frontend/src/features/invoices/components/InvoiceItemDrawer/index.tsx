@@ -1,13 +1,7 @@
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import {
-  Sheet,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import {
   Form,
   FormControl,
@@ -95,7 +89,10 @@ export function InvoiceItemDrawer({ invoiceId, open, onOpenChange }: InvoiceItem
         </SheetHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 overflow-hidden">
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex flex-col flex-1 overflow-hidden"
+          >
             <div className="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-5">
               <FormField
                 control={form.control}
@@ -212,7 +209,11 @@ export function InvoiceItemDrawer({ invoiceId, open, onOpenChange }: InvoiceItem
                   <FormItem>
                     <FormLabel>Descripcion</FormLabel>
                     <FormControl>
-                      <Input {...field} placeholder="Detalle del item" readOnly={catalogFieldsLocked} />
+                      <Input
+                        {...field}
+                        placeholder="Detalle del item"
+                        readOnly={catalogFieldsLocked}
+                      />
                     </FormControl>
                     {catalogFieldsLocked ? (
                       <p className="text-xs text-muted-foreground">
@@ -272,7 +273,7 @@ export function InvoiceItemDrawer({ invoiceId, open, onOpenChange }: InvoiceItem
                 />
               </div>
 
-              <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+              <div className="rounded-md border border-border bg-muted/50 px-3 py-2 text-sm text-foreground">
                 Subtotal estimado: <span className="font-medium">${subtotal}</span>
               </div>
             </div>

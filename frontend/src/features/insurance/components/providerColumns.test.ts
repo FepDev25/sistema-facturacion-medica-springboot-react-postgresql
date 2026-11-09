@@ -10,12 +10,9 @@ describe('getProviderColumns', () => {
 
   it('has correct accessorKey columns', () => {
     const cols = getProviderColumns(opts)
-    expect(cols.filter((c) => 'accessorKey' in c).map((c) => (c as { accessorKey: string }).accessorKey)).toEqual([
-      'code',
-      'name',
-      'phone',
-      'isActive',
-    ])
+    expect(
+      cols.filter((c) => 'accessorKey' in c).map((c) => (c as { accessorKey: string }).accessorKey),
+    ).toEqual(['code', 'name', 'phone', 'isActive'])
   })
 
   it('has correct id columns', () => {

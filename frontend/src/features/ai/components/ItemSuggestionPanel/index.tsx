@@ -28,10 +28,10 @@ const TYPE_LABELS: Record<SuggestedItem['itemType'], string> = {
 }
 
 const TYPE_COLORS: Record<SuggestedItem['itemType'], string> = {
-  service: 'border-blue-200 text-blue-700 bg-blue-50',
-  medication: 'border-green-200 text-green-700 bg-green-50',
-  procedure: 'border-purple-200 text-purple-700 bg-purple-50',
-  other: 'border-slate-200 text-slate-600 bg-slate-50',
+  service: 'border-info/25 text-info bg-info/10',
+  medication: 'border-success/25 text-success bg-success/10',
+  procedure: 'border-primary/25 text-primary bg-primary/10',
+  other: 'border-border text-muted-foreground bg-muted/50',
 }
 
 interface ItemSuggestionPanelProps {
@@ -140,7 +140,7 @@ export function ItemSuggestionPanel({
                       {unavailable && (
                         <Badge
                           variant="outline"
-                          className="mt-1.5 text-xs border-amber-300 text-amber-700 flex items-center gap-1 w-fit"
+                          className="mt-1.5 text-xs border-warning/40 text-warning flex items-center gap-1 w-fit"
                         >
                           <AlertTriangle className="h-3 w-3" />
                           No disponible en catálogo
@@ -150,7 +150,7 @@ export function ItemSuggestionPanel({
 
                     <div className="shrink-0 pt-0.5">
                       {added ? (
-                        <span className="flex items-center gap-1 text-xs font-medium text-green-700">
+                        <span className="flex items-center gap-1 text-xs font-medium text-success">
                           <CheckCircle2 className="h-4 w-4" />
                           Agregado
                         </span>

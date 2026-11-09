@@ -67,10 +67,7 @@ export async function createDoctor(data: DoctorCreateRequest): Promise<DoctorRes
   return response.data
 }
 
-export async function updateDoctor(
-  id: string,
-  data: DoctorUpdateRequest,
-): Promise<DoctorResponse> {
+export async function updateDoctor(id: string, data: DoctorUpdateRequest): Promise<DoctorResponse> {
   const response = await apiClient.put<DoctorResponse>(`/doctors/${id}`, data)
   return response.data
 }
@@ -80,12 +77,14 @@ export async function deactivateDoctor(id: string): Promise<DoctorResponse> {
   return getDoctorById(id)
 }
 
-export async function getSystemUsers(params: {
-  role?: string
-  active?: boolean
-  page?: number
-  size?: number
-} = {}): Promise<PageResponse<SystemUserSummaryResponse>> {
+export async function getSystemUsers(
+  params: {
+    role?: string
+    active?: boolean
+    page?: number
+    size?: number
+  } = {},
+): Promise<PageResponse<SystemUserSummaryResponse>> {
   const response = await apiClient.get<PageResponse<SystemUserSummaryResponse>>('/system-users', {
     params: {
       role: params.role,
@@ -110,7 +109,10 @@ export function toDoctorCreateRequest(values: DoctorFormValues): DoctorCreateReq
   }
 }
 
-export function toDoctorUpdateRequest(values: DoctorFormValues, isActive: boolean): DoctorUpdateRequest {
+export function toDoctorUpdateRequest(
+  values: DoctorFormValues,
+  isActive: boolean,
+): DoctorUpdateRequest {
   return {
     firstName: values.firstName.trim(),
     lastName: values.lastName.trim(),

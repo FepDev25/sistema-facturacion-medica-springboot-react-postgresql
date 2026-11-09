@@ -24,7 +24,15 @@ describe('ServiceFormSchema', () => {
   })
 
   it('accepts all category values', () => {
-    const categories = ['consultation', 'laboratory', 'imaging', 'surgery', 'therapy', 'emergency', 'other'] as const
+    const categories = [
+      'consultation',
+      'laboratory',
+      'imaging',
+      'surgery',
+      'therapy',
+      'emergency',
+      'other',
+    ] as const
     for (const cat of categories) {
       const result = ServiceFormSchema.safeParse({ ...validService, category: cat })
       expect(result.success, `Failed for category: ${cat}`).toBe(true)
@@ -47,7 +55,10 @@ describe('ServiceFormSchema', () => {
   })
 
   it('rejects non-number price', () => {
-    const result = ServiceFormSchema.safeParse({ ...validService, price: 'free' as unknown as number })
+    const result = ServiceFormSchema.safeParse({
+      ...validService,
+      price: 'free' as unknown as number,
+    })
     expect(result.success).toBe(false)
   })
 
