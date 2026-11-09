@@ -164,6 +164,13 @@ Alertar por `R14` (memoria), reinicios del dyno y errores 5xx en el router.
 4. Si el reuso vino de un cliente legítimo con reloj muy desfasado, subir
    `app.auth.refresh.grace-seconds` (por defecto 15 s) y documentar.
 
+### Rollback coordinado de autenticación
+
+A.1 cambió el contrato de sesión: el frontend espera cookies `httpOnly` y el backend
+las emite. Si hay que revertir, revertir **backend y frontend juntos** (Heroku a la
+release anterior + deployment anterior de Vercel). Un rollback parcial deja a los
+usuarios sin poder iniciar sesión.
+
 ### IA degradada o cara
 
 1. Revisar `ai.requests{outcome="error"}` y `ai.latency`.
