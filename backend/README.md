@@ -221,6 +221,11 @@ Pipeline RAG sobre el historial clinico completo del paciente. El medico formula
 - **Arquitectura dual de recuperacion:**
   - **Ruta A — vector search:** topK dinamico segun el tamano del historial (<=8: topK=6, 9-15: topK=10, >15: topK=15). Para queries especificas sobre condiciones, medicamentos o fechas concretas.
   - **Ruta B — contexto estructurado desde BD:** bypass del vector store para queries de resumen o listado completo; garantiza cobertura total independientemente del topK. Clasificacion por 44 patrones de intencion con normalizacion Unicode NFD (sin acentos).
+- **Reparacion del indice:** `POST /api/v1/ai/patients/{patientId}/reindex` (ADMIN) reconstruye el indice del paciente y elimina documentos huerfanos.
+
+#### Capa de produccion
+
+Todas las llamadas pasan por `AiCallExecutor`: timeout configurable, un reintento ante errores transitorios y metricas Micrometer (`ai.requests`, `ai.latency` por feature). El rate limit es por usuario (`app.ai.rate-limit.requests-per-minute`) y la temperatura global es 0.0 para tareas estructuradas. Los DTO limitan el tamano de entrada. Ver [`docs/ai-production.md`](../docs/ai-production.md) y el eval harness `scripts/ai-eval.py`.
 
 ---
 
@@ -274,6 +279,7 @@ sequenceDiagram
 | `/api/v1/invoices/**` | ADMIN, RECEPTIONIST | ADMIN |
 | `/api/v1/ai/**` | Autenticado | Autenticado |
 | `/api/v1/ai/invoices/**` | -- | ADMIN, RECEPTIONIST |
+| `/api/v1/ai/patients/*/reindex` | -- | ADMIN |
 
 ### Usuarios por Defecto
 

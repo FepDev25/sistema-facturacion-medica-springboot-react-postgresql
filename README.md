@@ -341,6 +341,7 @@ npm run dev
 | [`DIAGRAMAS.md`](DIAGRAMAS.md) | Diagramas de flujo, máquinas de estado, secuencias JWT y IA |
 | [`docs/dev-homelab.md`](docs/dev-homelab.md) | Entorno de desarrollo local con PostgreSQL/Redis en el homelab |
 | [`docs/ci-cd.md`](docs/ci-cd.md) | CI/CD con GitHub Actions, Heroku y Vercel |
+| [`docs/ai-production.md`](docs/ai-production.md) | Guardrails, métricas, evals y robustez de los asistentes AI |
 | [`DEPLOY.md`](DEPLOY.md) | Proceso completo de despliegue en la nube (Heroku, Vercel, Neon, Upstash) |
 | [`backend/README.md`](backend/README.md) | Documentación técnica del backend |
 | [`backend/openapi/openapi.yaml`](backend/openapi/openapi.yaml) | Contrato OpenAPI 3 de la API REST |
