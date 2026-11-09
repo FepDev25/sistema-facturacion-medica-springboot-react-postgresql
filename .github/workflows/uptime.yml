@@ -1,0 +1,82 @@
+name: Uptime
+
+on:
+  schedule:
+    # Cada 15 minutos. GitHub puede retrasar el cron en horas pico.
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: uptime
+  cancel-in-progress: true
+
+env:
+  BACKEND_HEALTH_URL: ${{ vars.PROD_HEALTH_URL || 'https://sfm-backend-fepdev-a04e4eeac708.herokuapp.com/actuator/health' }}
+  FRONTEND_URL: ${{ vars.PROD_FRONTEND_URL || 'https://sistema-facturacion-medica-springbo.vercel.app/' }}
+
+jobs:
+  probe:
+    name: Comprobar producción
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Probar endpoints
+        id: probe
+        run: |
+          set -u
+          failures=""
+          for entry in "backend:$BACKEND_HEALTH_URL" "frontend:$FRONTEND_URL"; do
+            name="${entry%%:*}"
+            url="${entry#*:}"
+            code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 15 "$url" || echo "000")
+            echo "$name -> $code ($url)"
+            if [ "$code" != "200" ]; then
+              failures="$failures $name=$code"
+            fi
+          done
+
+          if [ -n "$failures" ]; then
+            echo "failed=true" >> "$GITHUB_OUTPUT"
+            echo "Endpoints caídos:$failures" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          echo "failed=false" >> "$GITHUB_OUTPUT"
+          echo "Backend y frontend responden 200." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Abrir o actualizar incidente
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh label create incident --color B60205 --description "Incidente de producción" || true
+
+          title="[uptime] Producción no responde"
+          body="El chequeo automático falló el $(date -u '+%Y-%m-%d %H:%M UTC').
+
+          Endpoints:
+          - Backend: $BACKEND_HEALTH_URL
+          - Frontend: $FRONTEND_URL
+
+          Runbook: docs/operaciones.md"
+
+          existing=$(gh issue list --state open --label incident --search "in:title \"$title\"" --json number -q '.[0].number' || true)
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "$title" --label incident --body "$body"
+          fi
+
+      - name: Cerrar incidentes al recuperarse
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          { gh issue list --state open --label incident --search 'in:title "[uptime]"' --json number -q '.[].number' 2>/dev/null || true; } \
+            | while read -r number; do
+                [ -n "$number" ] || continue
+                gh issue close "$number" --comment "Producción volvió a responder al chequeo automático."
+              done

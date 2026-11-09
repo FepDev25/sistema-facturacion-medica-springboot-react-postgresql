@@ -2,23 +2,27 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { createAllProviders } from '@/test/test-utils'
 import { toast } from 'sonner'
-import { setAuthSession, clearAuthSession } from '@/features/auth/store/authSessionStore'
 
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 vi.mock('@/features/auth/store/authSessionStore', () => ({
   setAuthSession: vi.fn(),
   clearAuthSession: vi.fn(),
-  getAuthSessionState: vi.fn(() => ({ refreshToken: 'refresh-token' })),
 }))
 
 import * as authApi from '@/features/auth/api/authApi'
-import { useLogin, useLogout, useRefreshSession } from '@/features/auth/hooks/useAuth'
+import { useLogin, useLogout } from '@/features/auth/hooks/useAuth'
 import { useProfile } from '@/features/auth/hooks/useProfile'
+import { clearAuthSession, setAuthSession } from '@/features/auth/store/authSessionStore'
 
 const mockLogin = vi.spyOn(authApi, 'login')
-const mockRefreshToken = vi.spyOn(authApi, 'refreshToken')
 const mockLogout = vi.spyOn(authApi, 'logout')
 const mockGetProfile = vi.spyOn(authApi, 'getProfile')
+
+const session = {
+  role: 'ADMIN' as const,
+  userId: 'u-1',
+  username: 'admin',
+}
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -26,15 +30,7 @@ beforeEach(() => {
 
 describe('useLogin', () => {
   it('calls login API and sets session on success', async () => {
-    const tokens = {
-      accessToken: 'at',
-      refreshToken: 'rt',
-      tokenType: 'Bearer' as const,
-      role: 'ADMIN' as const,
-      userId: 'u-1',
-      username: 'admin',
-    }
-    mockLogin.mockResolvedValue(tokens)
+    mockLogin.mockResolvedValue(session)
 
     const { result } = renderHook(() => useLogin(), { wrapper: createAllProviders() })
     result.current.mutate({ username: 'admin', password: 'pass' })
@@ -47,21 +43,13 @@ describe('useLogin', () => {
   })
 
   it('calls setAuthSession and shows success toast on success', async () => {
-    const tokens = {
-      accessToken: 'at',
-      refreshToken: 'rt',
-      tokenType: 'Bearer' as const,
-      role: 'ADMIN' as const,
-      userId: 'u-1',
-      username: 'admin',
-    }
-    mockLogin.mockResolvedValue(tokens)
+    mockLogin.mockResolvedValue(session)
 
     const { result } = renderHook(() => useLogin(), { wrapper: createAllProviders() })
     result.current.mutate({ username: 'admin', password: 'pass' })
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    expect(setAuthSession).toHaveBeenCalledWith(tokens)
+    expect(setAuthSession).toHaveBeenCalledWith(session)
     expect(toast.success).toHaveBeenCalledWith('Sesión iniciada')
   })
 
@@ -74,6 +62,35 @@ describe('useLogin', () => {
 
     await waitFor(() => expect(result.current.isError).toBe(true))
     expect(toast.error).toHaveBeenCalledWith('Usuario no encontrado')
+  })
+
+  it('shows the backend message on 429', async () => {
+    const error = {
+      response: {
+        status: 429,
+        data: { message: 'Demasiados intentos de inicio de sesión.' },
+      },
+    }
+    mockLogin.mockRejectedValue(error)
+
+    const { result } = renderHook(() => useLogin(), { wrapper: createAllProviders() })
+    result.current.mutate({ username: 'admin', password: 'pass' })
+
+    await waitFor(() => expect(result.current.isError).toBe(true))
+    expect(toast.error).toHaveBeenCalledWith('Demasiados intentos de inicio de sesión.')
+  })
+
+  it('shows a fallback toast on 429 without message', async () => {
+    const error = { response: { status: 429, data: {} } }
+    mockLogin.mockRejectedValue(error)
+
+    const { result } = renderHook(() => useLogin(), { wrapper: createAllProviders() })
+    result.current.mutate({ username: 'admin', password: 'pass' })
+
+    await waitFor(() => expect(result.current.isError).toBe(true))
+    expect(toast.error).toHaveBeenCalledWith(
+      'Demasiados intentos. Espera unos minutos e intenta de nuevo.',
+    )
   })
 
   it('shows default 401 toast when no message', async () => {
@@ -110,65 +127,15 @@ describe('useLogin', () => {
   })
 })
 
-describe('useRefreshSession', () => {
-  it('calls refreshToken API and sets session on success', async () => {
-    const tokens = {
-      accessToken: 'new-at',
-      refreshToken: 'new-rt',
-      tokenType: 'Bearer' as const,
-      role: 'ADMIN' as const,
-      userId: 'u-1',
-      username: 'admin',
-    }
-    mockRefreshToken.mockResolvedValue(tokens)
-
-    const { result } = renderHook(() => useRefreshSession(), { wrapper: createAllProviders() })
-    result.current.mutate({ refreshToken: 'old-rt' })
-
-    await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    expect(mockRefreshToken).toHaveBeenCalledWith({ refreshToken: 'old-rt' }, expect.anything())
-  })
-
-  it('calls setAuthSession but no toast on success', async () => {
-    const tokens = {
-      accessToken: 'at',
-      refreshToken: 'rt',
-      tokenType: 'Bearer' as const,
-      role: 'ADMIN' as const,
-      userId: 'u-1',
-      username: 'admin',
-    }
-    mockRefreshToken.mockResolvedValue(tokens)
-
-    const { result } = renderHook(() => useRefreshSession(), { wrapper: createAllProviders() })
-    result.current.mutate({ refreshToken: 'old-rt' })
-
-    await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    expect(setAuthSession).toHaveBeenCalledWith(tokens)
-    expect(toast.success).not.toHaveBeenCalled()
-  })
-
-  it('calls clearAuthSession on error (no toast)', async () => {
-    mockRefreshToken.mockRejectedValue(new Error('expired'))
-
-    const { result } = renderHook(() => useRefreshSession(), { wrapper: createAllProviders() })
-    result.current.mutate({ refreshToken: 'bad' })
-
-    await waitFor(() => expect(result.current.isError).toBe(true))
-    expect(clearAuthSession).toHaveBeenCalled()
-    expect(toast.error).not.toHaveBeenCalled()
-  })
-})
-
 describe('useLogout', () => {
-  it('calls logout API with refresh token and clears session', async () => {
+  it('calls the logout API and clears the session', async () => {
     mockLogout.mockResolvedValue(undefined)
 
     const { result } = renderHook(() => useLogout(), { wrapper: createAllProviders() })
     result.current.mutate()
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    expect(mockLogout).toHaveBeenCalledWith({ refreshToken: 'refresh-token' })
+    expect(mockLogout).toHaveBeenCalled()
   })
 
   it('calls clearAuthSession and shows success toast', async () => {

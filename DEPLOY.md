@@ -218,26 +218,37 @@ Solución: `baseline-on-migrate: true` + `baseline-version: "0"` le indica a Fly
 2. Configurar **Root Directory** → `frontend`
 3. Framework preset: **Vite**
 
-### Variable de entorno en Vercel
+### Proxy de API y cookies en Vercel
 
-```
-VITE_API_URL=https://sfm-backend-fepdev-a04e4eeac708.herokuapp.com/api/v1
-```
-
-> La app de Heroku expone un dominio con sufijo aleatorio. El dominio corto
-> `sfm-backend-fepdev.herokuapp.com` ya no resuelve; usar el que aparece en
-> **Heroku → app → Settings → Domains** y mantenerlo sincronizado con
-> `VITE_API_URL` en Vercel.
-
-### SPA Routing con TanStack Router
-
-TanStack Router usa enrutamiento del lado del cliente. Sin configuración adicional, al refrescar una ruta como `/patients` Vercel devuelve 404. Solución: `vercel.json` en la raíz del frontend:
+La sesión viaja en cookies `httpOnly` con `SameSite=Strict`. Para que sean
+first-party, el frontend llama a `/api/v1/**` en su propio dominio y Vercel
+reenvía al backend de Heroku mediante `vercel.json`:
 
 ```json
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://sfm-backend-fepdev-a04e4eeac708.herokuapp.com/api/:path*"
+    },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
 }
 ```
+
+> El dominio de Heroku tiene sufijo aleatorio. Si cambia, actualizar el destino
+> del rewrite. **No** configurar `VITE_API_URL` en Vercel: una URL absoluta haría
+> la petición cross-site y el navegador no enviaría las cookies.
+
+> **Migración de sesión:** al desplegar este cambio, los usuarios con sesión en
+> `localStorage` deberán iniciar sesión una vez. La clave antigua
+> `sfm.auth.session.v1` se elimina automáticamente y el refresh token previo no
+> tiene familia en PostgreSQL, así que el backend lo rechaza.
+
+### SPA Routing con TanStack Router
+
+El segundo rewrite devuelve `index.html` para las rutas del SPA, de modo que
+`/patients` o `/forbidden` funcionan al refrescar.
 
 ### TypeScript en modo estricto (build de producción)
 

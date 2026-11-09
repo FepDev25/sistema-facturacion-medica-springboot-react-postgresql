@@ -39,6 +39,11 @@ spring:
 app:
   jwt:
     secret: ${JWT_SECRET}
+  auth:
+    cookies:
+      # Heroku sirve por HTTPS y el frontend llega por el rewrite de Vercel.
+      secure: true
+      same-site: Strict
   cors:
     allowed-origins: ${ALLOWED_ORIGINS:http://localhost:5173}
 

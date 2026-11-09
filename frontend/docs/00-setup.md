@@ -325,7 +325,8 @@ Instancia global de Axios configurada con la URL base del backend y un intercept
 
 ```typescript
 export const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL ?? 'http://localhost:8080/api/v1',
+  baseURL: '/api/v1', // same-origin: proxy de Vite o rewrite de Vercel
+  withCredentials: true,
   headers: { 'Content-Type': 'application/json' },
 })
 

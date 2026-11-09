@@ -2,25 +2,28 @@ import axios, { AxiosError } from 'axios'
 import { toast } from 'sonner'
 import {
   clearAuthSession,
-  getAccessToken,
-  getAuthSessionState,
+  isAuthenticated,
   setAuthSession,
 } from '@/features/auth/store/authSessionStore'
 
-interface RefreshTokenResponse {
-  accessToken: string
-  refreshToken: string | null
-  tokenType: 'Bearer'
+interface SessionResponse {
   role: 'ADMIN' | 'DOCTOR' | 'RECEPTIONIST'
   userId: string
   username: string
 }
 
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8080/api/v1'
+// La API se sirve bajo el mismo origen: rewrite de Vercel en produccion y proxy de
+// Vite en desarrollo. Asi las cookies httpOnly son first-party y SameSite=Strict
+// funciona sin depender de cookies de terceros.
+const API_BASE_URL = '/api/v1'
 
 const AUTH_ENDPOINTS = ['/auth/login', '/auth/refresh', '/auth/logout']
 
-let refreshInFlight: Promise<string | null> | null = null
+const REFRESH_LOCK = 'sfm-auth-refresh'
+const LAST_REFRESH_KEY = 'sfm.auth.last-refresh'
+const REFRESH_COOLDOWN_MS = 2_000
+
+let refreshInFlight: Promise<boolean> | null = null
 let redirectingToLogin = false
 let lastForbiddenToastAt = 0
 
@@ -29,6 +32,10 @@ interface ApiErrorPayload {
   error?: string
   message?: string
   path?: string
+}
+
+interface LockManagerLike {
+  request<T>(name: string, callback: () => Promise<T>): Promise<T>
 }
 
 function isAuthEndpoint(url?: string): boolean {
@@ -92,63 +99,90 @@ function hasPermissionMessage(message?: string): boolean {
   )
 }
 
-export async function refreshAccessToken(): Promise<string | null> {
-  const refreshToken = getAuthSessionState().refreshToken
-  if (!refreshToken) {
-    clearAuthSession()
-    redirectToLogin()
-    return null
+/**
+ * Serializa el refresh entre pestañas con Web Locks. Sin esto, dos pestañas podrian
+ * presentar el mismo refresh token a la vez; el backend lo tolera dentro de la
+ * ventana de gracia, pero el lock evita rotaciones innecesarias.
+ */
+function withRefreshLock<T>(callback: () => Promise<T>): Promise<T> {
+  if (typeof navigator === 'undefined') {
+    return callback()
   }
 
+  const locks = (navigator as unknown as { locks?: LockManagerLike }).locks
+  if (!locks?.request) {
+    return callback()
+  }
+
+  return locks.request(REFRESH_LOCK, callback)
+}
+
+function recentlyRefreshedElsewhere(): boolean {
+  try {
+    const last = Number(window.localStorage.getItem(LAST_REFRESH_KEY))
+    if (!Number.isFinite(last) || last <= 0) {
+      return false
+    }
+    const elapsed = Date.now() - last
+    return elapsed >= 0 && elapsed < REFRESH_COOLDOWN_MS
+  } catch {
+    return false
+  }
+}
+
+function markRefreshed() {
+  try {
+    window.localStorage.setItem(LAST_REFRESH_KEY, String(Date.now()))
+  } catch {
+    // localStorage no disponible: no es critico, solo perdemos la optimizacion.
+  }
+}
+
+async function doRefresh(): Promise<boolean> {
+  if (!isAuthenticated()) {
+    clearAuthSession()
+    redirectToLogin()
+    return false
+  }
+
+  // Otra pestaña acaba de rotar la cookie: el navegador ya tiene una sesion valida.
+  if (recentlyRefreshedElsewhere()) {
+    return true
+  }
+
+  try {
+    const response = await axios.post<SessionResponse>(`${API_BASE_URL}/auth/refresh`, undefined, {
+      withCredentials: true,
+    })
+
+    setAuthSession(response.data)
+    markRefreshed()
+    return true
+  } catch {
+    clearAuthSession()
+    redirectToLogin()
+    return false
+  }
+}
+
+export function refreshAccessToken(): Promise<boolean> {
   if (refreshInFlight) {
     return refreshInFlight
   }
 
-  refreshInFlight = (async () => {
-    try {
-      const response = await axios.post<RefreshTokenResponse>(
-        `${API_BASE_URL}/auth/refresh`,
-        { refreshToken },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        },
-      )
-
-      setAuthSession(response.data)
-      return response.data.accessToken
-    } catch {
-      clearAuthSession()
-      redirectToLogin()
-      return null
-    } finally {
-      refreshInFlight = null
-    }
-  })()
+  refreshInFlight = withRefreshLock(doRefresh).finally(() => {
+    refreshInFlight = null
+  })
 
   return refreshInFlight
 }
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
-})
-
-apiClient.interceptors.request.use((config) => {
-  if (isAuthEndpoint(config.url)) {
-    return config
-  }
-
-  const accessToken = getAccessToken()
-  if (accessToken) {
-    config.headers.Authorization = `Bearer ${accessToken}`
-  } else if (config.headers.Authorization) {
-    delete config.headers.Authorization
-  }
-  return config
 })
 
 export async function handleResponseError(error: unknown) {
@@ -180,14 +214,17 @@ export async function handleResponseError(error: unknown) {
 
   originalRequest._retry = true
 
-  const refreshedAccessToken = await refreshAccessToken()
-  if (!refreshedAccessToken) {
+  const refreshed = await refreshAccessToken()
+  if (!refreshed) {
     redirectToLogin()
     return Promise.reject(error)
   }
 
-  originalRequest.headers = originalRequest.headers ?? {}
-  originalRequest.headers.Authorization = `Bearer ${refreshedAccessToken}`
+  // La cookie de acceso ya viaja sola; evitamos reenviar un Bearer obsoleto si
+  // algun cliente externo lo hubiera puesto manualmente.
+  if (originalRequest.headers) {
+    delete originalRequest.headers.Authorization
+  }
 
   return apiClient(originalRequest)
 }

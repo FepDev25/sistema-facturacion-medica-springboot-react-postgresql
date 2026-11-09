@@ -36,9 +36,6 @@ const { clearAuthSession, getAuthSessionState, setAuthSession } =
   await import('@/features/auth/store/authSessionStore')
 
 const adminSession = {
-  accessToken: 'access-123',
-  refreshToken: 'refresh-456',
-  tokenType: 'Bearer' as const,
   role: 'ADMIN' as const,
   userId: 'user-1',
   username: 'admin',
@@ -51,12 +48,9 @@ function unauthorized(url = '/patients') {
   }
 }
 
-function refreshPayload(accessToken: string, refreshToken: string | null) {
+function sessionPayload() {
   return {
     data: {
-      accessToken,
-      refreshToken,
-      tokenType: 'Bearer',
       role: 'ADMIN',
       userId: 'user-1',
       username: 'admin',
@@ -66,6 +60,7 @@ function refreshPayload(accessToken: string, refreshToken: string | null) {
 
 beforeEach(() => {
   clearAuthSession()
+  window.localStorage.clear()
   mocks.post.mockReset()
   mocks.toastError.mockReset()
   mocks.instance.mockReset()
@@ -73,48 +68,45 @@ beforeEach(() => {
 })
 
 describe('refreshAccessToken', () => {
-  it('devuelve null y limpia la sesión si no hay refresh token', async () => {
+  it('devuelve false y limpia la sesión si no está autenticado', async () => {
     const result = await refreshAccessToken()
 
-    expect(result).toBeNull()
+    expect(result).toBe(false)
     expect(mocks.post).not.toHaveBeenCalled()
   })
 
-  it('renueva el access token y persiste el refresh token rotado', async () => {
+  it('renueva la sesión usando la cookie httpOnly', async () => {
     setAuthSession(adminSession)
-    mocks.post.mockResolvedValueOnce(refreshPayload('access-2', 'refresh-2'))
+    mocks.post.mockResolvedValueOnce(sessionPayload())
 
     const result = await refreshAccessToken()
 
-    expect(result).toBe('access-2')
-    expect(mocks.post).toHaveBeenCalledWith(
-      expect.stringContaining('/auth/refresh'),
-      { refreshToken: 'refresh-456' },
-      expect.anything(),
-    )
-    expect(getAuthSessionState().refreshToken).toBe('refresh-2')
+    expect(result).toBe(true)
+    expect(mocks.post).toHaveBeenCalledWith(expect.stringContaining('/auth/refresh'), undefined, {
+      withCredentials: true,
+    })
+    expect(getAuthSessionState().authenticated).toBe(true)
   })
 
-  it('usa el refresh token rotado en el siguiente refresh (no lo destruye)', async () => {
+  it('no repite el refresh si otra pestaña acaba de rotar la cookie', async () => {
     setAuthSession(adminSession)
-    mocks.post.mockResolvedValueOnce(refreshPayload('access-2', 'refresh-2'))
-    await refreshAccessToken()
+    window.localStorage.setItem('sfm.auth.last-refresh', String(Date.now()))
 
-    mocks.post.mockResolvedValueOnce(refreshPayload('access-3', 'refresh-3'))
-    await refreshAccessToken()
+    const result = await refreshAccessToken()
 
-    expect(mocks.post.mock.calls[1][1]).toEqual({ refreshToken: 'refresh-2' })
-    expect(getAuthSessionState().refreshToken).toBe('refresh-3')
+    expect(result).toBe(true)
+    expect(mocks.post).not.toHaveBeenCalled()
   })
 
-  it('conserva el refresh token anterior si el backend responde null', async () => {
+  it('ignora marcas de refresh futuras o inválidas', async () => {
     setAuthSession(adminSession)
-    mocks.post.mockResolvedValueOnce(refreshPayload('access-2', null))
+    window.localStorage.setItem('sfm.auth.last-refresh', String(Date.now() + 60_000))
+    mocks.post.mockResolvedValueOnce(sessionPayload())
 
-    await refreshAccessToken()
+    const result = await refreshAccessToken()
 
-    expect(getAuthSessionState().accessToken).toBe('access-2')
-    expect(getAuthSessionState().refreshToken).toBe('refresh-456')
+    expect(result).toBe(true)
+    expect(mocks.post).toHaveBeenCalledTimes(1)
   })
 
   it('limpia la sesión si el refresh falla', async () => {
@@ -123,22 +115,21 @@ describe('refreshAccessToken', () => {
 
     const result = await refreshAccessToken()
 
-    expect(result).toBeNull()
-    expect(getAuthSessionState().accessToken).toBeNull()
-    expect(getAuthSessionState().refreshToken).toBeNull()
+    expect(result).toBe(false)
+    expect(getAuthSessionState().authenticated).toBe(false)
   })
 })
 
 describe('handleResponseError', () => {
-  it('reintenta la request original con el access token renovado', async () => {
+  it('reintenta la request original tras renovar la cookie', async () => {
     setAuthSession(adminSession)
-    mocks.post.mockResolvedValueOnce(refreshPayload('access-2', 'refresh-2'))
+    mocks.post.mockResolvedValueOnce(sessionPayload())
     const error = unauthorized('/patients')
 
     await handleResponseError(error)
 
     expect(mocks.instance).toHaveBeenCalledWith(error.config)
-    expect(error.config.headers.Authorization).toBe('Bearer access-2')
+    expect(error.config.headers.Authorization).toBeUndefined()
   })
 
   it('refresca una sola vez cuando varias requests reciben 401 en paralelo', async () => {
@@ -154,7 +145,7 @@ describe('handleResponseError', () => {
     const first = handleResponseError(unauthorized('/patients'))
     const second = handleResponseError(unauthorized('/invoices'))
 
-    resolveRefresh?.(refreshPayload('access-2', 'refresh-2'))
+    resolveRefresh?.(sessionPayload())
     await Promise.all([first, second])
 
     expect(mocks.post).toHaveBeenCalledTimes(1)

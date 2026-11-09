@@ -8,18 +8,8 @@ export interface LoginRequest {
   password: string
 }
 
-export interface RefreshTokenRequest {
-  refreshToken: string
-}
-
-export interface LogoutRequest {
-  refreshToken: string
-}
-
-export interface TokenResponse {
-  accessToken: string
-  refreshToken: string | null
-  tokenType: 'Bearer'
+/** Datos no sensibles de la sesion. Los tokens viven en cookies httpOnly. */
+export interface SessionResponse {
   role: AuthRole
   userId: string
   username: string
@@ -43,18 +33,20 @@ export const LoginFormSchema = z.object({
 
 export type LoginFormValues = z.infer<typeof LoginFormSchema>
 
-export async function login(data: LoginRequest): Promise<TokenResponse> {
-  const response = await apiClient.post<TokenResponse>('/auth/login', data)
+export async function login(data: LoginRequest): Promise<SessionResponse> {
+  const response = await apiClient.post<SessionResponse>('/auth/login', data)
   return response.data
 }
 
-export async function refreshToken(data: RefreshTokenRequest): Promise<TokenResponse> {
-  const response = await apiClient.post<TokenResponse>('/auth/refresh', data)
+/** Rota el refresh token; la cookie httpOnly viaja y se reemplaza automaticamente. */
+export async function refreshSession(): Promise<SessionResponse> {
+  const response = await apiClient.post<SessionResponse>('/auth/refresh')
   return response.data
 }
 
-export async function logout(data: LogoutRequest): Promise<void> {
-  await apiClient.post('/auth/logout', data)
+/** Revoca la familia de refresh tokens y limpia las cookies en el backend. */
+export async function logout(): Promise<void> {
+  await apiClient.post('/auth/logout')
 }
 
 export async function getProfile(): Promise<UserProfileResponse> {

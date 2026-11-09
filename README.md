@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/FepDev25/sistema-facturacion-medica-springboot-react-postgresql/actions/workflows/ci.yml/badge.svg)](https://github.com/FepDev25/sistema-facturacion-medica-springboot-react-postgresql/actions/workflows/ci.yml)
 
-Sistema clínico fullstack con cuatro asistentes AI integrados: desde RAG con embeddings de Google Gemini hasta Tool Calling y Structured Output con Claude. El backend es una API RESTful en Spring Boot 4 con máquinas de estados explícitas, auditoría dual y 450 tests. El frontend es un backoffice React 19 con routing type-safe, estado del servidor con TanStack Query y una suite de 775 tests.
+Sistema clínico fullstack con cuatro asistentes AI integrados: desde RAG con embeddings de Google Gemini hasta Tool Calling y Structured Output con Claude. El backend es una API RESTful en Spring Boot 4 con máquinas de estados explícitas, auditoría dual y 458 tests unitarios. El frontend es un backoffice React 19 con routing type-safe, estado del servidor con TanStack Query y una suite de 768 tests.
 
 **Demo en producción:** https://sistema-facturacion-medica-springbo.vercel.app
 
@@ -175,7 +175,7 @@ A partir del expediente clínico asociado, Claude sugiere servicios y medicament
 
 ## Seguridad y Autorización
 
-Autenticación **JWT stateless**: access token (15 min) + refresh token (7 días) con rotación deslizante en cada refresh. El logout revoca el refresh token en Redis con TTL igual a la vida restante del token. El frontend implementa un mutex `refreshInFlight` para que múltiples requests concurrentes con 401 compartan una sola llamada de renovación, persiste la sesión en `localStorage` para sobrevivir a un F5 y la sincroniza entre pestañas con el evento `storage`.
+Autenticación **JWT stateless** con tokens en cookies `httpOnly` (`SameSite=Strict`): access token (15 min) + refresh token (7 días). Cada refresh rota el token y el backend guarda el SHA-256 en PostgreSQL; reusar un token rotado fuera de una ventana de gracia de 15 s revoca la familia completa (detección de robo de sesión). El frontend serializa los refresh entre pestañas con Web Locks y solo persiste `role`, `userId` y `username` en `localStorage`. El login tiene rate limit por IP y usuario, y las peticiones mutantes validan `Origin`/`Referer` contra los orígenes permitidos.
 
 ### Matriz de Permisos
 
@@ -213,7 +213,7 @@ Los permisos se aplican en tres niveles independientes: backend (`@PreAuthorize`
 
 ## Testing
 
-### Backend — 450 tests, cobertura JaCoCo
+### Backend — 458 tests unitarios, cobertura JaCoCo
 
 | Alcance | Líneas | Branches |
 |---|---|---|
@@ -228,11 +228,11 @@ Flujos E2E verificados con base de datos real (Testcontainers):
 - `InsuranceCoverageFlowE2ETest` — asignar póliza → verificar cálculo de cobertura
 - `CancellationRulesFlowE2ETest` — cancelar sin pagos (éxito) → cancelar con pagos (rechazo RN-14)
 
-### Frontend — 775 tests
+### Frontend — 768 tests
 
 | Capa | Tests | Herramientas |
 |---|---|---|
-| Unit / componentes | 647 (55 archivos) | Vitest 4 + React Testing Library 16 |
+| Unit / componentes | 640 (55 archivos) | Vitest 4 + React Testing Library 16 |
 | E2E | 128 (5 archivos) | Playwright 1.59 + Chromium |
 
 ---

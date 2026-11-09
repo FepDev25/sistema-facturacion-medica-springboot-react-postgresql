@@ -1,0 +1,89 @@
+groups:
+  - name: sfm-production
+    rules:
+      - alert: SfmBackendDown
+        expr: up{job="sfm-backend"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Backend caído"
+          description: "El scrape de {{ $labels.instance }} lleva 2 minutos sin responder."
+
+      - alert: SfmFrontendDown
+        expr: probe_success{job="sfm-frontend"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Frontend caído"
+          description: "El frontend no responde al probe HTTP."
+
+      - alert: SfmHigh5xxRate
+        expr: |
+          sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m]))
+            /
+          sum(rate(http_server_requests_seconds_count[5m])) > 0.02
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Tasa de 5xx superior al 2 %"
+          description: "Revisar logs de Heroku y el último deploy."
+
+      - alert: SfmHighLatencyP95
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_server_requests_seconds_bucket[5m])) by (le)
+          ) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Latencia p95 por encima de 2 s"
+
+      - alert: SfmAiErrors
+        expr: sum(rate(ai_requests_total{outcome="error"}[5m])) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Errores de IA por encima de 0.1/s"
+          description: "Revisar disponibilidad del proveedor y el rate limit."
+
+      - alert: SfmAiLatency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(ai_latency_seconds_bucket[5m])) by (le)
+          ) > 20
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Latencia p95 de IA por encima de 20 s"
+
+      - alert: SfmLoginFailures
+        expr: increase(auth_login_failures_total[5m]) > 20
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Ráfaga de logins fallidos"
+          description: "Posible ataque de fuerza bruta; revisar IPs en los logs."
+
+      - alert: SfmLoginBlocked
+        expr: increase(auth_login_blocked_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: info
+        annotations:
+          summary: "Intentos de login bloqueados por rate limit"
+
+      - alert: SfmRefreshReuse
+        expr: increase(auth_refresh_reuse_total[5m]) > 0
+        for: 0m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Reuso de refresh token detectado"
+          description: "La familia ya fue revocada. Revisar logs y posibles credenciales comprometidas."

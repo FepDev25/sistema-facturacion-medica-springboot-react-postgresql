@@ -68,8 +68,7 @@ vi.mock('@/features/auth/hooks/useAuth', () => ({
 }))
 
 let mockSessionState: AuthSessionState = {
-  accessToken: null,
-  refreshToken: null,
+  authenticated: false,
   role: null,
   userId: null,
   username: null,
@@ -78,8 +77,7 @@ let mockLogoutPending = false
 
 function setSession(overrides: Partial<AuthSessionState>) {
   mockSessionState = {
-    accessToken: 'token',
-    refreshToken: 'refresh',
+    authenticated: true,
     role: null,
     userId: 'user-1',
     username: 'admin',
@@ -97,8 +95,7 @@ describe('AppShell', () => {
     mockLogoutPending = false
     mockUseRouterState.mockReturnValue('/')
     mockSessionState = {
-      accessToken: null,
-      refreshToken: null,
+      authenticated: false,
       role: null,
       userId: null,
       username: null,
@@ -184,7 +181,7 @@ describe('AppShell', () => {
     })
 
     it('no role shows no nav items', () => {
-      setSession({ role: null, accessToken: 'token' })
+      setSession({ role: null, authenticated: true })
       render(
         <AppShell>
           <p>content</p>
@@ -248,7 +245,7 @@ describe('AppShell', () => {
     })
 
     it('shows "Sin rol" when role is null', () => {
-      setSession({ role: null, accessToken: 'token' })
+      setSession({ role: null, authenticated: true })
       render(
         <AppShell>
           <p>content</p>

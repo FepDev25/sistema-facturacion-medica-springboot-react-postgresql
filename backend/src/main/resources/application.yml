@@ -58,6 +58,20 @@ app:
     secret: c2ZtLXNlY3JldC1rZXktZm9yLWRldmVsb3BtZW50LXVzZS1vbmx5LTI1NmJpdHM=
     access-token-expiration: 900000      # 15 minutos en milisegundos
     refresh-token-expiration: 604800000  # 7 dias en milisegundos
+  auth:
+    # Cookies httpOnly. En produccion se fuerzan Secure (ver application-prod.yml).
+    cookies:
+      secure: false
+      same-site: Strict
+    refresh:
+      # Ventana para refresh concurrentes entre pestañas. Fuera de ella, reusar un
+      # token ya canjeado revoca la familia completa.
+      grace-seconds: 15
+    login:
+      # Ventana fija de 5 minutos: 10 fallos por identidad o 30 por IP.
+      max-attempts: 10
+      max-attempts-per-ip: 30
+      window-seconds: 300
 
   
 

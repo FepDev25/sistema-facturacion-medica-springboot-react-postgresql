@@ -30,8 +30,10 @@ import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceResponse;
 import com.fepdev.sfm.backend.domain.payment.PaymentController;
 import com.fepdev.sfm.backend.domain.payment.PaymentService;
 import com.fepdev.sfm.backend.domain.payment.dto.PaymentResponse;
+import com.fepdev.sfm.backend.security.AuthCookieService;
 import com.fepdev.sfm.backend.security.JwtAuthenticationFilter;
 import com.fepdev.sfm.backend.security.JwtService;
+import com.fepdev.sfm.backend.security.TokenBlacklistService;
 import com.fepdev.sfm.backend.security.UserDetailsServiceImpl;
 import com.fepdev.sfm.backend.shared.exception.HandlerException;
 
@@ -63,6 +65,12 @@ class InvoicePaymentAuthorizationTest {
 
     @MockitoBean
     UserDetailsServiceImpl userDetailsService;
+
+    @MockitoBean
+    AuthCookieService authCookieService;
+
+    @MockitoBean
+    TokenBlacklistService tokenBlacklistService;
 
     @Test
     void admin_canAddInvoiceItem() throws Exception {

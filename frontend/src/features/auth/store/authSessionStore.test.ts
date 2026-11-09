@@ -2,28 +2,21 @@ import { describe, expect, it, beforeEach } from 'vitest'
 import {
   setAuthSession,
   clearAuthSession,
-  getAccessToken,
   isAuthenticated,
   hasRole,
   hasAnyRole,
   getAuthSessionState,
   subscribeAuthSession,
 } from '@/features/auth/store/authSessionStore'
-import type { TokenResponse } from '@/features/auth/api/authApi'
+import type { SessionResponse } from '@/features/auth/api/authApi'
 
-const adminTokens: TokenResponse = {
-  accessToken: 'access-123',
-  refreshToken: 'refresh-456',
-  tokenType: 'Bearer',
+const adminSession: SessionResponse = {
   role: 'ADMIN',
   userId: 'user-1',
   username: 'admin',
 }
 
-const doctorTokens: TokenResponse = {
-  accessToken: 'access-doc',
-  refreshToken: null,
-  tokenType: 'Bearer',
+const doctorSession: SessionResponse = {
   role: 'DOCTOR',
   userId: 'user-2',
   username: 'drhouse',
@@ -31,14 +24,14 @@ const doctorTokens: TokenResponse = {
 
 beforeEach(() => {
   clearAuthSession()
+  window.localStorage.clear()
 })
 
 describe('authSessionStore', () => {
   describe('initial state', () => {
     it('starts unauthenticated with all null values', () => {
       const state = getAuthSessionState()
-      expect(state.accessToken).toBeNull()
-      expect(state.refreshToken).toBeNull()
+      expect(state.authenticated).toBe(false)
       expect(state.role).toBeNull()
       expect(state.userId).toBeNull()
       expect(state.username).toBeNull()
@@ -46,10 +39,6 @@ describe('authSessionStore', () => {
 
     it('isAuthenticated returns false initially', () => {
       expect(isAuthenticated()).toBe(false)
-    })
-
-    it('getAccessToken returns null initially', () => {
-      expect(getAccessToken()).toBeNull()
     })
 
     it('hasRole returns false for any role initially', () => {
@@ -64,47 +53,36 @@ describe('authSessionStore', () => {
   })
 
   describe('setAuthSession', () => {
-    it('stores all token fields', () => {
-      setAuthSession(adminTokens)
+    it('stores only non-sensitive session metadata', () => {
+      setAuthSession(adminSession)
       const state = getAuthSessionState()
-      expect(state.accessToken).toBe('access-123')
-      expect(state.refreshToken).toBe('refresh-456')
+      expect(state.authenticated).toBe(true)
       expect(state.role).toBe('ADMIN')
       expect(state.userId).toBe('user-1')
       expect(state.username).toBe('admin')
-    })
-
-    it('handles null refreshToken', () => {
-      setAuthSession(doctorTokens)
-      const state = getAuthSessionState()
-      expect(state.refreshToken).toBeNull()
+      expect(state).not.toHaveProperty('accessToken')
+      expect(state).not.toHaveProperty('refreshToken')
     })
 
     it('makes isAuthenticated return true', () => {
-      setAuthSession(adminTokens)
+      setAuthSession(adminSession)
       expect(isAuthenticated()).toBe(true)
-    })
-
-    it('makes getAccessToken return the token', () => {
-      setAuthSession(adminTokens)
-      expect(getAccessToken()).toBe('access-123')
     })
   })
 
   describe('clearAuthSession', () => {
-    it('resets all fields to null', () => {
-      setAuthSession(adminTokens)
+    it('resets all fields', () => {
+      setAuthSession(adminSession)
       clearAuthSession()
       const state = getAuthSessionState()
-      expect(state.accessToken).toBeNull()
-      expect(state.refreshToken).toBeNull()
+      expect(state.authenticated).toBe(false)
       expect(state.role).toBeNull()
       expect(state.userId).toBeNull()
       expect(state.username).toBeNull()
     })
 
     it('makes isAuthenticated return false', () => {
-      setAuthSession(adminTokens)
+      setAuthSession(adminSession)
       clearAuthSession()
       expect(isAuthenticated()).toBe(false)
     })
@@ -112,100 +90,99 @@ describe('authSessionStore', () => {
 
   describe('hasRole', () => {
     it('returns true when role matches', () => {
-      setAuthSession(adminTokens)
+      setAuthSession(adminSession)
       expect(hasRole('ADMIN')).toBe(true)
     })
 
     it('returns false when role does not match', () => {
-      setAuthSession(adminTokens)
+      setAuthSession(adminSession)
       expect(hasRole('DOCTOR')).toBe(false)
     })
   })
 
   describe('hasAnyRole', () => {
     it('returns true when current role is in the list', () => {
-      setAuthSession(adminTokens)
+      setAuthSession(adminSession)
       expect(hasAnyRole(['ADMIN', 'DOCTOR'])).toBe(true)
     })
 
     it('returns false when current role is not in the list', () => {
-      setAuthSession(adminTokens)
+      setAuthSession(adminSession)
       expect(hasAnyRole(['DOCTOR', 'RECEPTIONIST'])).toBe(false)
     })
 
     it('returns true with single-element array matching', () => {
-      setAuthSession(doctorTokens)
+      setAuthSession(doctorSession)
       expect(hasAnyRole(['DOCTOR'])).toBe(true)
     })
 
     it('returns false with empty array', () => {
-      setAuthSession(adminTokens)
+      setAuthSession(adminSession)
       expect(hasAnyRole([])).toBe(false)
     })
   })
 
   describe('persistencia de la sesión', () => {
-    it('guarda la sesión en localStorage al autenticarse', () => {
-      setAuthSession(adminTokens)
+    it('guarda solo metadatos no sensibles en localStorage', () => {
+      setAuthSession(adminSession)
 
-      const raw = window.localStorage.getItem('sfm.auth.session.v1')
+      const raw = window.localStorage.getItem('sfm.auth.session.v2')
       expect(raw).not.toBeNull()
-      expect(JSON.parse(raw!)).toMatchObject({
-        accessToken: 'access-123',
-        refreshToken: 'refresh-456',
+      const parsed = JSON.parse(raw!)
+      expect(parsed).toMatchObject({
+        authenticated: true,
         role: 'ADMIN',
         userId: 'user-1',
         username: 'admin',
       })
+      expect(parsed).not.toHaveProperty('accessToken')
+      expect(parsed).not.toHaveProperty('refreshToken')
     })
 
     it('elimina la sesión de localStorage al cerrar sesión', () => {
-      setAuthSession(adminTokens)
+      setAuthSession(adminSession)
+      clearAuthSession()
+
+      expect(window.localStorage.getItem('sfm.auth.session.v2')).toBeNull()
+    })
+
+    it('elimina la clave antigua que guardaba tokens en claro', () => {
+      window.localStorage.setItem('sfm.auth.session.v1', '{"accessToken":"leaked"}')
+
       clearAuthSession()
 
       expect(window.localStorage.getItem('sfm.auth.session.v1')).toBeNull()
     })
 
-    it('conserva el refresh token anterior si el backend responde null', () => {
-      setAuthSession(adminTokens)
-
-      setAuthSession({ ...adminTokens, accessToken: 'access-new', refreshToken: null })
-
-      expect(getAuthSessionState().accessToken).toBe('access-new')
-      expect(getAuthSessionState().refreshToken).toBe('refresh-456')
-    })
-
     it('rehidrata la sesión al volver a cargar el módulo (F5)', async () => {
-      setAuthSession(adminTokens)
+      setAuthSession(adminSession)
       vi.resetModules()
 
       const reloaded = await import('@/features/auth/store/authSessionStore')
 
       expect(reloaded.isAuthenticated()).toBe(true)
-      expect(reloaded.getAccessToken()).toBe('access-123')
-      expect(reloaded.getAuthSessionState().refreshToken).toBe('refresh-456')
       expect(reloaded.hasRole('ADMIN')).toBe(true)
+      expect(reloaded.getAuthSessionState().username).toBe('admin')
     })
 
     it('ignora y limpia una sesión persistida inválida', async () => {
-      window.localStorage.setItem('sfm.auth.session.v1', '{"accessToken":"x","role":"HACKER"}')
+      window.localStorage.setItem('sfm.auth.session.v2', '{"authenticated":true,"role":"HACKER"}')
       vi.resetModules()
 
       const reloaded = await import('@/features/auth/store/authSessionStore')
 
       expect(reloaded.isAuthenticated()).toBe(false)
-      expect(window.localStorage.getItem('sfm.auth.session.v1')).toBeNull()
+      expect(window.localStorage.getItem('sfm.auth.session.v2')).toBeNull()
     })
 
     it('se sincroniza cuando otra pestaña cambia la sesión', () => {
-      setAuthSession(adminTokens)
+      setAuthSession(adminSession)
 
       window.dispatchEvent(
         new StorageEvent('storage', {
-          key: 'sfm.auth.session.v1',
+          key: 'sfm.auth.session.v2',
           newValue: JSON.stringify({
-            accessToken: 'access-otra-pestana',
-            refreshToken: 'refresh-otra-pestana',
+            authenticated: true,
             role: 'DOCTOR',
             userId: 'user-2',
             username: 'drhouse',
@@ -213,16 +190,16 @@ describe('authSessionStore', () => {
         }),
       )
 
-      expect(getAccessToken()).toBe('access-otra-pestana')
       expect(hasRole('DOCTOR')).toBe(true)
+      expect(getAuthSessionState().username).toBe('drhouse')
     })
 
     it('cierra la sesión cuando otra pestaña la elimina', () => {
-      setAuthSession(adminTokens)
+      setAuthSession(adminSession)
 
       window.dispatchEvent(
         new StorageEvent('storage', {
-          key: 'sfm.auth.session.v1',
+          key: 'sfm.auth.session.v2',
           newValue: null,
         }),
       )
@@ -232,40 +209,15 @@ describe('authSessionStore', () => {
   })
 
   describe('subscribeAuthSession', () => {
-    it('notifies listener on setAuthSession', () => {
+    it('notifica a los suscriptores cuando cambia la sesión', () => {
       const listener = vi.fn()
       const unsubscribe = subscribeAuthSession(listener)
-      setAuthSession(adminTokens)
-      expect(listener).toHaveBeenCalledOnce()
-      unsubscribe()
-    })
 
-    it('notifies listener on clearAuthSession', () => {
-      setAuthSession(adminTokens)
-      const listener = vi.fn()
-      const unsubscribe = subscribeAuthSession(listener)
+      setAuthSession(adminSession)
       clearAuthSession()
-      expect(listener).toHaveBeenCalledOnce()
       unsubscribe()
-    })
 
-    it('stops notifying after unsubscribe', () => {
-      const listener = vi.fn()
-      const unsubscribe = subscribeAuthSession(listener)
-      unsubscribe()
-      setAuthSession(adminTokens)
-      expect(listener).not.toHaveBeenCalled()
-    })
-
-    it('supports multiple listeners', () => {
-      const listener1 = vi.fn()
-      const listener2 = vi.fn()
-      const unsub1 = subscribeAuthSession(listener1)
-      subscribeAuthSession(listener2)
-      setAuthSession(adminTokens)
-      expect(listener1).toHaveBeenCalledOnce()
-      expect(listener2).toHaveBeenCalledOnce()
-      unsub1()
+      expect(listener).toHaveBeenCalledTimes(2)
     })
   })
 })

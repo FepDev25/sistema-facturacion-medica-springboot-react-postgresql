@@ -21,8 +21,8 @@ El workflow vive en
 
 Se ejecutan dos jobs en paralelo:
 
-- **Backend**: `./mvnw -B -ntp verify`. Corre los 450 tests, incluidos los de
-  Testcontainers, y aplica el gate de JaCoCo.
+- **Backend**: `./mvnw -B -ntp verify`. Corre la suite completa (458 unitarios +
+  integración con Testcontainers) y aplica el gate de JaCoCo.
 - **Frontend**: `npm ci`, `npm run lint`, `npm run test:coverage` y
   `npm run build`.
 
@@ -235,9 +235,10 @@ El backend se compila con `-Dmaven.test.skip=true` y arranca con el perfil
 - Desactiva la indexación de los 14.208 códigos CIE-10.
 - Configura CORS para `localhost:5173` y `127.0.0.1:5173`.
 
-El frontend se compila con `VITE_API_URL=http://127.0.0.1:8080/api/v1` y se
-sirve con `vite preview` en `127.0.0.1:5173`. Playwright corre con `workers: 1`
-en CI para evitar interferencia entre tests que comparten la misma base.
+El frontend se compila sin URL absoluta: llama a `/api/v1` y `vite preview`
+reenvía al backend con `VITE_DEV_API_TARGET=http://127.0.0.1:8080`. Playwright
+corre con `workers: 1` en CI para evitar interferencia entre tests que comparten
+la misma base. El proxy mantiene las cookies `httpOnly` como first-party.
 
 ### Ejecución local
 

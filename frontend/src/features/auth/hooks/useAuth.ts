@@ -2,13 +2,13 @@ import { useMutation } from '@tanstack/react-query'
 import type { AxiosError } from 'axios'
 import { toast } from 'sonner'
 import * as authApi from '../api/authApi'
-import { clearAuthSession, getAuthSessionState, setAuthSession } from '../store/authSessionStore'
+import { clearAuthSession, setAuthSession } from '../store/authSessionStore'
 
 export function useLogin() {
   return useMutation({
     mutationFn: authApi.login,
-    onSuccess: (tokens) => {
-      setAuthSession(tokens)
+    onSuccess: (session) => {
+      setAuthSession(session)
       toast.success('Sesión iniciada')
     },
     onError: (error) => {
@@ -18,6 +18,11 @@ export function useLogin() {
 
       if (status === 401) {
         toast.error(message ?? 'Credenciales inválidas')
+        return
+      }
+
+      if (status === 429) {
+        toast.error(message ?? 'Demasiados intentos. Espera unos minutos e intenta de nuevo.')
         return
       }
 
@@ -31,26 +36,9 @@ export function useLogin() {
   })
 }
 
-export function useRefreshSession() {
-  return useMutation({
-    mutationFn: authApi.refreshToken,
-    onSuccess: (tokens) => {
-      setAuthSession(tokens)
-    },
-    onError: () => {
-      clearAuthSession()
-    },
-  })
-}
-
 export function useLogout() {
   return useMutation({
-    mutationFn: async () => {
-      const refreshToken = getAuthSessionState().refreshToken
-      if (refreshToken) {
-        await authApi.logout({ refreshToken })
-      }
-    },
+    mutationFn: authApi.logout,
     onSuccess: () => {
       clearAuthSession()
       toast.success('Sesión cerrada')

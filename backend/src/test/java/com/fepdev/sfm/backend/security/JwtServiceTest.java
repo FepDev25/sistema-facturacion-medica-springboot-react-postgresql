@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,10 +47,19 @@ class JwtServiceTest {
 
     @Test
     void generateRefreshToken_validOnlyAsRefresh() {
-        String token = jwtService.generateRefreshToken(user);
+        UUID familyId = UUID.randomUUID();
+        String token = jwtService.generateRefreshToken(user, familyId);
 
         assertThat(jwtService.isRefreshTokenValid(token, user)).isTrue();
         assertThat(jwtService.isAccessTokenValid(token, user)).isFalse();
+        assertThat(jwtService.extractFamilyId(token)).isEqualTo(familyId);
+    }
+
+    @Test
+    void generateAccessToken_hasNoFamilyClaim() {
+        String token = jwtService.generateAccessToken(user);
+
+        assertThat(jwtService.extractFamilyId(token)).isNull();
     }
 
     @Test
