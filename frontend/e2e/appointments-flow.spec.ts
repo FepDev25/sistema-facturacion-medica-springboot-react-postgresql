@@ -205,7 +205,7 @@ test.describe('Appointment detail page', () => {
 
     await expect(page.getByText('Estado').first()).toBeVisible()
     await expect(page.getByText('Duración')).toBeVisible()
-    await expect(page.getByText('Inicio')).toBeVisible()
+    await expect(page.getByText('Inicio').last()).toBeVisible()
     await expect(page.getByText('Fin estimado')).toBeVisible()
   })
 
