@@ -165,10 +165,8 @@ public class AuthController {
     private String clientIp(HttpServletRequest request) {
         String forwarded = request.getHeader("X-Forwarded-For");
         if (forwarded != null && !forwarded.isBlank()) {
-            // El ultimo valor lo agrega el proxy mas cercano (Heroku/Vercel); los
-            // anteriores podrian venir inyectados por el cliente.
-            String[] parts = forwarded.split(",");
-            return parts[parts.length - 1].trim();
+            // Heroku y Vercel colocan la IP del cliente en la primera posicion.
+            return forwarded.split(",")[0].trim();
         }
         return request.getRemoteAddr();
     }
