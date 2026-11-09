@@ -8,6 +8,8 @@ erDiagram
     PATIENTS ||--o{ INSURANCE_POLICIES : "tiene"
     PATIENTS ||--o{ INVOICES : "recibe"
 
+    SYSTEM_USERS ||--o| DOCTORS : "vincula"
+
     DOCTORS ||--o{ APPOINTMENTS : "atiende"
 
     APPOINTMENTS ||--o{ DIAGNOSES : "genera"
@@ -46,8 +48,20 @@ erDiagram
         timestamptz updated_at
     }
 
+    SYSTEM_USERS {
+        uuid id PK
+        string username UK
+        string password_hash
+        string email UK
+        string role
+        boolean is_active
+        timestamptz created_at
+        timestamptz updated_at
+    }
+
     DOCTORS {
         uuid id PK
+        uuid user_id FK
         string license_number UK
         string first_name
         string last_name
@@ -64,6 +78,7 @@ erDiagram
         uuid patient_id FK
         uuid doctor_id FK
         timestamptz scheduled_at
+        timestamptz scheduled_end_at
         int duration_minutes
         string status
         text chief_complaint
@@ -209,6 +224,40 @@ erDiagram
         boolean is_active
         timestamptz created_at
         timestamptz updated_at
+    }
+
+    INVOICE_SEQUENCES {
+        int year PK
+        int last_sequence
+    }
+
+    CATALOG_PRICE_HISTORY {
+        uuid id PK
+        string catalog_type
+        uuid catalog_id
+        string item_code
+        string item_name
+        decimal old_price
+        decimal new_price
+        timestamptz changed_at
+    }
+
+    AUDIT_LOG {
+        uuid id PK
+        string entity_name
+        uuid entity_id
+        string action
+        string performed_by
+        timestamptz performed_at
+        jsonb old_values
+        jsonb new_values
+    }
+
+    VECTOR_STORE {
+        uuid id PK
+        text content
+        jsonb metadata
+        vector embedding
     }
 
 

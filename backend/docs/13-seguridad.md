@@ -117,7 +117,7 @@ Cada token es un JWT firmado con HMAC-SHA256. El payload contiene:
 ```json
 {
   "jti": "550e8400-e29b-41d4-a716-446655440000",
-  "sub": "dr.garcia",
+  "sub": "doctor1",
   "type": "access",
   "role": "DOCTOR",
   "iat": 1711900800,
@@ -335,7 +335,7 @@ sequenceDiagram
 
 **Request:**
 ```json
-{ "username": "dr.garcia", "password": "secreto123" }
+{ "username": "doctor1", "password": "secreto123" }
 ```
 
 **Response 200:**

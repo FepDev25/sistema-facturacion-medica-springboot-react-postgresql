@@ -19,6 +19,22 @@ public interface InvoiceRepository extends JpaRepository<Invoice, UUID> {
 
     Optional<Invoice> findByInvoiceNumber(String invoiceNumber);
 
+    long countByStatusIn(java.util.Collection<InvoiceStatus> statuses);
+
+    // Saldo pendiente real: responsabilidad del paciente menos los pagos ya registrados,
+    // solo para facturas cobrables. GREATEST evita saldos negativos por datos legacy.
+    @Query(value = """
+            SELECT COALESCE(SUM(GREATEST(i.patient_responsibility - COALESCE(p.paid, 0), 0)), 0)
+            FROM invoices i
+            LEFT JOIN (
+                SELECT invoice_id, SUM(amount) AS paid
+                FROM payments
+                GROUP BY invoice_id
+            ) p ON p.invoice_id = i.id
+            WHERE i.status IN ('pending', 'partial_paid', 'overdue')
+            """, nativeQuery = true)
+    java.math.BigDecimal sumPendingCollection();
+
     Optional<Invoice> findTopByAppointmentIdOrderByCreatedAtDesc(UUID appointmentId);
 
     @EntityGraph(attributePaths = {

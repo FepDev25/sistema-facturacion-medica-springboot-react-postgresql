@@ -90,7 +90,7 @@ flowchart TD
     C -->|no| Z
     C -->|sí| D{¿nombre es\nanonymousUser?}
     D -->|sí| Z
-    D -->|no| E[Optional.of username\nej: dr.garcia]
+    D -->|no| E[Optional.of username\nej: doctor1]
     E --> F[Hibernate escribe\ncreated_by / updated_by]
 ```
 
@@ -297,7 +297,7 @@ sequenceDiagram
   "entity_name": "Invoice",
   "entity_id": "550e8400-e29b-41d4-a716-446655440000",
   "action": "UPDATE",
-  "performed_by": "dr.garcia",
+  "performed_by": "doctor1",
   "performed_at": "2026-03-22T18:00:00Z",
   "old_values": {"status": "DRAFT"},
   "new_values": {"status": "PENDING"}
@@ -308,7 +308,7 @@ sequenceDiagram
   "entity_name": "Diagnosis",
   "entity_id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
   "action": "CREATE",
-  "performed_by": "dr.garcia",
+  "performed_by": "doctor1",
   "performed_at": "2026-03-22T18:05:00Z",
   "old_values": null,
   "new_values": {"id":"7c9e...","icd10Code":"J02.9","description":"Faringitis aguda","severity":"MILD",...}

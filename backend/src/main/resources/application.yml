@@ -31,7 +31,8 @@ spring:
       chat:
         options:
           model: claude-haiku-4-5-20251001
-          temperature: 0.7
+          # Tareas estructuradas (extraccion, reranking, sugerencias): temperatura 0
+          temperature: 0.0
           max-tokens: 2048
     google:
       genai:
@@ -45,6 +46,13 @@ spring:
 
 # JWT - propiedades custom del proyecto
 app:
+  ai:
+    # Limite por usuario para endpoints /api/v1/ai/** (ventana fija de 1 minuto)
+    rate-limit:
+      requests-per-minute: 20
+    # Timeout por llamada al LLM y reintentos ante errores transitorios
+    timeout-seconds: 30
+    max-retries: 1
   jwt:
     # Clave generica de desarrollo. REEMPLAZAR por variable de entorno en produccion.
     secret: c2ZtLXNlY3JldC1rZXktZm9yLWRldmVsb3BtZW50LXVzZS1vbmx5LTI1NmJpdHM=
@@ -58,7 +66,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health, info
+        include: health, info, metrics
   endpoint:
     health:
       show-details: when-authorized

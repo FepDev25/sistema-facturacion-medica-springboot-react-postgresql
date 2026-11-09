@@ -15,6 +15,7 @@ class Icd10SuggestionServiceTest {
 
     @Mock VectorStore vectorStore;
     @Mock org.springframework.ai.chat.client.ChatClient chatClient;
+    @Mock com.fepdev.sfm.backend.ai.guard.AiCallExecutor aiCallExecutor;
 
     @InjectMocks
     Icd10SuggestionService service;

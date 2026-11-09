@@ -14,6 +14,7 @@ import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Service;
 
+import com.fepdev.sfm.backend.ai.guard.AiCallExecutor;
 import com.fepdev.sfm.backend.ai.icd10.dto.Icd10Suggestion;
 import com.fepdev.sfm.backend.ai.icd10.dto.Icd10SuggestionResult;
 
@@ -44,19 +45,26 @@ public class Icd10SuggestionService {
 
     private final VectorStore vectorStore;
     private final ChatClient chatClient;
+    private final AiCallExecutor aiCallExecutor;
 
-    public Icd10SuggestionService(VectorStore vectorStore, ChatClient chatClient) {
+    public Icd10SuggestionService(VectorStore vectorStore, ChatClient chatClient,
+            AiCallExecutor aiCallExecutor) {
         this.vectorStore = vectorStore;
         this.chatClient = chatClient;
+        this.aiCallExecutor = aiCallExecutor;
     }
 
     public Icd10SuggestionResult suggest(String query) {
         // 1. Normalizar la query a terminología CIE-10 formal
-        String normalizedQuery = chatClient.prompt()
+        String normalizedQuery = aiCallExecutor.call("icd10-normalize", () -> chatClient.prompt()
                 .system(NORMALIZE_PROMPT)
                 .user(query)
                 .call()
-                .content();
+                .content());
+
+        if (normalizedQuery == null || normalizedQuery.isBlank()) {
+            normalizedQuery = query;
+        }
 
         log.debug("suggest — query original: '{}' | normalizada: '{}'", query, normalizedQuery);
 
@@ -94,11 +102,11 @@ public class Icd10SuggestionService {
                 """.formatted(query, normalizedQuery, candidateList);
 
         // 5. Reranking con Claude
-        RerankResult reranked = chatClient.prompt()
+        RerankResult reranked = aiCallExecutor.call("icd10-rerank", () -> chatClient.prompt()
                 .system(RERANK_PROMPT)
                 .user(rerankPrompt)
                 .call()
-                .entity(RerankResult.class);
+                .entity(RerankResult.class));
 
         if (reranked == null || reranked.codes() == null || reranked.codes().isEmpty()) {
             log.warn("Reranking retornó vacío — query='{}' normalizada='{}' — usando candidatos del vector search como fallback",

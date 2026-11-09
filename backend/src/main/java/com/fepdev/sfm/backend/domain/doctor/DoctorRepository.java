@@ -17,6 +17,10 @@ import com.fepdev.sfm.backend.domain.appointment.Appointment;
 public interface DoctorRepository extends JpaRepository<Doctor, UUID> {
 
     boolean existsByLicenseNumber(String licenseNumber);
+
+    @Query("SELECT COUNT(d) FROM Doctor d WHERE d.isActive = true")
+    long countActiveDoctors();
+
     Optional<Doctor> findByLicenseNumber(String licenseNumber);
     Optional<Doctor> findByUserId(UUID userId);
     boolean existsByUserId(UUID userId);

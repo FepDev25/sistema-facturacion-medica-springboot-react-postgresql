@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
 
+import com.fepdev.sfm.backend.ai.guard.AiCallExecutor;
 import com.fepdev.sfm.backend.ai.extraction.dto.ExtractedPrescription;
 import com.fepdev.sfm.backend.ai.extraction.dto.ExtractionResult;
 import com.fepdev.sfm.backend.ai.extraction.dto.RecordExtractionRequest;
@@ -18,10 +19,13 @@ import com.fepdev.sfm.backend.domain.catalog.MedicationsCatalogRepository;
 public class RecordExtractionService {
 
     private final ChatClient chatClient;
+    private final AiCallExecutor aiCallExecutor;
     private final MedicationsCatalogRepository medicationsRepo;
 
-    public RecordExtractionService(ChatClient chatClient, MedicationsCatalogRepository medicationsRepo) {
+    public RecordExtractionService(ChatClient chatClient, AiCallExecutor aiCallExecutor,
+            MedicationsCatalogRepository medicationsRepo) {
         this.chatClient = chatClient;
+        this.aiCallExecutor = aiCallExecutor;
         this.medicationsRepo = medicationsRepo;
     }
 
@@ -55,12 +59,12 @@ public class RecordExtractionService {
         );
 
         var tools = new ExtractionTools();
-        chatClient.prompt()
+        aiCallExecutor.call("records-extract", () -> chatClient.prompt()
                 .system(systemPrompt)
                 .user(userPrompt)
                 .tools(tools)
                 .call()
-                .content();
+                .content());
 
         List<ExtractedPrescription> prescriptions = tools.getRawPrescriptions().stream()
                 .map(rp -> new ExtractedPrescription(

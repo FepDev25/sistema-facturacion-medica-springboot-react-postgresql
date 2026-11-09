@@ -1,0 +1,66 @@
+{
+  "feature": "icd10",
+  "description": "Casos de referencia para evaluar la sugerencia CIE-10 (P1). expectedTop1 acepta sinonimos equivalentes; expectedTop3 define el conjunto relevante.",
+  "cases": [
+    {
+      "id": "hta-cefalea",
+      "query": "presion alta con dolor de cabeza",
+      "expectedTop1": ["I10"],
+      "expectedTop3": ["I10", "G44.8", "R51"]
+    },
+    {
+      "id": "dm2-control",
+      "query": "paciente diabetico tipo 2 en control",
+      "expectedTop1": ["E11.9"],
+      "expectedTop3": ["E11.9", "E11.65", "Z79.4"]
+    },
+    {
+      "id": "asma-bronquial",
+      "query": "asma bronquial con silbidos al respirar",
+      "expectedTop1": ["J45.909", "J45.9"],
+      "expectedTop3": ["J45.909", "J45.9", "J45.40"]
+    },
+    {
+      "id": "depresion-mayor",
+      "query": "tristeza persistente, insomnio y perdida de interes",
+      "expectedTop1": ["F32.9", "F33.9"],
+      "expectedTop3": ["F32.9", "F33.9", "F32.1"]
+    },
+    {
+      "id": "lumbalgia",
+      "query": "dolor lumbar bajo despues de cargar peso",
+      "expectedTop1": ["M54.5", "M54.50"],
+      "expectedTop3": ["M54.5", "M54.50", "M54.9"]
+    },
+    {
+      "id": "infeccion-urinaria",
+      "query": "ardor al orinar y frecuencia urinaria aumentada",
+      "expectedTop1": ["N39.0"],
+      "expectedTop3": ["N39.0", "N30.00", "R30.0"]
+    },
+    {
+      "id": "gastritis",
+      "query": "dolor epigastrico y acidez despues de comer",
+      "expectedTop1": ["K29.70", "K29.7"],
+      "expectedTop3": ["K29.70", "K29.7", "K21.9"]
+    },
+    {
+      "id": "ansiedad",
+      "query": "nerviosismo, palpitaciones y preocupacion constante",
+      "expectedTop1": ["F41.9", "F41.1"],
+      "expectedTop3": ["F41.9", "F41.1", "F41.0"]
+    },
+    {
+      "id": "obesidad",
+      "query": "exceso de peso con indice de masa corporal elevado",
+      "expectedTop1": ["E66.9", "E66.09"],
+      "expectedTop3": ["E66.9", "E66.09", "E66.01"]
+    },
+    {
+      "id": "migrana",
+      "query": "dolor de cabeza pulsatile con nauseas y sensibilidad a la luz",
+      "expectedTop1": ["G43.909", "G43.9"],
+      "expectedTop3": ["G43.909", "G43.9", "G43.709"]
+    }
+  ]
+}

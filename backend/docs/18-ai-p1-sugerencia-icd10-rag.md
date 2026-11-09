@@ -46,7 +46,7 @@ La misma instancia PostgreSQL del proyecto aloja la extension `vector` de pgvect
 
 ### Carga del catalogo CIE-10
 
-`Icd10DataLoader` se ejecuta de forma asincrona al iniciar la aplicacion (listener de `ApplicationReadyEvent`). Si el vector store ya tiene datos, omite la carga. Si esta vacio, lee `data/cie-10.csv` y carga los 14,268 codigos de nivel 2 a 5 en batches de 50.
+`Icd10DataLoader` se ejecuta de forma asincrona al iniciar la aplicacion (listener de `ApplicationReadyEvent`). Si el vector store ya tiene datos, omite la carga. Si esta vacio, lee `data/cie-10.csv` y carga los 14,208 codigos de nivel 2 a 5 en batches de 50.
 
 El CSV se ubica en `src/main/resources/data/` y no en `static/` para que Spring Boot no lo exponga como recurso HTTP estatico.
 
@@ -126,7 +126,7 @@ Esta integracion requirio cuatro iteraciones significativas antes de alcanzar lo
 
 **Enfoque considerado:** enriquecer el texto indexado de cada codigo con sinonimos coloquiales antes de generar el embedding. El texto indexado de I10 pasaria de ser "Hipertension esencial (primaria)" a "Hipertension esencial (primaria) | hipertension arterial | presion alta | HTA | tension alta". Con la query coloquial del medico alineada con los sinonimos, el vector search recuperaria I10.
 
-**Por que se descarto:** generar sinonimos de calidad para los 14,268 codigos del catalogo requeria una ronda de generacion con LLM por cada codigo o por batches, lo que representa un volumen de trabajo que no se podia automatizar de forma fiable en el plazo disponible. La re-indexacion del vector store completo tras la generacion anadio complejidad operativa adicional. Se mantuvo como alternativa pendiente.
+**Por que se descarto:** generar sinonimos de calidad para los 14,208 codigos del catalogo requeria una ronda de generacion con LLM por cada codigo o por batches, lo que representa un volumen de trabajo que no se podia automatizar de forma fiable en el plazo disponible. La re-indexacion del vector store completo tras la generacion anadio complejidad operativa adicional. Se mantuvo como alternativa pendiente.
 
 ---
 
@@ -141,7 +141,7 @@ Con la query normalizada, el embedding de "Hipertension esencial (primaria)" es 
 
 **Resultado:** I10 aparecio como #1 en el ranking final. El caso de referencia que habia fallado en todas las iteraciones anteriores quedo resuelto.
 
-**Por que funciona:** la query expansion invierte la direccion del problema. En lugar de enriquecer los 14,268 documentos indexados (costoso, operacion de una vez), se enriquece cada query en tiempo real (una llamada LLM por request). El costo es latencia adicional por request (~0.5-1s por la llamada de normalizacion), pero el problema de fondo queda resuelto de forma generalizable.
+**Por que funciona:** la query expansion invierte la direccion del problema. En lugar de enriquecer los 14,208 documentos indexados (costoso, operacion de una vez), se enriquece cada query en tiempo real (una llamada LLM por request). El costo es latencia adicional por request (~0.5-1s por la llamada de normalizacion), pero el problema de fondo queda resuelto de forma generalizable.
 
 El prompt de normalizacion evolucion en las siguientes iteraciones hasta su version actual:
 

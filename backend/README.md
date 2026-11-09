@@ -17,7 +17,7 @@ Backend RESTful para la gestion integral de una clinica medica: agendamiento de 
 | Validacion | Jakarta Bean Validation |
 | Auditoria | Spring Data Auditing, AOP (AspectJ) |
 | Monitoreo | Spring Boot Actuator |
-| IA — LLM | Spring AI 2.0.0-M4, Anthropic Claude (claude-sonnet-4-6) |
+| IA — LLM | Spring AI 2.0.0-M4, Anthropic Claude (claude-haiku-4-5-20251001) |
 | IA — Embeddings | Google AI Studio (gemini-embedding-001, 768 dims) |
 | IA — Vector store | pgvector (HNSW, cosine distance) |
 | Testing | JUnit 5, Mockito, MockMvc, Testcontainers, JaCoCo |
@@ -145,8 +145,9 @@ Sistema completo de facturacion con maquina de estados:
 stateDiagram-v2
     [*] --> DRAFT: Auto al completar cita
     DRAFT --> PENDING: confirm (requiere >= 1 item)
+    DRAFT --> PAID: confirm con cobertura 100 %
     DRAFT --> CANCELLED: cancel (sin pagos)
-    PENDING --> PAID: pagos cubren total
+    PENDING --> PAID: pagos cubren la responsabilidad
     PENDING --> PARTIAL_PAID: pago parcial
     PENDING --> OVERDUE: vencida
     PENDING --> CANCELLED: cancel (sin pagos)
@@ -159,13 +160,13 @@ stateDiagram-v2
 
 Reglas de negocio clave:
 - **Numeracion secuencial**: `FAC-YYYY-NNNNN` generada con bloqueo pesimista (`SELECT FOR UPDATE`) en `invoice_sequences` para evitar duplicados en concurrencia.
-- **Items**: solo se pueden agregar/eliminar en estado `DRAFT`. Los items de tipo `SERVICE` y `MEDICATION` se validan contra el catalogo (activo). Los medicamentos que requieren prescripcion se validan contra recetas existentes en la cita asociada.
+- **Items**: solo se pueden agregar/eliminar en estado `DRAFT`. Los items de tipo `SERVICE` y `MEDICATION` toman descripcion y precio del catalogo (activo); el cliente no puede alterarlos y solo `ADMIN` puede hacer override, que queda auditado. Los medicamentos que requieren prescripcion se validan contra recetas existentes en la cita asociada. `PROCEDURE` y `OTHER` mantienen descripcion y precio libres.
 - **Cobertura de seguros**: al asignar una poliza se recalculan `insuranceCoverage` y `patientResponsibility` usando `(total * coveragePercentage / 100) - deductible`, con validaciones de poliza activa, proveedor activo, y vigencia de fechas.
 - **Cancelacion**: regla RN-14 -- no se puede cancelar si ya tiene pagos aplicados.
 
 ### 6. Pagos (`/api/v1/payments`)
 
-Registro de pagos contra facturas. Cada pago actualiza el estado de la factura automaticamente: `PENDING` -> `PARTIAL_PAID` -> `PAID` segun el acumulado.
+Registro de pagos contra facturas. Cada pago actualiza el estado de la factura automaticamente: `PENDING` -> `PARTIAL_PAID` -> `PAID` segun el acumulado. La validacion y la liquidacion se hacen contra `patientResponsibility` (total menos cobertura); la parte del seguro no se cobra como pago.
 
 ### 7. Seguros (`/api/v1/insurance`)
 
@@ -178,7 +179,11 @@ Catalogos maestros de servicios y medicamentos con:
 - Historial de precios (`catalog_price_history`) con registro automatico de cambios.
 - Cache en Redis con TTL de 2 horas.
 
-### 9. Integraciones AI (`/api/v1/ai`)
+### 9. Dashboard (`/api/v1/dashboard`)
+
+`GET /metrics` devuelve las metricas agregadas en SQL: pacientes, medicos activos, citas de hoy (excluye canceladas/no-show), proximas citas, facturas pendientes y vencidas, total cobrado (suma real de pagos) y saldo por cobrar (responsabilidad menos pagado en estados cobrables).
+
+### 10. Integraciones AI (`/api/v1/ai`)
 
 Cuatro endpoints de asistencia clinica potenciados por Claude (Anthropic) y Google Gemini Embeddings:
 
@@ -216,6 +221,11 @@ Pipeline RAG sobre el historial clinico completo del paciente. El medico formula
 - **Arquitectura dual de recuperacion:**
   - **Ruta A — vector search:** topK dinamico segun el tamano del historial (<=8: topK=6, 9-15: topK=10, >15: topK=15). Para queries especificas sobre condiciones, medicamentos o fechas concretas.
   - **Ruta B — contexto estructurado desde BD:** bypass del vector store para queries de resumen o listado completo; garantiza cobertura total independientemente del topK. Clasificacion por 44 patrones de intencion con normalizacion Unicode NFD (sin acentos).
+- **Reparacion del indice:** `POST /api/v1/ai/patients/{patientId}/reindex` (ADMIN) reconstruye el indice del paciente y elimina documentos huerfanos.
+
+#### Capa de produccion
+
+Todas las llamadas pasan por `AiCallExecutor`: timeout configurable, un reintento ante errores transitorios y metricas Micrometer (`ai.requests`, `ai.latency` por feature). El rate limit es por usuario (`app.ai.rate-limit.requests-per-minute`) y la temperatura global es 0.0 para tareas estructuradas. Los DTO limitan el tamano de entrada. Ver [`docs/ai-production.md`](../docs/ai-production.md) y el eval harness `scripts/ai-eval.py`.
 
 ---
 
@@ -269,6 +279,7 @@ sequenceDiagram
 | `/api/v1/invoices/**` | ADMIN, RECEPTIONIST | ADMIN |
 | `/api/v1/ai/**` | Autenticado | Autenticado |
 | `/api/v1/ai/invoices/**` | -- | ADMIN, RECEPTIONIST |
+| `/api/v1/ai/patients/*/reindex` | -- | ADMIN |
 
 ### Usuarios por Defecto
 
@@ -307,6 +318,10 @@ PostgreSQL 15 con extensiones `uuid-ossp`, `pgcrypto`, `btree_gist`.
 
 ---
 
+## Contrato OpenAPI
+
+El contrato versionado vive en [`openapi/openapi.yaml`](openapi/openapi.yaml) y es la referencia para clientes y pruebas de contrato.
+
 ## Manejo de Errores
 
 `HandlerException` (`@RestControllerAdvice`) mapea excepciones a respuestas HTTP consistentes:
@@ -326,7 +341,7 @@ Formato de respuesta: `{ timestamp, status, error, message, path }`
 
 ## Estrategia de Testing
 
-Piramide de tests con tres capas, 412 tests totales, cobertura exigida por JaCoCo.
+Piramide de tests con tres capas, 450 tests totales, cobertura exigida por JaCoCo.
 
 ### Umbrales JaCoCo
 
@@ -366,7 +381,7 @@ graph TB
 | WebMvc | ~12 | MockMvc + @WebMvcTest | Controladores, validacion, autorizacion HTTP |
 | DataJPA | ~9 | Testcontainers + @DataJpaTest | Repositorios, queries nativas, constraints DB |
 | E2E | ~5 | Testcontainers + SpringBootTest | Flujos completos de negocio contra BD real |
-| Totales | **412** | -- | **0 fallos, BUILD SUCCESS** |
+| Totales | **450** | -- | **0 fallos, BUILD SUCCESS** |
 
 ### Flujos E2E
 

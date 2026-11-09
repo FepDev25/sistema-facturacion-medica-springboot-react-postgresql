@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/FepDev25/sistema-facturacion-medica-springboot-react-postgresql/actions/workflows/ci.yml/badge.svg)](https://github.com/FepDev25/sistema-facturacion-medica-springboot-react-postgresql/actions/workflows/ci.yml)
 
-Sistema clínico fullstack con cuatro asistentes AI integrados: desde RAG con embeddings de Google Gemini hasta Tool Calling y Structured Output con Claude. El backend es una API RESTful en Spring Boot 4 con máquinas de estados explícitas, auditoría dual y 412 tests. El frontend es un backoffice React 19 con routing type-safe, estado del servidor con TanStack Query y una suite de 740 tests.
+Sistema clínico fullstack con cuatro asistentes AI integrados: desde RAG con embeddings de Google Gemini hasta Tool Calling y Structured Output con Claude. El backend es una API RESTful en Spring Boot 4 con máquinas de estados explícitas, auditoría dual y 450 tests. El frontend es un backoffice React 19 con routing type-safe, estado del servidor con TanStack Query y una suite de 763 tests.
 
 **Demo en producción:** https://sistema-facturacion-medica-springbo.vercel.app
 
@@ -37,7 +37,7 @@ graph TB
     end
 
     subgraph LLM["LLM (Anthropic)"]
-        CL["Claude claude-sonnet-4-6"]
+        CL["Claude claude-haiku-4-5-20251001"]
     end
 
     UI -->|"HTTP + Bearer JWT"| SEC
@@ -166,7 +166,7 @@ A partir del expediente clínico asociado, Claude sugiere servicios y medicament
 | UI | — | Shadcn/ui + Radix UI + Tailwind 4 |
 | Mapeo DTO | MapStruct 1.6 | — |
 | Auditoría | JPA Auditing + AOP AspectJ | — |
-| **IA — LLM** | **Spring AI 2.0 · Claude claude-sonnet-4-6** | **react-markdown + remark-gfm** |
+| **IA — LLM** | **Spring AI 2.0 · Claude claude-haiku-4-5-20251001** | **react-markdown + remark-gfm** |
 | **IA — Embeddings** | **Google AI Studio · gemini-embedding-001 (768 dims)** | — |
 | **IA — Vector store** | **pgvector (HNSW, cosine)** | — |
 | Testing | JUnit 5 + Mockito + Testcontainers + JaCoCo | Vitest 4 + RTL 16 + Playwright 1.59 |
@@ -213,7 +213,7 @@ Los permisos se aplican en tres niveles independientes: backend (`@PreAuthorize`
 
 ## Testing
 
-### Backend — 412 tests, cobertura JaCoCo
+### Backend — 450 tests, cobertura JaCoCo
 
 | Alcance | Líneas | Branches |
 |---|---|---|
@@ -228,12 +228,12 @@ Flujos E2E verificados con base de datos real (Testcontainers):
 - `InsuranceCoverageFlowE2ETest` — asignar póliza → verificar cálculo de cobertura
 - `CancellationRulesFlowE2ETest` — cancelar sin pagos (éxito) → cancelar con pagos (rechazo RN-14)
 
-### Frontend — 740 tests
+### Frontend — 763 tests
 
 | Capa | Tests | Herramientas |
 |---|---|---|
-| Unit / componentes | 614 (49 archivos) | Vitest 4 + React Testing Library 16 |
-| E2E | 126 (5 archivos) | Playwright 1.59 + Chromium |
+| Unit / componentes | 635 (52 archivos) | Vitest 4 + React Testing Library 16 |
+| E2E | 128 (5 archivos) | Playwright 1.59 + Chromium |
 
 ---
 
@@ -341,6 +341,8 @@ npm run dev
 | [`DIAGRAMAS.md`](DIAGRAMAS.md) | Diagramas de flujo, máquinas de estado, secuencias JWT y IA |
 | [`docs/dev-homelab.md`](docs/dev-homelab.md) | Entorno de desarrollo local con PostgreSQL/Redis en el homelab |
 | [`docs/ci-cd.md`](docs/ci-cd.md) | CI/CD con GitHub Actions, Heroku y Vercel |
+| [`docs/ai-production.md`](docs/ai-production.md) | Guardrails, métricas, evals y robustez de los asistentes AI |
 | [`DEPLOY.md`](DEPLOY.md) | Proceso completo de despliegue en la nube (Heroku, Vercel, Neon, Upstash) |
 | [`backend/README.md`](backend/README.md) | Documentación técnica del backend |
+| [`backend/openapi/openapi.yaml`](backend/openapi/openapi.yaml) | Contrato OpenAPI 3 de la API REST |
 | [`frontend/README.md`](frontend/README.md) | Documentación técnica del frontend |

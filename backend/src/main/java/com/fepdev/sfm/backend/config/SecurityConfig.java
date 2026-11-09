@@ -93,6 +93,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,  "/api/v1/payments/**").hasAnyAuthority("ADMIN", "RECEPTIONIST")
                         .requestMatchers(HttpMethod.POST, "/api/v1/payments").hasAnyAuthority("ADMIN", "RECEPTIONIST")
 
+                        // Reparación del índice de historial — operación de mantenimiento
+                        .requestMatchers(HttpMethod.POST, "/api/v1/ai/patients/*/reindex")
+                                .hasAuthority("ADMIN")
+
                         // Sugerencia de items de factura — mismo alcance que las facturas
                         .requestMatchers(HttpMethod.POST, "/api/v1/ai/invoices/**")
                                 .hasAnyAuthority("ADMIN", "RECEPTIONIST")
