@@ -43,53 +43,44 @@ paths:
               $ref: '#/components/schemas/LoginRequest'
       responses:
         '200':
-          description: Login exitoso
+          description: Login exitoso. Los tokens viajan en cookies httpOnly.
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+              description: sfm_access y sfm_refresh (HttpOnly, SameSite=Strict).
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TokenResponse'
+                $ref: '#/components/schemas/SessionResponse'
         '400': { $ref: '#/components/responses/BadRequestError' }
         '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '429': { $ref: '#/components/responses/TooManyRequestsError' }
 
   /api/v1/auth/refresh:
     post:
       tags: [Auth]
       operationId: auth_refresh
-      summary: Renovar access token con refresh token
+      summary: Rotar el refresh token usando la cookie httpOnly
       security: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RefreshTokenRequest'
       responses:
         '200':
-          description: Refresh exitoso
+          description: Refresh exitoso. Se emiten cookies nuevas.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TokenResponse'
-        '400': { $ref: '#/components/responses/BadRequestError' }
-        '422': { $ref: '#/components/responses/UnprocessableError' }
+                $ref: '#/components/schemas/SessionResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
 
   /api/v1/auth/logout:
     post:
       tags: [Auth]
       operationId: auth_logout
-      summary: Cerrar sesion (revoca refresh token)
+      summary: Cerrar sesion (revoca la familia de refresh tokens)
       security: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/LogoutRequest'
       responses:
         '204':
-          description: Logout procesado
-        '400': { $ref: '#/components/responses/BadRequestError' }
-        '422': { $ref: '#/components/responses/UnprocessableError' }
+          description: Logout procesado y cookies eliminadas
 
   /api/v1/auth/me:
     get:
@@ -1915,6 +1906,10 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sfm_access
   parameters:
     Id:
       name: id
@@ -1969,39 +1964,18 @@ components:
         password:
           type: string
 
-    RefreshTokenRequest:
+    SessionResponse:
       type: object
-      required: [refreshToken]
+      description: Metadatos no sensibles. Los tokens viajan en cookies httpOnly.
       properties:
-        refreshToken:
-          type: string
-
-    LogoutRequest:
-      type: object
-      required: [refreshToken]
-      properties:
-        refreshToken:
-          type: string
-
-    TokenResponse:
-      type: object
-      properties:
-        accessToken:
-          type: string
-        refreshToken:
-          type: string
-          nullable: true
-        tokenType:
-          type: string
-          enum: [Bearer]
         role:
           type: string
+          enum: [ADMIN, DOCTOR, RECEPTIONIST]
         userId:
           type: string
           format: uuid
         username:
           type: string
-          enum: [ADMIN, DOCTOR, RECEPTIONIST]
 
     UserProfileResponse:
       type: object
@@ -3212,6 +3186,13 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
+    TooManyRequestsError:
+      description: Demasiados intentos (incluye Retry-After)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
 
 security:
   - bearerAuth: []
+  - cookieAuth: []

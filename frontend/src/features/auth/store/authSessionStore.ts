@@ -1,27 +1,25 @@
 import { useSyncExternalStore } from 'react'
-import type { AuthRole, TokenResponse } from '../api/authApi'
+import type { AuthRole, SessionResponse } from '../api/authApi'
 
 export interface AuthSessionState {
-  accessToken: string | null
-  refreshToken: string | null
+  authenticated: boolean
   role: AuthRole | null
   userId: string | null
   username: string | null
 }
 
 const INITIAL_STATE: AuthSessionState = {
-  accessToken: null,
-  refreshToken: null,
+  authenticated: false,
   role: null,
   userId: null,
   username: null,
 }
 
-// La sesion se persiste en localStorage para sobrevivir a un F5 y compartirse entre
-// pestañas. Es la alternativa pragmatica a la cookie httpOnly: el access token queda
-// accesible para JS, asi que el endurecimiento pendiente es mover la sesion a una
-// cookie httpOnly + SameSite emitida por el backend.
-const STORAGE_KEY = 'sfm.auth.session.v1'
+// Solo se persisten datos no sensibles (rol, id y username) para sobrevivir a un F5
+// y mantener el filtrado de navegacion sin pedir /me antes de renderizar. Los tokens
+// viven en cookies httpOnly: JavaScript no puede leerlos ni exfiltrados por XSS.
+const STORAGE_KEY = 'sfm.auth.session.v2'
+const LEGACY_STORAGE_KEY = 'sfm.auth.session.v1'
 
 const listeners = new Set<() => void>()
 
@@ -50,22 +48,15 @@ function parseSession(raw: string | null): AuthSessionState | null {
     if (!parsed || typeof parsed !== 'object') {
       return null
     }
-    if (typeof parsed.accessToken !== 'string' || parsed.accessToken.length === 0) {
-      return null
-    }
-    if (!isAuthRole(parsed.role)) {
+    if (parsed.authenticated !== true || !isAuthRole(parsed.role)) {
       return null
     }
     if (typeof parsed.userId !== 'string' || typeof parsed.username !== 'string') {
       return null
     }
-    if (parsed.refreshToken !== null && typeof parsed.refreshToken !== 'string') {
-      return null
-    }
 
     return {
-      accessToken: parsed.accessToken,
-      refreshToken: parsed.refreshToken ?? null,
+      authenticated: true,
       role: parsed.role,
       userId: parsed.userId,
       username: parsed.username,
@@ -80,6 +71,9 @@ function readPersistedSession(): AuthSessionState {
   if (!storage) {
     return INITIAL_STATE
   }
+
+  // Limpieza de la version anterior, que guardaba access/refresh tokens en claro.
+  storage.removeItem(LEGACY_STORAGE_KEY)
 
   const stored = storage.getItem(STORAGE_KEY)
   if (!stored) {
@@ -101,7 +95,10 @@ function persistSession() {
     return
   }
 
-  if (authSessionState.accessToken === null) {
+  // Limpieza oportunista de la version anterior, que guardaba tokens en claro.
+  storage.removeItem(LEGACY_STORAGE_KEY)
+
+  if (!authSessionState.authenticated) {
     storage.removeItem(STORAGE_KEY)
     return
   }
@@ -115,8 +112,8 @@ function emitChange() {
 
 let authSessionState: AuthSessionState = readPersistedSession()
 
-// Mantiene sincronizadas las pestañas: si una cierra sesion o rota el refresh token,
-// las demas ven el cambio sin esperar a un 401.
+// Mantiene sincronizadas las pestañas: si una inicia o cierra sesion, las demas
+// actualizan su navegacion sin esperar a un 401.
 if (typeof window !== 'undefined') {
   window.addEventListener('storage', (event) => {
     if (event.key !== STORAGE_KEY && event.key !== null) {
@@ -139,17 +136,12 @@ export function getAuthSessionState(): AuthSessionState {
   return authSessionState
 }
 
-export function setAuthSession(tokens: TokenResponse) {
-  const previous = authSessionState
-
+export function setAuthSession(session: SessionResponse) {
   authSessionState = {
-    accessToken: tokens.accessToken,
-    // Defensa ante un backend viejo que responde refreshToken: null: conservar el
-    // token anterior evita que el siguiente refresh cierre la sesion.
-    refreshToken: tokens.refreshToken ?? previous.refreshToken,
-    role: tokens.role,
-    userId: tokens.userId,
-    username: tokens.username,
+    authenticated: true,
+    role: session.role,
+    userId: session.userId,
+    username: session.username,
   }
 
   persistSession()
@@ -162,12 +154,8 @@ export function clearAuthSession() {
   emitChange()
 }
 
-export function getAccessToken(): string | null {
-  return authSessionState.accessToken
-}
-
 export function isAuthenticated(): boolean {
-  return !!authSessionState.accessToken
+  return authSessionState.authenticated
 }
 
 export function hasRole(role: AuthRole): boolean {

@@ -75,7 +75,7 @@ Componente → Hook (TanStack Query) → Función API (Axios) → Backend
 
 ### Auth (`/features/auth`)
 
-Login, logout y refresh de JWT. El `authSessionStore` mantiene `accessToken`, `refreshToken`, `role`, `userId` y `username` en memoria con patrón pub/sub compatible con `useSyncExternalStore`. El Axios interceptor maneja el ciclo completo: inyectar token → detectar 401 → refrescar una sola vez con mutex (`refreshInFlight`) → reintentar la request original → redirigir a login si el refresh falla.
+Login, logout y refresh de JWT. Los tokens viven en cookies `httpOnly` y nunca se exponen a JavaScript; el `authSessionStore` solo mantiene `role`, `userId` y `username` para el filtrado de navegación. El interceptor de Axios maneja el ciclo completo: detectar 401 → rotar la cookie una sola vez (`refreshInFlight` + Web Locks entre pestañas) → reintentar la request original → redirigir a login si el refresh falla.
 
 ### Pacientes (`/features/patients`)
 
@@ -167,12 +167,12 @@ Cuatro asistentes Claude conectados a las páginas de dominio. Siguen el mismo p
 ### Flujo JWT
 
 ```
-Login → TokenResponse (accessToken 15min, refreshToken 7d)
+Login → cookies httpOnly (sfm_access 15min, sfm_refresh 7d) + SessionResponse
          ↓
-Request Interceptor → Authorization: Bearer <accessToken>
+Cada request → el navegador adjunta la cookie automáticamente
          ↓
-401 recibido → refreshInFlight mutex → POST /auth/refresh
-                                        ↓ éxito → retry request original
+401 recibido → Web Lock entre pestañas + refreshInFlight → POST /auth/refresh
+                                        ↓ éxito → cookie rotada → retry original
                                         ↓ fallo  → clearAuthSession → /login
 ```
 
@@ -186,10 +186,10 @@ Request Interceptor → Authorization: Bearer <accessToken>
 
 **Response** — Maneja:
 
-- `401`: refresca el access token con mutex para evitar múltiples llamadas simultáneas. Si falla, limpia sesión y redirige.
+- `401`: rota la cookie de sesión (Web Locks entre pestañas + ventana de gracia en el backend). Si falla, limpia sesión y redirige.
 - `403`: muestra toast con el mensaje del backend. Debounce de 1500 ms para evitar cascada de toasts.
 
-El base URL se configura con `VITE_API_URL` (default: `http://localhost:8080/api/v1`).
+El frontend llama a `/api/v1` en el mismo origen. En desarrollo, Vite reenvía `/api` al backend (`VITE_DEV_API_TARGET`, default `http://127.0.0.1:8080`); en producción lo hace el rewrite de `vercel.json`. Así las cookies `httpOnly` son first-party.
 
 ---
 
@@ -213,7 +213,7 @@ Banner amber/rojo que aparece en el detalle de cita y en la historia clínica cu
 
 Suite en dos capas complementarias. Documentación completa en [`docs/02-testing.md`](docs/02-testing.md).
 
-### Unit tests — 614 tests, 49 archivos
+### Unit tests — 640 tests, 55 archivos
 
 Ejecutados con **Vitest 4** + **React Testing Library 16** en entorno `jsdom`.
 
@@ -257,7 +257,7 @@ Ejecutados con **Playwright 1.59** sobre Chromium, secuencialmente (`fullyParall
 ### Requisitos previos
 
 - Node.js 20+
-- Backend corriendo en `http://localhost:8080` (o configurar `VITE_API_URL`)
+- Backend corriendo en `http://127.0.0.1:8080` (o configurar `VITE_DEV_API_TARGET`)
 
 ### Desarrollo
 
@@ -305,8 +305,8 @@ npm run lint
 
 ## Variables de Entorno
 
-| Variable       | Default                        | Descripción          |
-| -------------- | ------------------------------ | -------------------- |
-| `VITE_API_URL` | `http://localhost:8080/api/v1` | Base URL del backend |
+| Variable              | Default                 | Descripción                               |
+| --------------------- | ----------------------- | ----------------------------------------- |
+| `VITE_DEV_API_TARGET` | `http://127.0.0.1:8080` | Destino del proxy `/api` en dev y preview |
 
 Crear `.env.local` en la raíz del frontend para sobreescribir en desarrollo local.

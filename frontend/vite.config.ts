@@ -3,6 +3,17 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import path from 'path'
 
+const apiTarget = process.env.VITE_DEV_API_TARGET ?? 'http://127.0.0.1:8080'
+
+// La API se consume bajo /api para que las cookies httpOnly sean first-party.
+// En produccion el rewrite equivalente vive en vercel.json.
+const proxy = {
+  '/api': {
+    target: apiTarget,
+    changeOrigin: false,
+  },
+}
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
@@ -11,4 +22,6 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  server: { proxy },
+  preview: { proxy },
 })

@@ -55,6 +55,29 @@ public class HandlerException {
         return buildErrorResponse(HttpStatus.UNAUTHORIZED, "Credenciales inválidas o token expirado.", request.getRequestURI());
     }
 
+    // refresh token invalido, vencido o reusado: 401 con mensaje accionable
+    @ExceptionHandler(com.fepdev.sfm.backend.domain.auth.token.InvalidRefreshTokenException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidRefreshToken(
+            com.fepdev.sfm.backend.domain.auth.token.InvalidRefreshTokenException ex,
+            HttpServletRequest request) {
+        return buildErrorResponse(HttpStatus.UNAUTHORIZED, ex.getMessage(), request.getRequestURI());
+    }
+
+    // demasiados intentos de login: 429 + Retry-After
+    @ExceptionHandler(com.fepdev.sfm.backend.security.LoginBlockedException.class)
+    public ResponseEntity<ErrorResponse> handleLoginBlocked(
+            com.fepdev.sfm.backend.security.LoginBlockedException ex,
+            HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header("Retry-After", String.valueOf(ex.getRetryAfterSeconds()))
+                .body(new ErrorResponse(
+                        LocalDateTime.now(),
+                        HttpStatus.TOO_MANY_REQUESTS.value(),
+                        HttpStatus.TOO_MANY_REQUESTS.getReasonPhrase(),
+                        ex.getMessage(),
+                        request.getRequestURI()));
+    }
+
     // error de acceso denegado - Tiene token pero no permisos (403 Forbidden)
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException ex, HttpServletRequest request) {

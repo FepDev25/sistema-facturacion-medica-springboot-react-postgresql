@@ -135,12 +135,12 @@ jobs:
 
       - name: Build del frontend
         working-directory: frontend
-        env:
-          VITE_API_URL: http://127.0.0.1:8080/api/v1
         run: npm run build
 
       - name: Iniciar frontend
         working-directory: frontend
+        env:
+          VITE_DEV_API_TARGET: http://127.0.0.1:8080
         run: |
           nohup npm run preview -- --host 127.0.0.1 --port 5173 --strictPort \
             > /tmp/e2e-frontend.log 2>&1 &

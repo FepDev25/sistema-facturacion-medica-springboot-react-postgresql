@@ -242,26 +242,29 @@ sequenceDiagram
     participant F as JwtFilter
 
     C->>A: POST /auth/login (username, password)
-    A->>A: Autenticar con AuthenticationManager
-    A->>J: Generar access token (15 min) + refresh token (7 dias)
-    J-->>A: Tokens
-    A-->>C: TokenResponse
+    A->>A: Rate limit + AuthenticationManager
+    A->>J: Generar access token (15 min) + refresh token con familia (7 dias)
+    A->>DB: Guardar SHA-256 del refresh token
+    A-->>C: SessionResponse + cookies httpOnly (SameSite=Strict)
 
     Note over C,F: Requests subsiguientes
-    C->>F: Authorization: Bearer lt access_token gt
+    C->>F: Cookie sfm_access (o Authorization: Bearer para clientes API)
     F->>F: Validar firma, expiracion, blacklist
     F->>F: Set SecurityContext
 
-    C->>A: POST /auth/refresh (refreshToken)
-    A->>J: Validar refresh token (no en blacklist)
-    J->>R: Verificar JTI no revocado
-    J-->>A: Nuevo access token
-    A-->>C: TokenResponse
+    C->>A: POST /auth/refresh (cookie sfm_refresh)
+    A->>DB: Bloquear fila y validar hash/familia
+    alt token ya usado dentro de 15 s
+        A->>DB: Permitir refresh concurrente y rotar
+    else token reusado fuera de la ventana
+        A->>DB: Revocar familia (reuse) + metrica auth.refresh.reuse
+    end
+    A-->>C: SessionResponse + cookies rotadas
 
-    C->>A: POST /auth/logout (refreshToken)
-    A->>J: Extraer JTI del refresh token
-    A->>R: Guardar JTI en blacklist con TTL = tiempo restante
-    A-->>C: 200 OK
+    C->>A: POST /auth/logout (cookie sfm_refresh)
+    A->>DB: Revocar familia
+    A->>R: Blacklist del access token con TTL restante
+    A-->>C: 204 + cookies eliminadas
 ```
 
 ### Matriz de Permisos
@@ -341,7 +344,7 @@ Formato de respuesta: `{ timestamp, status, error, message, path }`
 
 ## Estrategia de Testing
 
-Piramide de tests con tres capas, 450 tests totales, cobertura exigida por JaCoCo.
+Piramide de tests con tres capas, 455 tests unitarios, cobertura exigida por JaCoCo.
 
 ### Umbrales JaCoCo
 

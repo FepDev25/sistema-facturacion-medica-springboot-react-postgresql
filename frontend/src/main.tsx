@@ -6,7 +6,35 @@ import { RouterProvider } from '@tanstack/react-router'
 import { Toaster } from '@/components/ui/sonner'
 import { queryClient } from '@/lib/queryClient'
 import { router } from '@/routeTree.gen.tsx'
+import { getProfile } from '@/features/auth/api/authApi'
+import {
+  clearAuthSession,
+  isAuthenticated,
+  setAuthSession,
+} from '@/features/auth/store/authSessionStore'
 import './index.css'
+
+// Valida en segundo plano que la cookie httpOnly siga viva. Si el refresh token
+// expiro o fue revocado, el interceptor redirige a login; si sigue viva, refresca
+// los metadatos no sensibles (rol/username) por si cambiaron.
+async function bootstrapSession() {
+  if (!isAuthenticated()) {
+    return
+  }
+
+  try {
+    const profile = await getProfile()
+    setAuthSession({
+      role: profile.role,
+      userId: profile.id,
+      username: profile.username,
+    })
+  } catch {
+    clearAuthSession()
+  }
+}
+
+void bootstrapSession()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { login, logout, refreshToken, getProfile } from '@/features/auth/api/authApi'
-import type { TokenResponse, UserProfileResponse } from '@/features/auth/api/authApi'
+import { login, logout, refreshSession, getProfile } from '@/features/auth/api/authApi'
+import type { SessionResponse, UserProfileResponse } from '@/features/auth/api/authApi'
 
 vi.mock('@/lib/axios', () => ({
   apiClient: {
@@ -24,10 +24,7 @@ beforeEach(() => {
 })
 
 describe('auth API', () => {
-  const mockToken: TokenResponse = {
-    accessToken: 'access-token-123',
-    refreshToken: 'refresh-token-456',
-    tokenType: 'Bearer',
+  const mockSession: SessionResponse = {
     role: 'ADMIN',
     userId: 'user-1',
     username: 'admin',
@@ -45,28 +42,28 @@ describe('auth API', () => {
   }
 
   describe('login', () => {
-    it('posts to /auth/login and returns token', async () => {
-      mockPost.mockResolvedValue({ data: mockToken })
+    it('posts to /auth/login and returns session metadata', async () => {
+      mockPost.mockResolvedValue({ data: mockSession })
       const result = await login({ username: 'admin', password: 'pass' })
       expect(mockPost).toHaveBeenCalledWith('/auth/login', { username: 'admin', password: 'pass' })
-      expect(result).toEqual(mockToken)
+      expect(result).toEqual(mockSession)
     })
   })
 
-  describe('refreshToken', () => {
-    it('posts to /auth/refresh and returns token', async () => {
-      mockPost.mockResolvedValue({ data: mockToken })
-      const result = await refreshToken({ refreshToken: 'old-refresh' })
-      expect(mockPost).toHaveBeenCalledWith('/auth/refresh', { refreshToken: 'old-refresh' })
-      expect(result).toEqual(mockToken)
+  describe('refreshSession', () => {
+    it('posts to /auth/refresh without a body (cookie httpOnly)', async () => {
+      mockPost.mockResolvedValue({ data: mockSession })
+      const result = await refreshSession()
+      expect(mockPost).toHaveBeenCalledWith('/auth/refresh')
+      expect(result).toEqual(mockSession)
     })
   })
 
   describe('logout', () => {
-    it('posts to /auth/logout', async () => {
+    it('posts to /auth/logout without a body', async () => {
       mockPost.mockResolvedValue({ data: undefined })
-      await logout({ refreshToken: 'token-to-revoke' })
-      expect(mockPost).toHaveBeenCalledWith('/auth/logout', { refreshToken: 'token-to-revoke' })
+      await logout()
+      expect(mockPost).toHaveBeenCalledWith('/auth/logout')
     })
   })
 

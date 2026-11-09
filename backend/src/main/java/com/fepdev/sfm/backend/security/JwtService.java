@@ -22,7 +22,8 @@ import io.jsonwebtoken.security.Keys;
 @Service
 public class JwtService {
 
-    private static final String CLAIM_TYPE  = "type";
+    private static final String CLAIM_TYPE   = "type";
+    private static final String CLAIM_FAMILY = "fam";
     private static final String TYPE_ACCESS  = "access";
     private static final String TYPE_REFRESH = "refresh";
 
@@ -39,25 +40,34 @@ public class JwtService {
     // Generacion
 
     public String generateAccessToken(UserDetails userDetails) {
-        return buildToken(userDetails, accessTokenExpiration, TYPE_ACCESS);
+        return buildToken(userDetails, accessTokenExpiration, TYPE_ACCESS, null);
     }
 
-    public String generateRefreshToken(UserDetails userDetails) {
-        return buildToken(userDetails, refreshTokenExpiration, TYPE_REFRESH);
+    /**
+     * El refresh token siempre pertenece a una familia. La familia permite revocar
+     * todas las rotaciones de una misma sesion cuando se detecta reuso.
+     */
+    public String generateRefreshToken(UserDetails userDetails, UUID familyId) {
+        return buildToken(userDetails, refreshTokenExpiration, TYPE_REFRESH, familyId);
     }
 
     // Genera un token con el username como subject, el rol del usuario,
     // un claim "type" para distinguir access vs refresh tokens, y un jti unico.
-    private String buildToken(UserDetails userDetails, long expirationMs, String tokenType) {
-        return Jwts.builder()
+    private String buildToken(UserDetails userDetails, long expirationMs, String tokenType,
+            UUID familyId) {
+        var builder = Jwts.builder()
                 .id(UUID.randomUUID().toString())
                 .subject(userDetails.getUsername())
                 .claim(CLAIM_TYPE, tokenType)
                 .claim("role", userDetails.getAuthorities().iterator().next().getAuthority())
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expirationMs))
-                .signWith(getSignKey())
-                .compact();
+                .expiration(new Date(System.currentTimeMillis() + expirationMs));
+
+        if (familyId != null) {
+            builder.claim(CLAIM_FAMILY, familyId.toString());
+        }
+
+        return builder.signWith(getSignKey()).compact();
     }
 
     // Validacion
@@ -90,6 +100,11 @@ public class JwtService {
         Date expiration = extractExpiration(token);
         Duration remaining = Duration.between(Instant.now(), expiration.toInstant());
         return remaining.isNegative() ? Duration.ZERO : remaining;
+    }
+
+    public UUID extractFamilyId(String token) {
+        String familyId = extractClaim(token, claims -> claims.get(CLAIM_FAMILY, String.class));
+        return familyId == null ? null : UUID.fromString(familyId);
     }
 
     private String extractType(String token) {

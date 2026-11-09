@@ -74,6 +74,31 @@ class OpenApiContractTest {
 
     @Test
     @SuppressWarnings("unchecked")
+    void authEndpointsUseCookieSessionContract() {
+        Map<String, Object> login = operation("/api/v1/auth/login", "post");
+        Map<String, Object> loginResponses = (Map<String, Object>) login.get("responses");
+        Map<String, Object> loginOk = (Map<String, Object>) loginResponses.get("200");
+        Map<String, Object> loginContent = (Map<String, Object>) loginOk.get("content");
+        Map<String, Object> loginJson = (Map<String, Object>) loginContent.get("application/json");
+        Map<String, Object> loginSchema = (Map<String, Object>) loginJson.get("schema");
+        assertThat(loginSchema.get("$ref")).isEqualTo("#/components/schemas/SessionResponse");
+
+        assertThat(operation("/api/v1/auth/refresh", "post")).doesNotContainKey("requestBody");
+        assertThat(operation("/api/v1/auth/logout", "post")).doesNotContainKey("requestBody");
+
+        Map<String, Object> schemas =
+                (Map<String, Object>) ((Map<String, Object>) document.get("components")).get("schemas");
+        Map<String, Object> session = (Map<String, Object>) schemas.get("SessionResponse");
+        Map<String, Object> properties = (Map<String, Object>) session.get("properties");
+
+        assertThat(properties).containsKeys("role", "userId", "username")
+                .doesNotContainKeys("accessToken", "refreshToken", "tokenType");
+        assertThat(schemas).doesNotContainKeys(
+                "TokenResponse", "RefreshTokenRequest", "LogoutRequest");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
     void dashboardMetricsSchemaMatchesTheAggregatedResponse() {
         Map<String, Object> schemas =
                 (Map<String, Object>) ((Map<String, Object>) document.get("components")).get("schemas");
