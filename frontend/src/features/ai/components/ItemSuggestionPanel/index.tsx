@@ -51,11 +51,6 @@ export function ItemSuggestionPanel({
   const [addedIndices, setAddedIndices] = useState<Set<number>>(new Set())
   const [pendingIndices, setPendingIndices] = useState<Set<number>>(new Set())
 
-  useEffect(() => {
-    setAddedIndices(new Set())
-    setPendingIndices(new Set())
-  }, [result])
-
   async function handleAdd(item: SuggestedItem, i: number) {
     if (!item.matchedCatalogId || item.unitPrice === null) return
 
