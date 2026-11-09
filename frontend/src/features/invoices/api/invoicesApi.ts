@@ -170,6 +170,9 @@ function mapInvoiceView(item: ApiInvoiceViewResponse): InvoiceResponse {
     patientLastName: item.patientLastName,
     appointmentId: item.appointmentId,
     insurancePolicyId: item.insurancePolicyId,
+    insurancePolicyPolicyNumber: item.insurancePolicyPolicyNumber,
+    insurancePolicyProviderName: item.insurancePolicyProviderName,
+    insurancePolicyCoveragePercentage: item.insurancePolicyCoveragePercentage,
     invoiceNumber: item.invoiceNumber,
     subtotal: item.subtotal,
     tax: item.tax,
@@ -239,9 +242,13 @@ export async function getInvoiceById(id: string): Promise<InvoiceResponse> {
   return mapInvoiceView(response.data)
 }
 
-export async function getInvoiceByAppointment(appointmentId: string): Promise<InvoiceResponse | null> {
+export async function getInvoiceByAppointment(
+  appointmentId: string,
+): Promise<InvoiceResponse | null> {
   try {
-    const response = await apiClient.get<ApiInvoiceViewResponse>(`/invoices/appointment/${appointmentId}`)
+    const response = await apiClient.get<ApiInvoiceViewResponse>(
+      `/invoices/appointment/${appointmentId}`,
+    )
     return mapInvoiceView(response.data)
   } catch {
     return null

@@ -9,6 +9,7 @@ import { AppShell } from '@/components/AppShell'
 import { CatalogPage } from '@/features/catalog/components/CatalogPage'
 import { AppointmentDetailPage } from '@/features/appointments/components/AppointmentDetailPage'
 import { AppointmentsPage } from '@/features/appointments/components/AppointmentsPage'
+import { ForbiddenPage } from '@/features/auth/components/ForbiddenPage'
 import { LoginPage } from '@/features/auth/components/LoginPage'
 import { ProfilePage } from '@/features/auth/components/ProfilePage'
 import { requireAuth, requireRole } from '@/features/auth/guards/requireAuth'
@@ -130,6 +131,16 @@ const medicalRecordDetailRoute = createRoute({
   component: MedicalRecordDetailPage,
 })
 
+const forbiddenRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/forbidden',
+  validateSearch: (search: Record<string, unknown>) => ({
+    from: typeof search.from === 'string' ? search.from : undefined,
+  }),
+  beforeLoad: () => requireAuth('/forbidden'),
+  component: ForbiddenPage,
+})
+
 const profileRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/profile',
@@ -152,6 +163,7 @@ const routeTree = rootRoute.addChildren([
   invoiceDetailRoute,
   medicalRecordDetailRoute,
   profileRoute,
+  forbiddenRoute,
 ])
 
 export const router = createRouter({ routeTree })
