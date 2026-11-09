@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/FepDev25/sistema-facturacion-medica-springboot-react-postgresql/actions/workflows/ci.yml/badge.svg)](https://github.com/FepDev25/sistema-facturacion-medica-springboot-react-postgresql/actions/workflows/ci.yml)
 
-Sistema clínico fullstack con cuatro asistentes AI integrados: desde RAG con embeddings de Google Gemini hasta Tool Calling y Structured Output con Claude. El backend es una API RESTful en Spring Boot 4 con máquinas de estados explícitas, auditoría dual y 450 tests. El frontend es un backoffice React 19 con routing type-safe, estado del servidor con TanStack Query y una suite de 763 tests.
+Sistema clínico fullstack con cuatro asistentes AI integrados: desde RAG con embeddings de Google Gemini hasta Tool Calling y Structured Output con Claude. El backend es una API RESTful en Spring Boot 4 con máquinas de estados explícitas, auditoría dual y 450 tests. El frontend es un backoffice React 19 con routing type-safe, estado del servidor con TanStack Query y una suite de 775 tests.
 
 **Demo en producción:** https://sistema-facturacion-medica-springbo.vercel.app
 
@@ -228,11 +228,11 @@ Flujos E2E verificados con base de datos real (Testcontainers):
 - `InsuranceCoverageFlowE2ETest` — asignar póliza → verificar cálculo de cobertura
 - `CancellationRulesFlowE2ETest` — cancelar sin pagos (éxito) → cancelar con pagos (rechazo RN-14)
 
-### Frontend — 763 tests
+### Frontend — 775 tests
 
 | Capa | Tests | Herramientas |
 |---|---|---|
-| Unit / componentes | 635 (52 archivos) | Vitest 4 + React Testing Library 16 |
+| Unit / componentes | 647 (55 archivos) | Vitest 4 + React Testing Library 16 |
 | E2E | 128 (5 archivos) | Playwright 1.59 + Chromium |
 
 ---
@@ -346,3 +346,7 @@ npm run dev
 | [`backend/README.md`](backend/README.md) | Documentación técnica del backend |
 | [`backend/openapi/openapi.yaml`](backend/openapi/openapi.yaml) | Contrato OpenAPI 3 de la API REST |
 | [`frontend/README.md`](frontend/README.md) | Documentación técnica del frontend |
+
+## Licencia
+
+MIT — ver [`LICENSE`](LICENSE).
