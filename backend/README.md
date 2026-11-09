@@ -344,7 +344,7 @@ Formato de respuesta: `{ timestamp, status, error, message, path }`
 
 ## Estrategia de Testing
 
-Piramide de tests con tres capas, 455 tests unitarios, cobertura exigida por JaCoCo.
+Piramide de tests con tres capas, 458 tests unitarios, cobertura exigida por JaCoCo.
 
 ### Umbrales JaCoCo
 

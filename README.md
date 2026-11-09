@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/FepDev25/sistema-facturacion-medica-springboot-react-postgresql/actions/workflows/ci.yml/badge.svg)](https://github.com/FepDev25/sistema-facturacion-medica-springboot-react-postgresql/actions/workflows/ci.yml)
 
-Sistema clínico fullstack con cuatro asistentes AI integrados: desde RAG con embeddings de Google Gemini hasta Tool Calling y Structured Output con Claude. El backend es una API RESTful en Spring Boot 4 con máquinas de estados explícitas, auditoría dual y 455 tests unitarios. El frontend es un backoffice React 19 con routing type-safe, estado del servidor con TanStack Query y una suite de 768 tests.
+Sistema clínico fullstack con cuatro asistentes AI integrados: desde RAG con embeddings de Google Gemini hasta Tool Calling y Structured Output con Claude. El backend es una API RESTful en Spring Boot 4 con máquinas de estados explícitas, auditoría dual y 458 tests unitarios. El frontend es un backoffice React 19 con routing type-safe, estado del servidor con TanStack Query y una suite de 768 tests.
 
 **Demo en producción:** https://sistema-facturacion-medica-springbo.vercel.app
 
@@ -213,7 +213,7 @@ Los permisos se aplican en tres niveles independientes: backend (`@PreAuthorize`
 
 ## Testing
 
-### Backend — 455 tests unitarios, cobertura JaCoCo
+### Backend — 458 tests unitarios, cobertura JaCoCo
 
 | Alcance | Líneas | Branches |
 |---|---|---|
