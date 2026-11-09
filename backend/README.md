@@ -341,7 +341,7 @@ Formato de respuesta: `{ timestamp, status, error, message, path }`
 
 ## Estrategia de Testing
 
-Piramide de tests con tres capas, 425 tests totales, cobertura exigida por JaCoCo.
+Piramide de tests con tres capas, 450 tests totales, cobertura exigida por JaCoCo.
 
 ### Umbrales JaCoCo
 
@@ -381,7 +381,7 @@ graph TB
 | WebMvc | ~12 | MockMvc + @WebMvcTest | Controladores, validacion, autorizacion HTTP |
 | DataJPA | ~9 | Testcontainers + @DataJpaTest | Repositorios, queries nativas, constraints DB |
 | E2E | ~5 | Testcontainers + SpringBootTest | Flujos completos de negocio contra BD real |
-| Totales | **425** | -- | **0 fallos, BUILD SUCCESS** |
+| Totales | **450** | -- | **0 fallos, BUILD SUCCESS** |
 
 ### Flujos E2E
 

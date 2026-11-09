@@ -12,9 +12,9 @@ Resultado de referencia mas reciente:
 
 - Comando: `./mvnw clean verify`
 - Resultado: `BUILD SUCCESS`
-- Totales: `Tests run: 425, Failures: 0, Errors: 0, Skipped: 0`
+- Totales: `Tests run: 450, Failures: 0, Errors: 0, Skipped: 0`
 - JaCoCo: `All coverage checks have been met`
-- Cobertura global (bundle): lineas `82.18%` y ramas `66.83%`
+- Cobertura global (bundle): lineas `81.94%` y ramas `65.43%`
 
 ### Tabla resumen de cobertura por modulo
 
@@ -22,7 +22,7 @@ Resultado de referencia mas reciente:
 |---|---|---:|---:|
 | Security | `com.fepdev.sfm.backend.security` | `100.00%` | `75.00%` |
 | Appointment | `com.fepdev.sfm.backend.domain.appointment` | `93.63%` | `85.53%` |
-| Invoice | `com.fepdev.sfm.backend.domain.invoice` | `96.19%` | `86.39%` |
+| Invoice | `com.fepdev.sfm.backend.domain.invoice` | `95.32%` | `82.49%` |
 | Payment | `com.fepdev.sfm.backend.domain.payment` | `99.04%` | `93.33%` |
 | Insurance | `com.fepdev.sfm.backend.domain.insurance` | `81.85%` | `65.85%` |
 | Patient | `com.fepdev.sfm.backend.domain.patient` | `79.14%` | `66.67%` |
