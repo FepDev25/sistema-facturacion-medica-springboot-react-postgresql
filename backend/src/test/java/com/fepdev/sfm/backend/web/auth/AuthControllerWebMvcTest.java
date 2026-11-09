@@ -235,6 +235,19 @@ class AuthControllerWebMvcTest {
     }
 
     @Test
+    void logout_withBearerHeader_blacklistsAccessToken() throws Exception {
+        when(jwtService.extractJti("header-token")).thenReturn("header-jti");
+        when(jwtService.getRemainingTtl("header-token")).thenReturn(Duration.ofMinutes(5));
+
+        mockMvc.perform(post("/api/v1/auth/logout")
+                        .header("Authorization", "Bearer header-token"))
+                .andExpect(status().isNoContent());
+
+        verify(authSessionService).revokeSession(null);
+        verify(tokenBlacklistService).blacklist("header-jti", Duration.ofMinutes(5));
+    }
+
+    @Test
     void me_whenNoAuthentication_returns401() throws Exception {
         mockMvc.perform(get("/api/v1/auth/me"))
                 .andExpect(status().isUnauthorized());

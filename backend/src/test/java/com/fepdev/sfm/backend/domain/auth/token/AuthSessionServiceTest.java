@@ -229,6 +229,29 @@ class AuthSessionServiceTest {
     }
 
     @Test
+    void rotate_whenFamilyIdDoesNotMatch_revokesFamily() {
+        RefreshTokenFamily family = family();
+        RefreshTokenRecord record = record(family);
+
+        when(jwtService.extractJti(RAW_TOKEN)).thenReturn(JTI.toString());
+        when(jwtService.extractFamilyId(RAW_TOKEN)).thenReturn(UUID.randomUUID());
+        when(tokenRepository.findByJtiForUpdate(JTI)).thenReturn(Optional.of(record));
+
+        assertThatThrownBy(() -> service.rotate(RAW_TOKEN, user))
+                .isInstanceOf(InvalidRefreshTokenException.class);
+        assertThat(family.isRevoked()).isTrue();
+    }
+
+    @Test
+    void rotate_whenFamilyClaimIsMissing_throws() {
+        when(jwtService.extractJti(RAW_TOKEN)).thenReturn(JTI.toString());
+        when(jwtService.extractFamilyId(RAW_TOKEN)).thenReturn(null);
+
+        assertThatThrownBy(() -> service.rotate(RAW_TOKEN, user))
+                .isInstanceOf(InvalidRefreshTokenException.class);
+    }
+
+    @Test
     void rotate_whenTokenDoesNotExist_throws() {
         when(jwtService.extractJti(RAW_TOKEN)).thenReturn(JTI.toString());
         when(jwtService.extractFamilyId(RAW_TOKEN)).thenReturn(FAMILY_ID);
