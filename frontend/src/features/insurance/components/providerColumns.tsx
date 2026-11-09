@@ -21,7 +21,7 @@ export function getProviderColumns({
       header: 'Codigo',
       size: 120,
       cell: ({ row }) => (
-        <span className="font-mono text-xs text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
+        <span className="font-mono text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
           {row.original.code}
         </span>
       ),
@@ -29,13 +29,13 @@ export function getProviderColumns({
     {
       accessorKey: 'name',
       header: 'Aseguradora',
-      cell: ({ row }) => <p className="font-medium text-slate-900">{row.original.name}</p>,
+      cell: ({ row }) => <p className="font-medium text-foreground">{row.original.name}</p>,
     },
     {
       accessorKey: 'phone',
       header: 'Telefono',
       size: 160,
-      cell: ({ row }) => <span className="text-sm text-slate-700">{row.original.phone}</span>,
+      cell: ({ row }) => <span className="text-sm text-foreground">{row.original.phone}</span>,
     },
     {
       accessorKey: 'isActive',
@@ -43,9 +43,9 @@ export function getProviderColumns({
       size: 100,
       cell: ({ row }) =>
         row.original.isActive ? (
-          <Badge className="bg-green-100 text-green-800 hover:bg-green-100 border-0">Activo</Badge>
+          <Badge className="bg-success/15 text-success hover:bg-success/15 border-0">Activo</Badge>
         ) : (
-          <Badge variant="secondary" className="text-slate-400">
+          <Badge variant="secondary" className="text-muted-foreground/70">
             Inactivo
           </Badge>
         ),
@@ -58,7 +58,7 @@ export function getProviderColumns({
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7 text-slate-500 hover:text-slate-900"
+            className="h-7 w-7 text-muted-foreground hover:text-foreground"
             aria-label="Editar aseguradora"
             disabled={!canManage}
             onClick={() => onEdit(row.original)}
@@ -69,7 +69,7 @@ export function getProviderColumns({
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7 text-slate-500 hover:text-slate-900"
+            className="h-7 w-7 text-muted-foreground hover:text-foreground"
             aria-label="Desactivar aseguradora"
             disabled={!canManage || !row.original.isActive}
             onClick={() => onDeactivate(row.original)}

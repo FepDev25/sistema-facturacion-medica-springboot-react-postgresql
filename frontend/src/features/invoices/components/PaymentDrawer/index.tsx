@@ -1,13 +1,7 @@
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import {
-  Sheet,
-  SheetContent,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import {
   Form,
   FormControl,
@@ -63,10 +57,10 @@ export function PaymentDrawer({ invoiceId, open, onOpenChange }: PaymentDrawerPr
   const totalPaid = payments.reduce((acc, p) => acc + p.amount, 0)
   const balance = invoice ? Math.max(invoice.patientResponsibility - totalPaid, 0) : 0
 
-  const paymentFormSchema = PaymentFormSchema.refine(
-    (data) => data.amount <= balance,
-    { path: ['amount'], message: `El monto no puede exceder el saldo pendiente (${formatCurrency(balance)})` },
-  )
+  const paymentFormSchema = PaymentFormSchema.refine((data) => data.amount <= balance, {
+    path: ['amount'],
+    message: `El monto no puede exceder el saldo pendiente (${formatCurrency(balance)})`,
+  })
 
   const form = useForm<PaymentFormValues>({
     resolver: zodResolver(paymentFormSchema),
@@ -103,20 +97,20 @@ export function PaymentDrawer({ invoiceId, open, onOpenChange }: PaymentDrawerPr
             className="flex flex-col flex-1 overflow-hidden"
           >
             <div className="flex-1 overflow-y-auto px-6 py-5 flex flex-col gap-5">
-              <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm space-y-1">
+              <div className="rounded-md border border-border bg-muted/50 px-3 py-2 text-sm space-y-1">
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Responsabilidad paciente:</span>
-                  <span className="font-medium text-slate-800">
+                  <span className="text-muted-foreground">Responsabilidad paciente:</span>
+                  <span className="font-medium text-foreground">
                     {invoice ? formatCurrency(invoice.patientResponsibility) : '—'}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500">Total pagado:</span>
-                  <span className="font-medium text-slate-800">{formatCurrency(totalPaid)}</span>
+                  <span className="text-muted-foreground">Total pagado:</span>
+                  <span className="font-medium text-foreground">{formatCurrency(totalPaid)}</span>
                 </div>
-                <div className="flex justify-between border-t border-slate-200 pt-1">
-                  <span className="text-slate-700 font-medium">Saldo pendiente:</span>
-                  <span className="font-bold text-slate-900">{formatCurrency(balance)}</span>
+                <div className="flex justify-between border-t border-border pt-1">
+                  <span className="text-foreground font-medium">Saldo pendiente:</span>
+                  <span className="font-bold text-foreground">{formatCurrency(balance)}</span>
                 </div>
               </div>
 
@@ -144,7 +138,11 @@ export function PaymentDrawer({ invoiceId, open, onOpenChange }: PaymentDrawerPr
                       <button
                         type="button"
                         className="text-xs text-primary hover:underline"
-                        onClick={() => form.setValue('amount', Number(balance.toFixed(2)), { shouldValidate: true })}
+                        onClick={() =>
+                          form.setValue('amount', Number(balance.toFixed(2)), {
+                            shouldValidate: true,
+                          })
+                        }
                       >
                         Pagar total ({formatCurrency(balance)})
                       </button>
@@ -200,7 +198,8 @@ export function PaymentDrawer({ invoiceId, open, onOpenChange }: PaymentDrawerPr
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Referencia <span className="text-slate-400 font-normal">(opcional)</span>
+                      Referencia{' '}
+                      <span className="text-muted-foreground/70 font-normal">(opcional)</span>
                     </FormLabel>
                     <FormControl>
                       <Input {...field} placeholder="TXN-12345" />
@@ -216,7 +215,7 @@ export function PaymentDrawer({ invoiceId, open, onOpenChange }: PaymentDrawerPr
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Notas <span className="text-slate-400 font-normal">(opcional)</span>
+                      Notas <span className="text-muted-foreground/70 font-normal">(opcional)</span>
                     </FormLabel>
                     <FormControl>
                       <Textarea {...field} rows={3} className="resize-none" />

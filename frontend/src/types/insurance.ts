@@ -40,17 +40,17 @@ export interface InsurancePolicyCreateRequest {
   patientId: string
   providerId: string
   policyNumber: string
-  coveragePercentage: number   // 0–100
-  deductible: number           // >= 0
-  startDate: string            // LocalDate → "YYYY-MM-DD"
-  endDate: string              // LocalDate → "YYYY-MM-DD"
+  coveragePercentage: number // 0–100
+  deductible: number // >= 0
+  startDate: string // LocalDate → "YYYY-MM-DD"
+  endDate: string // LocalDate → "YYYY-MM-DD"
 }
 
 export interface InsurancePolicyUpdateRequest {
-  coveragePercentage: number   // 0–100
-  deductible?: number | null   // >= 0
-  startDate?: string | null    // LocalDate → "YYYY-MM-DD"
-  endDate?: string | null      // LocalDate → "YYYY-MM-DD"
+  coveragePercentage: number // 0–100
+  deductible?: number | null // >= 0
+  startDate?: string | null // LocalDate → "YYYY-MM-DD"
+  endDate?: string | null // LocalDate → "YYYY-MM-DD"
   isActive?: boolean | null
 }
 

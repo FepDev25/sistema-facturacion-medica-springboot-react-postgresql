@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  PaymentFormSchema,
-  InvoiceItemFormSchema,
-} from '@/features/invoices/api/invoicesApi'
+import { PaymentFormSchema, InvoiceItemFormSchema } from '@/features/invoices/api/invoicesApi'
 
 const validPayment = {
   amount: 1000,
@@ -26,7 +23,15 @@ describe('PaymentFormSchema', () => {
   })
 
   it('accepts all payment methods', () => {
-    const methods = ['cash', 'credit_card', 'debit_card', 'bank_transfer', 'check', 'insurance', 'other'] as const
+    const methods = [
+      'cash',
+      'credit_card',
+      'debit_card',
+      'bank_transfer',
+      'check',
+      'insurance',
+      'other',
+    ] as const
     for (const method of methods) {
       const result = PaymentFormSchema.safeParse({ ...validPayment, paymentMethod: method })
       expect(result.success, `Failed for method: ${method}`).toBe(true)
@@ -44,7 +49,10 @@ describe('PaymentFormSchema', () => {
   })
 
   it('rejects non-number amount', () => {
-    const result = PaymentFormSchema.safeParse({ ...validPayment, amount: 'free' as unknown as number })
+    const result = PaymentFormSchema.safeParse({
+      ...validPayment,
+      amount: 'free' as unknown as number,
+    })
     expect(result.success).toBe(false)
   })
 

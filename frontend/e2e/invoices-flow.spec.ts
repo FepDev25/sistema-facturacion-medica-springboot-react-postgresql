@@ -97,7 +97,9 @@ test.describe('Invoices list page', () => {
     await openInvoices(page)
 
     const table = page.getByRole('table')
-    await expect(table.getByText(/Borrador|Pendiente|Pago parcial|Pagada|Cancelada|Vencida/).first()).toBeVisible()
+    await expect(
+      table.getByText(/Borrador|Pendiente|Pago parcial|Pagada|Cancelada|Vencida/).first(),
+    ).toBeVisible()
     const statusLabels = ['Borrador', 'Pendiente', 'Pago parcial', 'Pagada', 'Vencida']
     const foundLabels: string[] = []
 
@@ -270,7 +272,7 @@ test.describe('Invoice detail page', () => {
       await detailLinks.nth(i).click()
       const payButton = page.getByRole('button', { name: 'Registrar pago' })
 
-      if (await payButton.isVisible() && await payButton.isEnabled()) {
+      if ((await payButton.isVisible()) && (await payButton.isEnabled())) {
         await payButton.click()
         await expect(page.getByRole('heading', { name: 'Registrar pago' })).toBeVisible()
         await expect(page.getByLabel('Monto')).toBeVisible()

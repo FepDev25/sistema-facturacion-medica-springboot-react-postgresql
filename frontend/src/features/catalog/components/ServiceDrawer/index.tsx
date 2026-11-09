@@ -1,13 +1,7 @@
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetFooter,
-} from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter } from '@/components/ui/sheet'
 import {
   Form,
   FormControl,
@@ -127,7 +121,7 @@ export function ServiceDrawer({ open, onOpenChange, item }: ServiceDrawerProps) 
                       />
                     </FormControl>
                     {isEditing && (
-                      <p className="text-xs text-slate-400">El código no es editable</p>
+                      <p className="text-xs text-muted-foreground/70">El código no es editable</p>
                     )}
                     <FormMessage />
                   </FormItem>
@@ -155,7 +149,7 @@ export function ServiceDrawer({ open, onOpenChange, item }: ServiceDrawerProps) 
                   <FormItem>
                     <FormLabel>
                       Descripción{' '}
-                      <span className="text-slate-400 font-normal">(opcional)</span>
+                      <span className="text-muted-foreground/70 font-normal">(opcional)</span>
                     </FormLabel>
                     <FormControl>
                       <Textarea
@@ -208,13 +202,13 @@ export function ServiceDrawer({ open, onOpenChange, item }: ServiceDrawerProps) 
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {(
-                            Object.entries(SERVICE_CATEGORY_LABELS) as [string, string][]
-                          ).map(([value, label]) => (
-                            <SelectItem key={value} value={value}>
-                              {label}
-                            </SelectItem>
-                          ))}
+                          {(Object.entries(SERVICE_CATEGORY_LABELS) as [string, string][]).map(
+                            ([value, label]) => (
+                              <SelectItem key={value} value={value}>
+                                {label}
+                              </SelectItem>
+                            ),
+                          )}
                         </SelectContent>
                       </Select>
                       <FormMessage />

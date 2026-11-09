@@ -36,22 +36,53 @@ beforeEach(() => {
 })
 
 const mockService = {
-  id: 'svc-1', code: 'C-001', name: 'Consulta General', description: 'Consulta de medicina general',
-  price: 500, category: 'consultation' as const, isActive: true, createdAt: '2025-01-01T00:00:00Z',
+  id: 'svc-1',
+  code: 'C-001',
+  name: 'Consulta General',
+  description: 'Consulta de medicina general',
+  price: 500,
+  category: 'consultation' as const,
+  isActive: true,
+  createdAt: '2025-01-01T00:00:00Z',
 }
 
 const mockMedication = {
-  id: 'med-1', code: 'M-001', name: 'Ibuprofeno 400mg', description: 'Antiinflamatorio',
-  price: 50, unit: 'tablet' as const, requiresPrescription: true, isActive: true, createdAt: '2025-01-01T00:00:00Z',
+  id: 'med-1',
+  code: 'M-001',
+  name: 'Ibuprofeno 400mg',
+  description: 'Antiinflamatorio',
+  price: 50,
+  unit: 'tablet' as const,
+  requiresPrescription: true,
+  isActive: true,
+  createdAt: '2025-01-01T00:00:00Z',
 }
 
 describe('catalog API - services', () => {
   describe('getServices', () => {
     it('fetches services and enriches each by id', async () => {
-      const summary = { id: 'svc-1', code: 'C-001', name: 'Consulta', price: 500, category: 'consultation' as const, isActive: true }
-      mockGet.mockResolvedValueOnce({
-        data: { content: [summary], totalElements: 1, totalPages: 1, number: 0, size: 100, first: true, last: true, empty: false },
-      }).mockResolvedValueOnce({ data: mockService })
+      const summary = {
+        id: 'svc-1',
+        code: 'C-001',
+        name: 'Consulta',
+        price: 500,
+        category: 'consultation' as const,
+        isActive: true,
+      }
+      mockGet
+        .mockResolvedValueOnce({
+          data: {
+            content: [summary],
+            totalElements: 1,
+            totalPages: 1,
+            number: 0,
+            size: 100,
+            first: true,
+            last: true,
+            empty: false,
+          },
+        })
+        .mockResolvedValueOnce({ data: mockService })
 
       const result = await getServices()
       expect(mockGet).toHaveBeenCalledTimes(2)
@@ -60,7 +91,18 @@ describe('catalog API - services', () => {
     })
 
     it('passes active=true when includeInactive is not set', async () => {
-      mockGet.mockResolvedValue({ data: { content: [], totalElements: 0, totalPages: 0, number: 0, size: 100, first: true, last: true, empty: true } })
+      mockGet.mockResolvedValue({
+        data: {
+          content: [],
+          totalElements: 0,
+          totalPages: 0,
+          number: 0,
+          size: 100,
+          first: true,
+          last: true,
+          empty: true,
+        },
+      })
       await getServices()
       expect(mockGet).toHaveBeenCalledWith('/catalog/services', {
         params: expect.objectContaining({ active: true }),
@@ -68,7 +110,18 @@ describe('catalog API - services', () => {
     })
 
     it('does not pass active filter when includeInactive is true', async () => {
-      mockGet.mockResolvedValue({ data: { content: [], totalElements: 0, totalPages: 0, number: 0, size: 100, first: true, last: true, empty: true } })
+      mockGet.mockResolvedValue({
+        data: {
+          content: [],
+          totalElements: 0,
+          totalPages: 0,
+          number: 0,
+          size: 100,
+          first: true,
+          last: true,
+          empty: true,
+        },
+      })
       await getServices({ includeInactive: true })
       expect(mockGet).toHaveBeenCalledWith('/catalog/services', {
         params: expect.objectContaining({ active: undefined }),
@@ -88,8 +141,17 @@ describe('catalog API - services', () => {
   describe('createService', () => {
     it('posts service data', async () => {
       mockPost.mockResolvedValue({ data: mockService })
-      const result = await createService({ code: 'C-001', name: 'Consulta General', price: 500, category: 'consultation', isActive: true })
-      expect(mockPost).toHaveBeenCalledWith('/catalog/services', expect.objectContaining({ code: 'C-001' }))
+      const result = await createService({
+        code: 'C-001',
+        name: 'Consulta General',
+        price: 500,
+        category: 'consultation',
+        isActive: true,
+      })
+      expect(mockPost).toHaveBeenCalledWith(
+        '/catalog/services',
+        expect.objectContaining({ code: 'C-001' }),
+      )
       expect(result.id).toBe('svc-1')
     })
   })
@@ -97,7 +159,13 @@ describe('catalog API - services', () => {
   describe('updateService', () => {
     it('puts service data', async () => {
       mockPut.mockResolvedValue({ data: mockService })
-      await updateService('svc-1', { code: 'C-001', name: 'Consulta General', price: 500, category: 'consultation', isActive: true })
+      await updateService('svc-1', {
+        code: 'C-001',
+        name: 'Consulta General',
+        price: 500,
+        category: 'consultation',
+        isActive: true,
+      })
       expect(mockPut).toHaveBeenCalledWith('/catalog/services/svc-1', expect.any(Object))
     })
   })
@@ -117,10 +185,27 @@ describe('catalog API - services', () => {
 describe('catalog API - medications', () => {
   describe('getMedications', () => {
     it('fetches medications and enriches each by id', async () => {
-      const summary = { id: 'med-1', code: 'M-001', name: 'Ibuprofeno', price: 50, unit: 'tablet' as const }
-      mockGet.mockResolvedValueOnce({
-        data: { content: [summary], totalElements: 1, totalPages: 1, number: 0, size: 100, first: true, last: true, empty: false },
-      }).mockResolvedValueOnce({ data: mockMedication })
+      const summary = {
+        id: 'med-1',
+        code: 'M-001',
+        name: 'Ibuprofeno',
+        price: 50,
+        unit: 'tablet' as const,
+      }
+      mockGet
+        .mockResolvedValueOnce({
+          data: {
+            content: [summary],
+            totalElements: 1,
+            totalPages: 1,
+            number: 0,
+            size: 100,
+            first: true,
+            last: true,
+            empty: false,
+          },
+        })
+        .mockResolvedValueOnce({ data: mockMedication })
 
       const result = await getMedications()
       expect(result.content).toHaveLength(1)
@@ -139,8 +224,18 @@ describe('catalog API - medications', () => {
   describe('createMedication', () => {
     it('posts medication data', async () => {
       mockPost.mockResolvedValue({ data: mockMedication })
-      await createMedication({ code: 'M-001', name: 'Ibuprofeno', price: 50, unit: 'tablet', requiresPrescription: true, isActive: true })
-      expect(mockPost).toHaveBeenCalledWith('/catalog/medications', expect.objectContaining({ code: 'M-001' }))
+      await createMedication({
+        code: 'M-001',
+        name: 'Ibuprofeno',
+        price: 50,
+        unit: 'tablet',
+        requiresPrescription: true,
+        isActive: true,
+      })
+      expect(mockPost).toHaveBeenCalledWith(
+        '/catalog/medications',
+        expect.objectContaining({ code: 'M-001' }),
+      )
     })
   })
 
@@ -159,7 +254,9 @@ describe('catalog API - search', () => {
     it('searches by query string', async () => {
       mockGet.mockResolvedValue({ data: [] })
       await searchServicesByName('consulta')
-      expect(mockGet).toHaveBeenCalledWith('/catalog/services/search', { params: { q: 'consulta' } })
+      expect(mockGet).toHaveBeenCalledWith('/catalog/services/search', {
+        params: { q: 'consulta' },
+      })
     })
   })
 })

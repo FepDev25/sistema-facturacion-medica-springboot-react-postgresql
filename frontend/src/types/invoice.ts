@@ -7,8 +7,8 @@ export interface InvoiceItemRequest {
   medicationId?: string | null
   itemType: ItemType
   description: string
-  quantity: number               // >= 1
-  unitPrice: number              // > 0
+  quantity: number // >= 1
+  unitPrice: number // > 0
 }
 
 // Invoice
@@ -28,6 +28,9 @@ export interface InvoiceResponse {
   patientLastName: string
   appointmentId: string | null
   insurancePolicyId: string | null
+  insurancePolicyPolicyNumber: string | null
+  insurancePolicyProviderName: string | null
+  insurancePolicyCoveragePercentage: number | null
   invoiceNumber: string
   subtotal: number
   tax: number
@@ -86,11 +89,11 @@ export interface InvoiceSummaryResponse {
 
 export interface PaymentCreateRequest {
   invoiceId: string
-  amount: number                 // > 0
+  amount: number // > 0
   paymentMethod: PaymentMethod
   referenceNumber?: string | null
   notes?: string | null
-  paymentDate: string            // OffsetDateTime → ISO string
+  paymentDate: string // OffsetDateTime → ISO string
 }
 
 export interface PaymentResponse {

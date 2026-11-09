@@ -25,9 +25,7 @@ export function usePatients(params: { lastName?: string } = {}) {
   })
 }
 
-export function usePatientsPage(
-  params: { lastName?: string; page?: number; size?: number } = {},
-) {
+export function usePatientsPage(params: { lastName?: string; page?: number; size?: number } = {}) {
   return useQuery({
     queryKey: patientKeys.list(params),
     queryFn: () =>

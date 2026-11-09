@@ -27,7 +27,7 @@ export function getInvoiceColumns({
       size: 140,
       enableSorting: true,
       cell: ({ row }) => (
-        <span className="font-mono text-xs text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
+        <span className="font-mono text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
           {row.original.invoiceNumber}
         </span>
       ),
@@ -36,7 +36,7 @@ export function getInvoiceColumns({
       id: 'patientName',
       header: 'Paciente',
       cell: ({ row }) => (
-        <p className="font-medium text-slate-900">
+        <p className="font-medium text-foreground">
           {row.original.patientFirstName} {row.original.patientLastName}
         </p>
       ),
@@ -58,7 +58,9 @@ export function getInvoiceColumns({
       header: 'Vencimiento',
       size: 130,
       enableSorting: true,
-      cell: ({ row }) => <span className="text-sm text-slate-700">{formatDate(row.original.dueDate)}</span>,
+      cell: ({ row }) => (
+        <span className="text-sm text-foreground">{formatDate(row.original.dueDate)}</span>
+      ),
     },
     {
       accessorKey: 'total',
@@ -66,7 +68,7 @@ export function getInvoiceColumns({
       size: 120,
       enableSorting: true,
       cell: ({ row }) => (
-        <div className="text-right text-sm font-medium tabular-nums text-slate-800">
+        <div className="text-right text-sm font-medium tabular-nums text-foreground">
           {formatCurrency(row.original.total)}
         </div>
       ),
@@ -76,7 +78,7 @@ export function getInvoiceColumns({
       header: () => <div className="text-right">Paciente</div>,
       size: 130,
       cell: ({ row }) => (
-        <div className="text-right text-sm font-medium tabular-nums text-slate-800">
+        <div className="text-right text-sm font-medium tabular-nums text-foreground">
           {formatCurrency(row.original.patientResponsibility)}
         </div>
       ),
@@ -92,7 +94,7 @@ export function getInvoiceColumns({
               asChild
               variant="ghost"
               size="icon"
-              className="h-7 w-7 text-slate-500 hover:text-slate-900"
+              className="h-7 w-7 text-muted-foreground hover:text-foreground"
               aria-label="Ver detalle de la factura"
               title="Ver detalle"
             >
@@ -104,7 +106,7 @@ export function getInvoiceColumns({
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 text-slate-500 hover:text-slate-900"
+              className="h-7 w-7 text-muted-foreground hover:text-foreground"
               aria-label="Confirmar factura"
               onClick={() => onConfirm(invoice)}
               disabled={!canManage || invoice.status !== 'draft' || invoice.total === 0}
@@ -120,7 +122,7 @@ export function getInvoiceColumns({
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 text-slate-500 hover:text-slate-900"
+              className="h-7 w-7 text-muted-foreground hover:text-foreground"
               aria-label="Marcar factura vencida"
               onClick={() => onOverdue(invoice)}
               disabled={
@@ -137,7 +139,7 @@ export function getInvoiceColumns({
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 text-slate-500 hover:text-slate-900"
+              className="h-7 w-7 text-muted-foreground hover:text-foreground"
               aria-label="Cancelar factura"
               onClick={() => onCancel(invoice)}
               disabled={!canManage || invoice.status === 'paid' || invoice.status === 'cancelled'}

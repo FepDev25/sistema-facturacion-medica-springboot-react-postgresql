@@ -8,13 +8,9 @@ describe('getPatientInvoiceColumns', () => {
 
   it('has correct accessorKey columns', () => {
     const cols = getPatientInvoiceColumns()
-    expect(cols.filter((c) => 'accessorKey' in c).map((c) => (c as { accessorKey: string }).accessorKey)).toEqual([
-      'invoiceNumber',
-      'status',
-      'issueDate',
-      'dueDate',
-      'total',
-    ])
+    expect(
+      cols.filter((c) => 'accessorKey' in c).map((c) => (c as { accessorKey: string }).accessorKey),
+    ).toEqual(['invoiceNumber', 'status', 'issueDate', 'dueDate', 'total'])
   })
 
   it('has correct id columns', () => {

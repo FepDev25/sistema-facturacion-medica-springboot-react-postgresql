@@ -28,14 +28,14 @@ export function getAppointmentColumns({
       header: 'Fecha y hora',
       size: 175,
       cell: ({ row }) => (
-        <span className="text-sm text-slate-700">{formatDateTime(row.original.scheduledAt)}</span>
+        <span className="text-sm text-foreground">{formatDateTime(row.original.scheduledAt)}</span>
       ),
     },
     {
       id: 'patient',
       header: 'Paciente',
       cell: ({ row }) => (
-        <p className="font-medium text-slate-900">
+        <p className="font-medium text-foreground">
           {row.original.patientFirstName} {row.original.patientLastName}
         </p>
       ),
@@ -44,7 +44,7 @@ export function getAppointmentColumns({
       id: 'doctor',
       header: 'Médico',
       cell: ({ row }) => (
-        <p className="text-sm text-slate-700">
+        <p className="text-sm text-foreground">
           Dr. {row.original.doctorFirstName} {row.original.doctorLastName}
         </p>
       ),
@@ -72,7 +72,7 @@ export function getAppointmentColumns({
               asChild
               variant="ghost"
               size="icon"
-              className="h-7 w-7 text-slate-500 hover:text-slate-900"
+              className="h-7 w-7 text-muted-foreground hover:text-foreground"
               aria-label="Ver detalle de la cita"
               title="Ver detalle"
             >
@@ -84,7 +84,7 @@ export function getAppointmentColumns({
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 text-slate-500 hover:text-slate-900"
+              className="h-7 w-7 text-muted-foreground hover:text-foreground"
               aria-label="Confirmar cita"
               onClick={() => onConfirm(item)}
               disabled={!canOperate || item.status !== 'scheduled'}
@@ -96,7 +96,7 @@ export function getAppointmentColumns({
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 text-slate-500 hover:text-slate-900"
+              className="h-7 w-7 text-muted-foreground hover:text-foreground"
               aria-label="Iniciar cita"
               onClick={() => onStart(item)}
               disabled={!canOperate || item.status !== 'confirmed'}
@@ -108,7 +108,7 @@ export function getAppointmentColumns({
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 text-slate-500 hover:text-slate-900"
+              className="h-7 w-7 text-muted-foreground hover:text-foreground"
               aria-label="Marcar cita como no show"
               onClick={() => onNoShow(item)}
               disabled={!canOperate || (item.status !== 'scheduled' && item.status !== 'confirmed')}
@@ -120,13 +120,10 @@ export function getAppointmentColumns({
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 text-slate-500 hover:text-slate-900"
+              className="h-7 w-7 text-muted-foreground hover:text-foreground"
               aria-label="Cancelar cita"
               onClick={() => onCancel(item)}
-              disabled={
-                !canOperate ||
-                (item.status !== 'scheduled' && item.status !== 'confirmed')
-              }
+              disabled={!canOperate || (item.status !== 'scheduled' && item.status !== 'confirmed')}
               title="Cancelar"
             >
               <X className="h-3.5 w-3.5" />

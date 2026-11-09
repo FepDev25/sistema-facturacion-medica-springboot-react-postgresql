@@ -1,9 +1,11 @@
-import type { ComponentType } from 'react'
+import { useState, type ComponentType } from 'react'
 import {
   AlertTriangle,
   CalendarCheck,
   CalendarDays,
   CalendarPlus,
+  ChevronDown,
+  ChevronUp,
   ClipboardCheck,
   CreditCard,
   MessageSquareText,
@@ -11,8 +13,20 @@ import {
   Sparkles,
   Users,
 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import type { AuthRole } from '@/features/auth/api/authApi'
+
+const COLLAPSED_KEY = 'sfm.dashboard.guide.collapsed'
+
+function readCollapsedPreference(): boolean {
+  if (typeof window === 'undefined') return false
+  try {
+    return window.localStorage.getItem(COLLAPSED_KEY) === 'true'
+  } catch {
+    return false
+  }
+}
 
 interface GuideCard {
   icon: ComponentType<{ className?: string }>
@@ -111,33 +125,70 @@ const GUIDES: Record<AuthRole, RoleGuide> = {
 }
 
 export function DashboardGuide({ role }: { role: AuthRole | null }) {
+  const [collapsed, setCollapsed] = useState(readCollapsedPreference)
+
   if (!role) return null
   const guide = GUIDES[role]
   if (!guide) return null
 
+  function toggle() {
+    setCollapsed((previous) => {
+      const next = !previous
+      try {
+        window.localStorage.setItem(COLLAPSED_KEY, String(next))
+      } catch {
+        // localStorage puede no estar disponible; la preferencia es best-effort
+      }
+      return next
+    })
+  }
+
   return (
     <section>
-      <div className="mb-3">
-        <h2 className="text-sm font-semibold text-foreground">
-          Guía rápida · {guide.label}
-        </h2>
-        <p className="mt-0.5 text-xs text-muted-foreground">{guide.intro}</p>
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-semibold text-foreground">Guía rápida · {guide.label}</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">{guide.intro}</p>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="shrink-0 text-xs"
+          onClick={toggle}
+          aria-expanded={!collapsed}
+          aria-controls="dashboard-guide-cards"
+        >
+          {collapsed ? (
+            <>
+              <ChevronDown className="h-3.5 w-3.5" />
+              Mostrar guía
+            </>
+          ) : (
+            <>
+              <ChevronUp className="h-3.5 w-3.5" />
+              Ocultar guía
+            </>
+          )}
+        </Button>
       </div>
-      <div className="grid gap-3 md:grid-cols-2">
-        {guide.cards.map(({ icon: Icon, title, body }) => (
-          <Card key={title} className="p-4">
-            <div className="flex gap-3">
-              <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <Icon className="h-4.5 w-4.5" />
-              </span>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-foreground">{title}</p>
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{body}</p>
+
+      {collapsed ? null : (
+        <div id="dashboard-guide-cards" className="grid gap-3 md:grid-cols-2">
+          {guide.cards.map(({ icon: Icon, title, body }) => (
+            <Card key={title} className="p-4">
+              <div className="flex gap-3">
+                <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Icon className="h-4.5 w-4.5" />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-foreground">{title}</p>
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{body}</p>
+                </div>
               </div>
-            </div>
-          </Card>
-        ))}
-      </div>
+            </Card>
+          ))}
+        </div>
+      )}
     </section>
   )
 }

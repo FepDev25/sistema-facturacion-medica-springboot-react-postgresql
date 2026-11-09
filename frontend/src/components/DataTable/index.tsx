@@ -47,62 +47,62 @@ export function DataTable<T>({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="rounded-xl border border-border bg-card overflow-hidden shadow-card" aria-busy={isLoading}>
+      <div
+        className="rounded-xl border border-border bg-card overflow-hidden shadow-card"
+        aria-busy={isLoading}
+      >
         <div className="overflow-x-auto">
           <Table className="min-w-[720px]">
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="bg-muted/60 hover:bg-muted/60">
-                {headerGroup.headers.map((header) => (
-                  <TableHead
-                    key={header.id}
-                    className="text-xs font-semibold text-muted-foreground uppercase tracking-wide h-10"
-                  >
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
-              Array.from({ length: pageSize }).map((_, i) => (
-                <TableRow key={i}>
-                  {columns.map((_, j) => (
-                    <TableCell key={j}>
-                      <Skeleton className="h-4 w-full" />
-                    </TableCell>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id} className="bg-muted/60 hover:bg-muted/60">
+                  {headerGroup.headers.map((header) => (
+                    <TableHead
+                      key={header.id}
+                      className="text-xs font-semibold text-muted-foreground uppercase tracking-wide h-10"
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableHead>
                   ))}
                 </TableRow>
-              ))
-            ) : table.getRowModel().rows.length > 0 ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  className="h-12 hover:bg-muted/40"
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="py-2 text-sm">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
+              ))}
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                Array.from({ length: pageSize }).map((_, i) => (
+                  <TableRow key={i}>
+                    {columns.map((_, j) => (
+                      <TableCell key={j}>
+                        <Skeleton className="h-4 w-full" />
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : table.getRowModel().rows.length > 0 ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id} className="h-12 hover:bg-muted/40">
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id} className="py-2 text-sm">
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow className="hover:bg-transparent">
+                  <TableCell colSpan={columns.length} className="h-40">
+                    <div className="flex flex-col items-center justify-center gap-2 text-center">
+                      <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                        <Inbox className="h-5 w-5" />
+                      </span>
+                      <p className="text-sm text-muted-foreground">{emptyMessage}</p>
+                    </div>
+                  </TableCell>
                 </TableRow>
-              ))
-            ) : (
-              <TableRow className="hover:bg-transparent">
-                <TableCell colSpan={columns.length} className="h-40">
-                  <div className="flex flex-col items-center justify-center gap-2 text-center">
-                    <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                      <Inbox className="h-5 w-5" />
-                    </span>
-                    <p className="text-sm text-muted-foreground">{emptyMessage}</p>
-                  </div>
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
+              )}
+            </TableBody>
           </Table>
         </div>
       </div>

@@ -80,3 +80,5 @@ backend/docs/private/
 private/
 github/
 .vscode/
+# Material de trabajo interno
+tmp/

@@ -84,7 +84,14 @@ describe('patients API', () => {
 
     it('passes filter params correctly', async () => {
       const page: PageResponse<PatientSummaryResponse> = {
-        content: [], totalElements: 0, totalPages: 0, number: 0, size: 20, first: true, last: true, empty: true,
+        content: [],
+        totalElements: 0,
+        totalPages: 0,
+        number: 0,
+        size: 20,
+        first: true,
+        last: true,
+        empty: true,
       }
       mockGet.mockResolvedValue({ data: page })
       await getPatients({ lastName: 'Garcia', page: 1, size: 50, sort: 'name' })
@@ -114,7 +121,10 @@ describe('patients API', () => {
         gender: 'male',
         phone: '555-1234',
       })
-      expect(mockPost).toHaveBeenCalledWith('/patients', expect.objectContaining({ dni: '12345678' }))
+      expect(mockPost).toHaveBeenCalledWith(
+        '/patients',
+        expect.objectContaining({ dni: '12345678' }),
+      )
       expect(result.id).toBe('p-1')
     })
   })
@@ -122,8 +132,17 @@ describe('patients API', () => {
   describe('updatePatient', () => {
     it('puts patient data and returns updated patient', async () => {
       mockPut.mockResolvedValue({ data: mockPatient })
-      const result = await updatePatient('p-1', { firstName: 'Juan', lastName: 'Perez', birthDate: '1990-05-15', gender: 'male', phone: '555-1234' })
-      expect(mockPut).toHaveBeenCalledWith('/patients/p-1', expect.objectContaining({ firstName: 'Juan' }))
+      const result = await updatePatient('p-1', {
+        firstName: 'Juan',
+        lastName: 'Perez',
+        birthDate: '1990-05-15',
+        gender: 'male',
+        phone: '555-1234',
+      })
+      expect(mockPut).toHaveBeenCalledWith(
+        '/patients/p-1',
+        expect.objectContaining({ firstName: 'Juan' }),
+      )
       expect(result.id).toBe('p-1')
     })
   })
@@ -139,7 +158,18 @@ describe('patients API', () => {
 
   describe('getPatientAppointments', () => {
     it('fetches patient appointments with pagination', async () => {
-      mockGet.mockResolvedValue({ data: { content: [], totalElements: 0, totalPages: 0, number: 0, size: 20, first: true, last: true, empty: true } })
+      mockGet.mockResolvedValue({
+        data: {
+          content: [],
+          totalElements: 0,
+          totalPages: 0,
+          number: 0,
+          size: 20,
+          first: true,
+          last: true,
+          empty: true,
+        },
+      })
       await getPatientAppointments('p-1', { page: 0, size: 10 })
       expect(mockGet).toHaveBeenCalledWith('/patients/p-1/appointments', {
         params: { page: 0, size: 10, sort: undefined },
@@ -149,7 +179,18 @@ describe('patients API', () => {
 
   describe('getPatientPolicies', () => {
     it('fetches patient policies with onlyActive filter', async () => {
-      mockGet.mockResolvedValue({ data: { content: [], totalElements: 0, totalPages: 0, number: 0, size: 20, first: true, last: true, empty: true } })
+      mockGet.mockResolvedValue({
+        data: {
+          content: [],
+          totalElements: 0,
+          totalPages: 0,
+          number: 0,
+          size: 20,
+          first: true,
+          last: true,
+          empty: true,
+        },
+      })
       await getPatientPolicies('p-1', { onlyActive: true })
       expect(mockGet).toHaveBeenCalledWith('/patients/p-1/policies', {
         params: { onlyActive: true, page: 0, size: 20, sort: undefined },
@@ -159,7 +200,18 @@ describe('patients API', () => {
 
   describe('getPatientInvoices', () => {
     it('uppercases status filter', async () => {
-      mockGet.mockResolvedValue({ data: { content: [], totalElements: 0, totalPages: 0, number: 0, size: 20, first: true, last: true, empty: true } })
+      mockGet.mockResolvedValue({
+        data: {
+          content: [],
+          totalElements: 0,
+          totalPages: 0,
+          number: 0,
+          size: 20,
+          first: true,
+          last: true,
+          empty: true,
+        },
+      })
       await getPatientInvoices('p-1', { status: 'paid' })
       expect(mockGet).toHaveBeenCalledWith('/patients/p-1/invoices', {
         params: expect.objectContaining({ status: 'PAID' }),
@@ -195,8 +247,12 @@ describe('patient adapters', () => {
 
     it('converts empty optional strings to null', () => {
       const emptyValues: PatientFormValues = {
-        dni: '12345678', firstName: 'Juan', lastName: 'Perez',
-        birthDate: '1990-05-15', gender: 'male', phone: '555-1234',
+        dni: '12345678',
+        firstName: 'Juan',
+        lastName: 'Perez',
+        birthDate: '1990-05-15',
+        gender: 'male',
+        phone: '555-1234',
       }
       const result = toPatientCreateRequest(emptyValues)
       expect(result.email).toBeNull()
@@ -207,9 +263,16 @@ describe('patient adapters', () => {
 
     it('converts whitespace-only optionals to null', () => {
       const wsValues: PatientFormValues = {
-        dni: '12345678', firstName: 'Juan', lastName: 'Perez',
-        birthDate: '1990-05-15', gender: 'male', phone: '555-1234',
-        email: '   ', address: '  ', bloodType: '  ', allergies: '  ',
+        dni: '12345678',
+        firstName: 'Juan',
+        lastName: 'Perez',
+        birthDate: '1990-05-15',
+        gender: 'male',
+        phone: '555-1234',
+        email: '   ',
+        address: '  ',
+        bloodType: '  ',
+        allergies: '  ',
       }
       const result = toPatientCreateRequest(wsValues)
       expect(result.email).toBeNull()

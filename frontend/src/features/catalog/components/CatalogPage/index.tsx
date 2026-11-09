@@ -8,10 +8,7 @@ import { PageHeader } from '@/components/layout/PageHeader'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { DataTable } from '@/components/DataTable'
-import {
-  NO_PERMISSION_MESSAGE,
-  useRolePermissions,
-} from '@/features/auth/hooks/useRolePermissions'
+import { NO_PERMISSION_MESSAGE, useRolePermissions } from '@/features/auth/hooks/useRolePermissions'
 import type { ServiceResponse, MedicationResponse } from '@/types/catalog'
 import {
   useFilteredMedicationsPage,
@@ -123,10 +120,7 @@ export function CatalogPage() {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <PageHeader
-        title="Catálogo"
-        subtitle="Gestión de servicios médicos y medicamentos"
-      />
+      <PageHeader title="Catálogo" subtitle="Gestión de servicios médicos y medicamentos" />
 
       {/* Content */}
       <div className="flex-1 px-6 py-5 overflow-auto">
@@ -135,22 +129,22 @@ export function CatalogPage() {
             <TabsList className="h-8">
               <TabsTrigger value="services" className="text-xs px-4">
                 Servicios
-                <span className="ml-1.5 text-slate-400 font-normal">
+                <span className="ml-1.5 text-muted-foreground/70 font-normal">
                   ({filteredServices.length})
                 </span>
               </TabsTrigger>
               <TabsTrigger value="medications" className="text-xs px-4">
                 Medicamentos
-                <span className="ml-1.5 text-slate-400 font-normal">
+                <span className="ml-1.5 text-muted-foreground/70 font-normal">
                   ({filteredMedications.length})
                 </span>
-          </TabsTrigger>
+              </TabsTrigger>
             </TabsList>
 
             {/* Toolbar */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
               <div className="relative w-full sm:w-auto">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/70" />
                 <Input
                   value={search}
                   onChange={(e) => {
@@ -171,7 +165,10 @@ export function CatalogPage() {
                     setPage(0)
                   }}
                 />
-                <Label htmlFor="show-inactive" className="text-sm text-slate-600 cursor-pointer">
+                <Label
+                  htmlFor="show-inactive"
+                  className="text-sm text-muted-foreground cursor-pointer"
+                >
                   Mostrar inactivos
                 </Label>
               </div>
@@ -228,7 +225,7 @@ export function CatalogPage() {
             />
             {!servicesLoading && servicesPage && servicesPage.totalPages > 1 ? (
               <div className="mt-3 flex items-center justify-between px-1">
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   Pagina {servicesPage.number + 1} de {servicesPage.totalPages} -{' '}
                   {servicesPage.totalElements} servicios
                 </p>
@@ -274,7 +271,7 @@ export function CatalogPage() {
             />
             {!medicationsLoading && medicationsPage && medicationsPage.totalPages > 1 ? (
               <div className="mt-3 flex items-center justify-between px-1">
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   Pagina {medicationsPage.number + 1} de {medicationsPage.totalPages} -{' '}
                   {medicationsPage.totalElements} medicamentos
                 </p>

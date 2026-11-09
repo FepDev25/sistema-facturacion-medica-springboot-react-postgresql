@@ -39,8 +39,7 @@ export function useSuggestItems() {
       const axiosError = error as AxiosError<{ message?: string }>
       if (axiosError.response?.status === 422) {
         toast.error(
-          axiosError.response.data?.message ??
-            'La factura no tiene un expediente médico asociado.',
+          axiosError.response.data?.message ?? 'La factura no tiene un expediente médico asociado.',
         )
       } else {
         toast.error('Error al obtener sugerencias. Intente de nuevo.')

@@ -56,17 +56,46 @@ describe('appointments API', () => {
   describe('getAppointments', () => {
     it('fetches paginated appointments with default params', async () => {
       mockGet.mockResolvedValue({
-        data: { content: [mockAppointment], totalElements: 1, totalPages: 1, number: 0, size: 20, first: true, last: true, empty: false },
+        data: {
+          content: [mockAppointment],
+          totalElements: 1,
+          totalPages: 1,
+          number: 0,
+          size: 20,
+          first: true,
+          last: true,
+          empty: false,
+        },
       })
       const result = await getAppointments()
       expect(mockGet).toHaveBeenCalledWith('/appointments', {
-        params: { doctorId: undefined, patientId: undefined, status: undefined, from: undefined, to: undefined, page: 0, size: 20, sort: undefined },
+        params: {
+          doctorId: undefined,
+          patientId: undefined,
+          status: undefined,
+          from: undefined,
+          to: undefined,
+          page: 0,
+          size: 20,
+          sort: undefined,
+        },
       })
       expect(result.content).toHaveLength(1)
     })
 
     it('uppercases status filter', async () => {
-      mockGet.mockResolvedValue({ data: { content: [], totalElements: 0, totalPages: 0, number: 0, size: 20, first: true, last: true, empty: true } })
+      mockGet.mockResolvedValue({
+        data: {
+          content: [],
+          totalElements: 0,
+          totalPages: 0,
+          number: 0,
+          size: 20,
+          first: true,
+          last: true,
+          empty: true,
+        },
+      })
       await getAppointments({ status: 'confirmed' })
       expect(mockGet).toHaveBeenCalledWith('/appointments', {
         params: expect.objectContaining({ status: 'CONFIRMED' }),
@@ -74,10 +103,33 @@ describe('appointments API', () => {
     })
 
     it('passes all filter params', async () => {
-      mockGet.mockResolvedValue({ data: { content: [], totalElements: 0, totalPages: 0, number: 0, size: 20, first: true, last: true, empty: true } })
-      await getAppointments({ doctorId: 'doc-1', patientId: 'p-1', status: 'scheduled', from: '2025-01-01', to: '2025-12-31' })
+      mockGet.mockResolvedValue({
+        data: {
+          content: [],
+          totalElements: 0,
+          totalPages: 0,
+          number: 0,
+          size: 20,
+          first: true,
+          last: true,
+          empty: true,
+        },
+      })
+      await getAppointments({
+        doctorId: 'doc-1',
+        patientId: 'p-1',
+        status: 'scheduled',
+        from: '2025-01-01',
+        to: '2025-12-31',
+      })
       expect(mockGet).toHaveBeenCalledWith('/appointments', {
-        params: expect.objectContaining({ doctorId: 'doc-1', patientId: 'p-1', status: 'SCHEDULED', from: '2025-01-01', to: '2025-12-31' }),
+        params: expect.objectContaining({
+          doctorId: 'doc-1',
+          patientId: 'p-1',
+          status: 'SCHEDULED',
+          from: '2025-01-01',
+          to: '2025-12-31',
+        }),
       })
     })
   })
@@ -100,7 +152,10 @@ describe('appointments API', () => {
         scheduledAt: '2025-06-20T10:00:00Z',
         durationMinutes: 30,
       })
-      expect(mockPost).toHaveBeenCalledWith('/appointments', expect.objectContaining({ patientId: 'p-1' }))
+      expect(mockPost).toHaveBeenCalledWith(
+        '/appointments',
+        expect.objectContaining({ patientId: 'p-1' }),
+      )
       expect(result.id).toBe('apt-1')
     })
   })
@@ -156,7 +211,18 @@ describe('appointments API', () => {
 
   describe('getMedicalRecordByAppointment', () => {
     it('returns record when found', async () => {
-      const record = { id: 'mr-1', appointmentId: 'apt-1', patientId: 'p-1', clinicalNotes: 'Notes', vitalSigns: null, physicalExam: null, recordDate: '2025-06-20T10:00:00Z', diagnoses: [], prescriptions: [], procedures: [] }
+      const record = {
+        id: 'mr-1',
+        appointmentId: 'apt-1',
+        patientId: 'p-1',
+        clinicalNotes: 'Notes',
+        vitalSigns: null,
+        physicalExam: null,
+        recordDate: '2025-06-20T10:00:00Z',
+        diagnoses: [],
+        prescriptions: [],
+        procedures: [],
+      }
       mockGet.mockResolvedValue({ data: record })
       const result = await getMedicalRecordByAppointment('apt-1')
       expect(mockGet).toHaveBeenCalledWith('/medical-records/appointment/apt-1')
@@ -191,8 +257,10 @@ describe('appointment adapters', () => {
 
     it('handles undefined optionals', () => {
       const values: AppointmentFormValues = {
-        patientId: 'p-1', doctorId: 'doc-1',
-        scheduledAt: '2025-06-20T10:00:00', durationMinutes: 30,
+        patientId: 'p-1',
+        doctorId: 'doc-1',
+        scheduledAt: '2025-06-20T10:00:00',
+        durationMinutes: 30,
       }
       const result = toAppointmentCreateRequest(values)
       expect(result.chiefComplaint).toBeNull()

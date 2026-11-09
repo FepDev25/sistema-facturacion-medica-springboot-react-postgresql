@@ -57,9 +57,7 @@ describe('DataTable', () => {
 
   describe('loading state', () => {
     it('renders skeleton rows when loading', () => {
-      const { container } = render(
-        <DataTable columns={columns} data={[]} isLoading pageSize={5} />,
-      )
+      const { container } = render(<DataTable columns={columns} data={[]} isLoading pageSize={5} />)
       const skeletons = container.querySelectorAll('[data-slot="skeleton"]')
       expect(skeletons.length).toBeGreaterThan(0)
       expect(skeletons.length).toBe(5 * 2)

@@ -21,10 +21,7 @@ function createAllProviders(client?: QueryClient) {
   return Wrapper
 }
 
-function customRender(
-  ui: ReactElement,
-  options?: Omit<RenderOptions, 'wrapper'>,
-) {
+function customRender(ui: ReactElement, options?: Omit<RenderOptions, 'wrapper'>) {
   return render(ui, { wrapper: createAllProviders(), ...options })
 }
 

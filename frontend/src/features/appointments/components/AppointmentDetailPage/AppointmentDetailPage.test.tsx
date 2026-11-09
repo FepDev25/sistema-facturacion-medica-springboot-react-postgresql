@@ -1,30 +1,48 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 
-const { m, mockConfirmMutate, mockStartMutate, mockCancelMutate, mockNoShowMutate } = vi.hoisted(() => ({
-  m: {
-    appointmentData: null as unknown,
-    medicalRecordData: null as unknown,
-    patientData: { allergies: null, firstName: 'Ana', lastName: 'García' } as Record<string, unknown> | null,
-    permissions: {
-      role: 'ADMIN',
-      canManagePatients: true,
-      canCompleteAppointment: true,
-      canManageInvoices: true,
-      canRegisterPayments: true,
+const { m, mockConfirmMutate, mockStartMutate, mockCancelMutate, mockNoShowMutate } = vi.hoisted(
+  () => ({
+    m: {
+      appointmentData: null as unknown,
+      medicalRecordData: null as unknown,
+      patientData: { allergies: null, firstName: 'Ana', lastName: 'García' } as Record<
+        string,
+        unknown
+      > | null,
+      permissions: {
+        role: 'ADMIN',
+        canManagePatients: true,
+        canCompleteAppointment: true,
+        canManageInvoices: true,
+        canRegisterPayments: true,
+      },
+      loggedInDoctorId: null as string | null,
     },
-    loggedInDoctorId: null as string | null,
-  },
-  mockConfirmMutate: vi.fn(),
-  mockStartMutate: vi.fn(),
-  mockCancelMutate: vi.fn(),
-  mockNoShowMutate: vi.fn(),
-}))
+    mockConfirmMutate: vi.fn(),
+    mockStartMutate: vi.fn(),
+    mockCancelMutate: vi.fn(),
+    mockNoShowMutate: vi.fn(),
+  }),
+)
 
 vi.mock('@tanstack/react-router', () => ({
   useParams: () => ({ id: 'apt-1' }),
-  Link: ({ to, children, params: _p, ...rest }: { to: string; children: React.ReactNode; params?: Record<string, string>; className?: string; [key: string]: unknown }) => (
-    <a href={to.replace('$id', _p?.id ?? '').replace('$invoiceId', _p?.invoiceId ?? '')} {...rest}>{children}</a>
+  Link: ({
+    to,
+    children,
+    params: _p,
+    ...rest
+  }: {
+    to: string
+    children: React.ReactNode
+    params?: Record<string, string>
+    className?: string
+    [key: string]: unknown
+  }) => (
+    <a href={to.replace('$id', _p?.id ?? '').replace('$invoiceId', _p?.invoiceId ?? '')} {...rest}>
+      {children}
+    </a>
   ),
 }))
 
@@ -59,8 +77,21 @@ vi.mock('sonner', () => ({
 }))
 
 vi.mock('@/features/appointments/components/AppointmentStatusFlow', () => ({
-  AppointmentStatusFlow: ({ status, canOperate, canComplete }: { status: string; canOperate: boolean; canComplete: boolean }) => (
-    <div data-testid="status-flow" data-status={status} data-can-operate={String(canOperate)} data-can-complete={String(canComplete)}>
+  AppointmentStatusFlow: ({
+    status,
+    canOperate,
+    canComplete,
+  }: {
+    status: string
+    canOperate: boolean
+    canComplete: boolean
+  }) => (
+    <div
+      data-testid="status-flow"
+      data-status={status}
+      data-can-operate={String(canOperate)}
+      data-can-complete={String(canComplete)}
+    >
       StatusFlow: {status}
     </div>
   ),
@@ -81,7 +112,9 @@ vi.mock('@/components/BackToListButton', () => ({
 
 vi.mock('@/components/ui/badge', () => ({
   Badge: ({ children, className }: { children: React.ReactNode; className?: string }) => (
-    <span className={className} data-testid="badge">{children}</span>
+    <span className={className} data-testid="badge">
+      {children}
+    </span>
   ),
 }))
 
@@ -121,7 +154,10 @@ function reset() {
 }
 
 describe('AppointmentDetailPage', () => {
-  beforeEach(() => { vi.clearAllMocks(); reset() })
+  beforeEach(() => {
+    vi.clearAllMocks()
+    reset()
+  })
   afterEach(cleanup)
 
   it('shows not found state when appointment is null', () => {
@@ -165,7 +201,9 @@ describe('AppointmentDetailPage', () => {
       render(<AppointmentDetailPage />)
       expect(screen.getByTestId('status-flow')).toHaveAttribute('data-can-operate', 'false')
       expect(screen.getByText('Solo lectura')).toBeInTheDocument()
-      expect(screen.getByText('Esta cita pertenece a otro médico. No puedes modificarla.')).toBeInTheDocument()
+      expect(
+        screen.getByText('Esta cita pertenece a otro médico. No puedes modificarla.'),
+      ).toBeInTheDocument()
     })
 
     it('ADMIN always has canOperate=true', () => {
@@ -175,7 +213,11 @@ describe('AppointmentDetailPage', () => {
     })
 
     it('RECEPTIONIST always has canOperate=true', () => {
-      m.permissions = { role: 'RECEPTIONIST', canManagePatients: true, canCompleteAppointment: false }
+      m.permissions = {
+        role: 'RECEPTIONIST',
+        canManagePatients: true,
+        canCompleteAppointment: false,
+      }
       render(<AppointmentDetailPage />)
       expect(screen.getByTestId('status-flow')).toHaveAttribute('data-can-operate', 'true')
     })
@@ -200,7 +242,11 @@ describe('AppointmentDetailPage', () => {
 
     it('hides Completar cita when canComplete=false', () => {
       m.appointmentData = { ...baseAppointment, status: 'in_progress' }
-      m.permissions = { role: 'RECEPTIONIST', canManagePatients: true, canCompleteAppointment: false }
+      m.permissions = {
+        role: 'RECEPTIONIST',
+        canManagePatients: true,
+        canCompleteAppointment: false,
+      }
       render(<AppointmentDetailPage />)
       expect(screen.queryByText('Completar cita')).not.toBeInTheDocument()
     })

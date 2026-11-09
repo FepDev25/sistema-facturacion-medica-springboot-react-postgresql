@@ -14,7 +14,7 @@ export function getPatientInvoiceColumns(): ColumnDef<InvoiceListViewResponse, u
       header: 'Factura',
       size: 140,
       cell: ({ row }) => (
-        <span className="font-mono text-xs text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
+        <span className="font-mono text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
           {row.original.invoiceNumber}
         </span>
       ),
@@ -34,20 +34,24 @@ export function getPatientInvoiceColumns(): ColumnDef<InvoiceListViewResponse, u
       accessorKey: 'issueDate',
       header: 'Emision',
       size: 120,
-      cell: ({ row }) => <span className="text-sm text-slate-700">{formatDate(row.original.issueDate)}</span>,
+      cell: ({ row }) => (
+        <span className="text-sm text-foreground">{formatDate(row.original.issueDate)}</span>
+      ),
     },
     {
       accessorKey: 'dueDate',
       header: 'Vencimiento',
       size: 120,
-      cell: ({ row }) => <span className="text-sm text-slate-700">{formatDate(row.original.dueDate)}</span>,
+      cell: ({ row }) => (
+        <span className="text-sm text-foreground">{formatDate(row.original.dueDate)}</span>
+      ),
     },
     {
       accessorKey: 'total',
       header: () => <div className="text-right">Total</div>,
       size: 120,
       cell: ({ row }) => (
-        <div className="text-right text-sm font-medium tabular-nums text-slate-800">
+        <div className="text-right text-sm font-medium tabular-nums text-foreground">
           {formatCurrency(row.original.total)}
         </div>
       ),
@@ -61,7 +65,7 @@ export function getPatientInvoiceColumns(): ColumnDef<InvoiceListViewResponse, u
             asChild
             variant="ghost"
             size="icon"
-            className="h-7 w-7 text-slate-500 hover:text-slate-900"
+            className="h-7 w-7 text-muted-foreground hover:text-foreground"
             aria-label="Ver detalle de la factura"
             title="Ver detalle"
           >

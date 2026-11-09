@@ -14,26 +14,14 @@ import type { InvoiceListViewResponse } from '@/types/invoice'
 const GENDERS = ['male', 'female', 'other', 'prefer_not_to_say'] as const
 
 const OptionalEmailSchema = z
-  .union([
-    z.literal(''),
-    z.string().email('Email inválido').max(100, 'Máximo 100 caracteres'),
-  ])
+  .union([z.literal(''), z.string().email('Email inválido').max(100, 'Máximo 100 caracteres')])
   .optional()
 
-const OptionalAddressSchema = z
-  .string()
-  .max(200, 'Máximo 200 caracteres')
-  .optional()
+const OptionalAddressSchema = z.string().max(200, 'Máximo 200 caracteres').optional()
 
-const OptionalBloodTypeSchema = z
-  .string()
-  .max(5, 'Máximo 5 caracteres')
-  .optional()
+const OptionalBloodTypeSchema = z.string().max(5, 'Máximo 5 caracteres').optional()
 
-const OptionalAllergiesSchema = z
-  .string()
-  .max(500, 'Máximo 500 caracteres')
-  .optional()
+const OptionalAllergiesSchema = z.string().max(500, 'Máximo 500 caracteres').optional()
 
 export const PatientFormSchema = z.object({
   dni: z.string().min(1, 'Requerido').max(20, 'Máximo 20 caracteres'),

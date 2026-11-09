@@ -26,18 +26,35 @@ beforeEach(() => {
 
 describe('useLogin', () => {
   it('calls login API and sets session on success', async () => {
-    const tokens = { accessToken: 'at', refreshToken: 'rt', tokenType: 'Bearer' as const, role: 'ADMIN' as const, userId: 'u-1', username: 'admin' }
+    const tokens = {
+      accessToken: 'at',
+      refreshToken: 'rt',
+      tokenType: 'Bearer' as const,
+      role: 'ADMIN' as const,
+      userId: 'u-1',
+      username: 'admin',
+    }
     mockLogin.mockResolvedValue(tokens)
 
     const { result } = renderHook(() => useLogin(), { wrapper: createAllProviders() })
     result.current.mutate({ username: 'admin', password: 'pass' })
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true))
-    expect(mockLogin).toHaveBeenCalledWith({ username: 'admin', password: 'pass' }, expect.anything())
+    expect(mockLogin).toHaveBeenCalledWith(
+      { username: 'admin', password: 'pass' },
+      expect.anything(),
+    )
   })
 
   it('calls setAuthSession and shows success toast on success', async () => {
-    const tokens = { accessToken: 'at', refreshToken: 'rt', tokenType: 'Bearer' as const, role: 'ADMIN' as const, userId: 'u-1', username: 'admin' }
+    const tokens = {
+      accessToken: 'at',
+      refreshToken: 'rt',
+      tokenType: 'Bearer' as const,
+      role: 'ADMIN' as const,
+      userId: 'u-1',
+      username: 'admin',
+    }
     mockLogin.mockResolvedValue(tokens)
 
     const { result } = renderHook(() => useLogin(), { wrapper: createAllProviders() })
@@ -95,7 +112,14 @@ describe('useLogin', () => {
 
 describe('useRefreshSession', () => {
   it('calls refreshToken API and sets session on success', async () => {
-    const tokens = { accessToken: 'new-at', refreshToken: 'new-rt', tokenType: 'Bearer' as const, role: 'ADMIN' as const, userId: 'u-1', username: 'admin' }
+    const tokens = {
+      accessToken: 'new-at',
+      refreshToken: 'new-rt',
+      tokenType: 'Bearer' as const,
+      role: 'ADMIN' as const,
+      userId: 'u-1',
+      username: 'admin',
+    }
     mockRefreshToken.mockResolvedValue(tokens)
 
     const { result } = renderHook(() => useRefreshSession(), { wrapper: createAllProviders() })
@@ -106,7 +130,14 @@ describe('useRefreshSession', () => {
   })
 
   it('calls setAuthSession but no toast on success', async () => {
-    const tokens = { accessToken: 'at', refreshToken: 'rt', tokenType: 'Bearer' as const, role: 'ADMIN' as const, userId: 'u-1', username: 'admin' }
+    const tokens = {
+      accessToken: 'at',
+      refreshToken: 'rt',
+      tokenType: 'Bearer' as const,
+      role: 'ADMIN' as const,
+      userId: 'u-1',
+      username: 'admin',
+    }
     mockRefreshToken.mockResolvedValue(tokens)
 
     const { result } = renderHook(() => useRefreshSession(), { wrapper: createAllProviders() })
@@ -165,7 +196,16 @@ describe('useLogout', () => {
 
 describe('useProfile', () => {
   it('fetches profile from auth/me', async () => {
-    const profile = { id: 'u-1', username: 'admin', email: 'a@b.com', role: 'ADMIN' as const, active: true, doctorId: null, doctorFirstName: null, doctorLastName: null }
+    const profile = {
+      id: 'u-1',
+      username: 'admin',
+      email: 'a@b.com',
+      role: 'ADMIN' as const,
+      active: true,
+      doctorId: null,
+      doctorFirstName: null,
+      doctorLastName: null,
+    }
     mockGetProfile.mockResolvedValue(profile)
 
     const { result } = renderHook(() => useProfile(), { wrapper: createAllProviders() })

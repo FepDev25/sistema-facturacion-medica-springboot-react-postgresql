@@ -7,13 +7,13 @@ import { formatCurrency } from '@/lib/utils'
 import type { ServiceResponse } from '@/types/catalog'
 
 const CATEGORY_CLASS: Record<string, string> = {
-  consultation: 'border-blue-200 text-blue-700 bg-blue-50',
-  laboratory: 'border-purple-200 text-purple-700 bg-purple-50',
-  imaging: 'border-indigo-200 text-indigo-700 bg-indigo-50',
-  surgery: 'border-red-200 text-red-700 bg-red-50',
-  therapy: 'border-teal-200 text-teal-700 bg-teal-50',
-  emergency: 'border-orange-200 text-orange-700 bg-orange-50',
-  other: 'border-slate-200 text-slate-500 bg-slate-50',
+  consultation: 'border-info/25 text-info bg-info/10',
+  laboratory: 'border-primary/25 text-primary bg-primary/10',
+  imaging: 'border-primary/25 text-primary bg-primary/10',
+  surgery: 'border-destructive/25 text-destructive bg-destructive/10',
+  therapy: 'border-primary/25 text-primary bg-primary/10',
+  emergency: 'border-warning/25 text-warning bg-warning/10',
+  other: 'border-border text-muted-foreground bg-muted/50',
 }
 
 interface ServiceColumnsOptions {
@@ -33,7 +33,7 @@ export function getServiceColumns({
       header: 'Código',
       size: 120,
       cell: ({ row }) => (
-        <span className="font-mono text-xs text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
+        <span className="font-mono text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
           {row.original.code}
         </span>
       ),
@@ -43,9 +43,9 @@ export function getServiceColumns({
       header: 'Nombre',
       cell: ({ row }) => (
         <div>
-          <p className="font-medium text-slate-900">{row.original.name}</p>
+          <p className="font-medium text-foreground">{row.original.name}</p>
           {row.original.description && (
-            <p className="text-xs text-slate-400 truncate max-w-sm">
+            <p className="text-xs text-muted-foreground/70 truncate max-w-sm">
               {row.original.description}
             </p>
           )}
@@ -67,7 +67,7 @@ export function getServiceColumns({
       header: () => <div className="text-right">Precio</div>,
       size: 110,
       cell: ({ row }) => (
-        <div className="text-right font-medium tabular-nums text-slate-800">
+        <div className="text-right font-medium tabular-nums text-foreground">
           {formatCurrency(row.original.price)}
         </div>
       ),
@@ -78,11 +78,9 @@ export function getServiceColumns({
       size: 100,
       cell: ({ row }) =>
         row.original.isActive ? (
-          <Badge className="bg-green-100 text-green-800 hover:bg-green-100 border-0">
-            Activo
-          </Badge>
+          <Badge className="bg-success/15 text-success hover:bg-success/15 border-0">Activo</Badge>
         ) : (
-          <Badge variant="secondary" className="text-slate-400">
+          <Badge variant="secondary" className="text-muted-foreground/70">
             Inactivo
           </Badge>
         ),
@@ -95,7 +93,7 @@ export function getServiceColumns({
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7 text-slate-500 hover:text-slate-900"
+            className="h-7 w-7 text-muted-foreground hover:text-foreground"
             disabled={!canManage}
             onClick={() => onEdit(row.original)}
             title="Editar"
@@ -105,7 +103,7 @@ export function getServiceColumns({
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7 text-slate-500 hover:text-slate-900"
+            className="h-7 w-7 text-muted-foreground hover:text-foreground"
             disabled={!canManage}
             onClick={() => onToggleActive(row.original)}
             title={row.original.isActive ? 'Desactivar' : 'Activar'}

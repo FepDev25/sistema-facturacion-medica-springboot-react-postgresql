@@ -11,7 +11,7 @@ export function getPatientPolicyColumns(): ColumnDef<InsurancePolicySummaryRespo
       header: 'Póliza',
       size: 180,
       cell: ({ row }) => (
-        <span className="font-mono text-xs text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
+        <span className="font-mono text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
           {row.original.policyNumber}
         </span>
       ),
@@ -19,14 +19,16 @@ export function getPatientPolicyColumns(): ColumnDef<InsurancePolicySummaryRespo
     {
       accessorKey: 'providerName',
       header: 'Aseguradora',
-      cell: ({ row }) => <span className="text-sm text-slate-800">{row.original.providerName}</span>,
+      cell: ({ row }) => (
+        <span className="text-sm text-foreground">{row.original.providerName}</span>
+      ),
     },
     {
       accessorKey: 'coveragePercentage',
       header: () => <div className="text-right">Cobertura</div>,
       size: 120,
       cell: ({ row }) => (
-        <div className="text-right text-sm font-medium text-slate-700 tabular-nums">
+        <div className="text-right text-sm font-medium text-foreground tabular-nums">
           {row.original.coveragePercentage}%
         </div>
       ),
@@ -40,7 +42,7 @@ export function getPatientPolicyColumns(): ColumnDef<InsurancePolicySummaryRespo
             asChild
             variant="ghost"
             size="icon"
-            className="h-7 w-7 text-slate-500 hover:text-slate-900"
+            className="h-7 w-7 text-muted-foreground hover:text-foreground"
             aria-label="Ver póliza en seguros"
             title="Ver en seguros"
           >

@@ -38,21 +38,45 @@ beforeEach(() => {
 })
 
 const mockProvider = {
-  id: 'prov-1', name: 'Seguros ABC', code: 'ABC-001', phone: '555-1111',
-  email: 'info@abc.com', address: 'Av. Principal', isActive: true, createdAt: '2025-01-01T00:00:00Z',
+  id: 'prov-1',
+  name: 'Seguros ABC',
+  code: 'ABC-001',
+  phone: '555-1111',
+  email: 'info@abc.com',
+  address: 'Av. Principal',
+  isActive: true,
+  createdAt: '2025-01-01T00:00:00Z',
 }
 
 const apiPolicy = {
-  id: 'pol-1', patientId: 'p-1', patientFirstName: 'Juan', patientLastName: 'Perez',
-  providerId: 'prov-1', providerName: 'Seguros ABC', policyNumber: 'POL-001',
-  coveragePercentage: 80, deductible: 500, startDate: '2025-01-01', endDate: '2025-12-31', isActive: true,
+  id: 'pol-1',
+  patientId: 'p-1',
+  patientFirstName: 'Juan',
+  patientLastName: 'Perez',
+  providerId: 'prov-1',
+  providerName: 'Seguros ABC',
+  policyNumber: 'POL-001',
+  coveragePercentage: 80,
+  deductible: 500,
+  startDate: '2025-01-01',
+  endDate: '2025-12-31',
+  isActive: true,
 }
 
 describe('insurance API', () => {
   describe('getProviders', () => {
     it('fetches paginated providers', async () => {
       mockGet.mockResolvedValue({
-        data: { content: [mockProvider], totalElements: 1, totalPages: 1, number: 0, size: 20, first: true, last: true, empty: false },
+        data: {
+          content: [mockProvider],
+          totalElements: 1,
+          totalPages: 1,
+          number: 0,
+          size: 20,
+          first: true,
+          last: true,
+          empty: false,
+        },
       })
       const result = await getProviders()
       expect(mockGet).toHaveBeenCalledWith('/insurance/providers', {
@@ -65,8 +89,15 @@ describe('insurance API', () => {
   describe('createProvider', () => {
     it('posts provider data', async () => {
       mockPost.mockResolvedValue({ data: mockProvider })
-      const result = await createProvider({ name: 'Seguros ABC', code: 'ABC-001', phone: '555-1111' })
-      expect(mockPost).toHaveBeenCalledWith('/insurance/providers', expect.objectContaining({ code: 'ABC-001' }))
+      const result = await createProvider({
+        name: 'Seguros ABC',
+        code: 'ABC-001',
+        phone: '555-1111',
+      })
+      expect(mockPost).toHaveBeenCalledWith(
+        '/insurance/providers',
+        expect.objectContaining({ code: 'ABC-001' }),
+      )
       expect(result.id).toBe('prov-1')
     })
   })
@@ -75,7 +106,10 @@ describe('insurance API', () => {
     it('puts provider data', async () => {
       mockPut.mockResolvedValue({ data: mockProvider })
       await updateProvider('prov-1', { name: 'Seguros ABC', phone: '555-1111', isActive: true })
-      expect(mockPut).toHaveBeenCalledWith('/insurance/providers/prov-1', expect.objectContaining({ name: 'Seguros ABC' }))
+      expect(mockPut).toHaveBeenCalledWith(
+        '/insurance/providers/prov-1',
+        expect.objectContaining({ name: 'Seguros ABC' }),
+      )
     })
   })
 
@@ -92,7 +126,16 @@ describe('insurance API', () => {
   describe('getPolicies', () => {
     it('maps each policy with flat patient+provider fields', async () => {
       mockGet.mockResolvedValueOnce({
-        data: { content: [apiPolicy], totalElements: 1, totalPages: 1, number: 0, size: 20, first: true, last: true, empty: false },
+        data: {
+          content: [apiPolicy],
+          totalElements: 1,
+          totalPages: 1,
+          number: 0,
+          size: 20,
+          first: true,
+          last: true,
+          empty: false,
+        },
       })
 
       const result = await getPolicies()
@@ -107,10 +150,18 @@ describe('insurance API', () => {
       mockPost.mockResolvedValueOnce({ data: apiPolicy })
 
       const result = await createPolicy({
-        patientId: 'p-1', providerId: 'prov-1', policyNumber: 'POL-001',
-        coveragePercentage: 80, deductible: 500, startDate: '2025-01-01', endDate: '2025-12-31',
+        patientId: 'p-1',
+        providerId: 'prov-1',
+        policyNumber: 'POL-001',
+        coveragePercentage: 80,
+        deductible: 500,
+        startDate: '2025-01-01',
+        endDate: '2025-12-31',
       })
-      expect(mockPost).toHaveBeenCalledWith('/insurance/policies', expect.objectContaining({ policyNumber: 'POL-001' }))
+      expect(mockPost).toHaveBeenCalledWith(
+        '/insurance/policies',
+        expect.objectContaining({ policyNumber: 'POL-001' }),
+      )
       expect(result.patientFirstName).toBe('Juan')
     })
   })
@@ -120,7 +171,11 @@ describe('insurance API', () => {
       mockPut.mockResolvedValueOnce({ data: apiPolicy })
 
       const result = await updatePolicy('pol-1', {
-        coveragePercentage: 90, deductible: 300, startDate: '2025-01-01', endDate: '2025-12-31', isActive: true,
+        coveragePercentage: 90,
+        deductible: 300,
+        startDate: '2025-01-01',
+        endDate: '2025-12-31',
+        isActive: true,
       })
       expect(result.providerName).toBe('Seguros ABC')
     })
@@ -131,8 +186,12 @@ describe('insurance adapters', () => {
   describe('toProviderCreateRequest', () => {
     it('trims strings and converts empty optionals to null', () => {
       const values: ProviderFormValues = {
-        name: ' ABC ', code: ' 001 ', phone: ' 555 ', email: ' info@abc.com ',
-        address: ' Address ', isActive: true,
+        name: ' ABC ',
+        code: ' 001 ',
+        phone: ' 555 ',
+        email: ' info@abc.com ',
+        address: ' Address ',
+        isActive: true,
       }
       const result = toProviderCreateRequest(values)
       expect(result.name).toBe('ABC')
@@ -142,7 +201,10 @@ describe('insurance adapters', () => {
 
     it('nullifies empty email and address', () => {
       const values: ProviderFormValues = {
-        name: 'ABC', code: '001', phone: '555', isActive: true,
+        name: 'ABC',
+        code: '001',
+        phone: '555',
+        isActive: true,
       }
       const result = toProviderCreateRequest(values)
       expect(result.email).toBeNull()
@@ -153,7 +215,10 @@ describe('insurance adapters', () => {
   describe('toProviderUpdateRequest', () => {
     it('excludes code, includes isActive', () => {
       const values: ProviderFormValues = {
-        name: 'ABC', code: '001', phone: '555', isActive: true,
+        name: 'ABC',
+        code: '001',
+        phone: '555',
+        isActive: true,
       }
       const result = toProviderUpdateRequest(values, false)
       expect(result.code).toBeUndefined()
@@ -164,8 +229,14 @@ describe('insurance adapters', () => {
   describe('toPolicyRequest', () => {
     it('trims policyNumber and passes other fields', () => {
       const values: PolicyFormValues = {
-        patientId: 'p-1', providerId: 'prov-1', policyNumber: ' POL-001 ',
-        coveragePercentage: 80, deductible: 500, startDate: '2025-01-01', endDate: '2025-12-31', isActive: true,
+        patientId: 'p-1',
+        providerId: 'prov-1',
+        policyNumber: ' POL-001 ',
+        coveragePercentage: 80,
+        deductible: 500,
+        startDate: '2025-01-01',
+        endDate: '2025-12-31',
+        isActive: true,
       }
       const result = toPolicyRequest(values)
       expect(result.policyNumber).toBe('POL-001')
@@ -176,8 +247,14 @@ describe('insurance adapters', () => {
   describe('toPolicyUpdateRequest', () => {
     it('excludes patient/provider/policyNumber', () => {
       const values: PolicyFormValues = {
-        patientId: 'p-1', providerId: 'prov-1', policyNumber: 'POL-001',
-        coveragePercentage: 80, deductible: 500, startDate: '2025-01-01', endDate: '2025-12-31', isActive: true,
+        patientId: 'p-1',
+        providerId: 'prov-1',
+        policyNumber: 'POL-001',
+        coveragePercentage: 80,
+        deductible: 500,
+        startDate: '2025-01-01',
+        endDate: '2025-12-31',
+        isActive: true,
       }
       const result = toPolicyUpdateRequest(values, true)
       expect(result.patientId).toBeUndefined()

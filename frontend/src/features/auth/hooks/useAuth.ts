@@ -2,11 +2,7 @@ import { useMutation } from '@tanstack/react-query'
 import type { AxiosError } from 'axios'
 import { toast } from 'sonner'
 import * as authApi from '../api/authApi'
-import {
-  clearAuthSession,
-  getAuthSessionState,
-  setAuthSession,
-} from '../store/authSessionStore'
+import { clearAuthSession, getAuthSessionState, setAuthSession } from '../store/authSessionStore'
 
 export function useLogin() {
   return useMutation({

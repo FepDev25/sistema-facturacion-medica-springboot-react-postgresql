@@ -58,7 +58,13 @@ describe('InvoiceCoverageBar', () => {
 
   describe('total display', () => {
     it('shows the total formatted as currency in the header', () => {
-      render(<InvoiceCoverageBar total={1250.5} insuranceCoverage={1000} patientResponsibility={250.5} />)
+      render(
+        <InvoiceCoverageBar
+          total={1250.5}
+          insuranceCoverage={1000}
+          patientResponsibility={250.5}
+        />,
+      )
       expect(screen.getByText(/Total/).textContent).toContain('$1,250.50')
     })
 
@@ -70,14 +76,18 @@ describe('InvoiceCoverageBar', () => {
 
   describe('summary cards', () => {
     it('shows insurance percentage and amount in cyan card', () => {
-      render(<InvoiceCoverageBar total={1000} insuranceCoverage={800} patientResponsibility={200} />)
+      render(
+        <InvoiceCoverageBar total={1000} insuranceCoverage={800} patientResponsibility={200} />,
+      )
 
       expect(screen.getByText(/Seguro \(80\.0%\)/)).toBeInTheDocument()
       expect(screen.getByText('$800.00')).toBeInTheDocument()
     })
 
     it('shows patient percentage and amount in slate card', () => {
-      render(<InvoiceCoverageBar total={1000} insuranceCoverage={800} patientResponsibility={200} />)
+      render(
+        <InvoiceCoverageBar total={1000} insuranceCoverage={800} patientResponsibility={200} />,
+      )
 
       expect(screen.getByText(/Paciente \(20\.0%\)/)).toBeInTheDocument()
     })
@@ -98,7 +108,9 @@ describe('InvoiceCoverageBar', () => {
 
     it('hides empty state message when there are amounts', () => {
       render(<InvoiceCoverageBar total={100} insuranceCoverage={80} patientResponsibility={20} />)
-      expect(screen.queryByText('Aun no hay montos para calcular cobertura.')).not.toBeInTheDocument()
+      expect(
+        screen.queryByText('Aun no hay montos para calcular cobertura.'),
+      ).not.toBeInTheDocument()
     })
   })
 

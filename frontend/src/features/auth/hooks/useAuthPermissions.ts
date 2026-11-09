@@ -1,10 +1,5 @@
 import type { AuthRole } from '../api/authApi'
-import {
-  hasAnyRole,
-  hasRole,
-  isAuthenticated,
-  useAuthSession,
-} from '../store/authSessionStore'
+import { hasAnyRole, hasRole, isAuthenticated, useAuthSession } from '../store/authSessionStore'
 
 export function useAuthPermissions() {
   const session = useAuthSession()

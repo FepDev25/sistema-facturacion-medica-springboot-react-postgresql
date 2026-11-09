@@ -8,11 +8,9 @@ describe('getPatientPolicyColumns', () => {
 
   it('has correct accessorKey columns', () => {
     const cols = getPatientPolicyColumns()
-    expect(cols.filter((c) => 'accessorKey' in c).map((c) => (c as { accessorKey: string }).accessorKey)).toEqual([
-      'policyNumber',
-      'providerName',
-      'coveragePercentage',
-    ])
+    expect(
+      cols.filter((c) => 'accessorKey' in c).map((c) => (c as { accessorKey: string }).accessorKey),
+    ).toEqual(['policyNumber', 'providerName', 'coveragePercentage'])
   })
 
   it('has correct id columns', () => {

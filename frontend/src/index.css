@@ -1,7 +1,7 @@
-@import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+@import '@fontsource-variable/geist';
 
 /* Map CSS variables to Tailwind v4 theme utilities */
 @theme inline {
@@ -20,6 +20,12 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -42,8 +48,10 @@
   --radius-xl: calc(var(--radius) + 4px);
   --font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
   /* Elevation utilities: shadow-card / shadow-card-hover */
-  --shadow-card: 0 1px 2px -1px oklch(0.21 0.02 257 / 0.08), 0 1px 3px 0 oklch(0.21 0.02 257 / 0.06);
-  --shadow-card-hover: 0 4px 12px -2px oklch(0.21 0.02 257 / 0.1), 0 2px 6px -2px oklch(0.21 0.02 257 / 0.08);
+  --shadow-card:
+    0 1px 2px -1px oklch(0.21 0.02 257 / 0.08), 0 1px 3px 0 oklch(0.21 0.02 257 / 0.06);
+  --shadow-card-hover:
+    0 4px 12px -2px oklch(0.21 0.02 257 / 0.1), 0 2px 6px -2px oklch(0.21 0.02 257 / 0.08);
 }
 
 @layer base {
@@ -64,6 +72,12 @@
     --accent: oklch(0.967 0.004 247.86);
     --accent-foreground: oklch(0.279 0.02 257);
     --destructive: oklch(0.577 0.245 27.325);
+    --success: oklch(0.45 0.13 155);
+    --success-foreground: oklch(0.985 0 0);
+    --warning: oklch(0.52 0.13 70);
+    --warning-foreground: oklch(0.985 0 0);
+    --info: oklch(0.5 0.14 245);
+    --info-foreground: oklch(0.985 0 0);
     --border: oklch(0.923 0.005 247.86);
     --input: oklch(0.923 0.005 247.86);
     --ring: oklch(0.489 0.177 204.85);
@@ -89,7 +103,9 @@
 
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-feature-settings:
+      'rlig' 1,
+      'calt' 1;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }

@@ -10,14 +10,9 @@ describe('getMedicationColumns', () => {
 
   it('has correct accessorKey columns', () => {
     const cols = getMedicationColumns(opts)
-    expect(cols.filter((c) => 'accessorKey' in c).map((c) => (c as { accessorKey: string }).accessorKey)).toEqual([
-      'code',
-      'name',
-      'unit',
-      'requiresPrescription',
-      'price',
-      'isActive',
-    ])
+    expect(
+      cols.filter((c) => 'accessorKey' in c).map((c) => (c as { accessorKey: string }).accessorKey),
+    ).toEqual(['code', 'name', 'unit', 'requiresPrescription', 'price', 'isActive'])
   })
 
   it('has correct id columns', () => {

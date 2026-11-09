@@ -14,6 +14,6 @@ export function requireAuth(redirectTo: string) {
 export function requireRole(roles: readonly AuthRole[], redirectTo: string) {
   requireAuth(redirectTo)
   if (!hasAnyRole(roles)) {
-    throw redirect({ to: '/' })
+    throw redirect({ to: '/forbidden', search: { from: redirectTo } })
   }
 }

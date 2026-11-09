@@ -130,7 +130,9 @@ export function ExtractionPanel({
       )
     }
     if (failed > 0) {
-      toast.error(`${failed} elemento${failed !== 1 ? 's' : ''} no se pudo${failed !== 1 ? 'eron' : ''} guardar.`)
+      toast.error(
+        `${failed} elemento${failed !== 1 ? 's' : ''} no se pudo${failed !== 1 ? 'eron' : ''} guardar.`,
+      )
     }
 
     setSaving(false)
@@ -176,7 +178,7 @@ export function ExtractionPanel({
                         />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-mono text-sm font-medium text-slate-900">
+                            <span className="font-mono text-sm font-medium text-foreground">
                               {d.icd10Code}
                             </span>
                             {d.severity && (
@@ -185,7 +187,7 @@ export function ExtractionPanel({
                               </Badge>
                             )}
                           </div>
-                          <p className="text-sm text-slate-600 mt-0.5">{d.description}</p>
+                          <p className="text-sm text-muted-foreground mt-0.5">{d.description}</p>
                         </div>
                       </label>
                     ))}
@@ -208,7 +210,7 @@ export function ExtractionPanel({
                           key={i}
                           className={`flex items-start gap-3 rounded-lg border px-3 py-2.5 transition-colors ${
                             disabled
-                              ? 'border-amber-200 bg-amber-50 cursor-not-allowed opacity-70'
+                              ? 'border-warning/25 bg-warning/10 cursor-not-allowed opacity-70'
                               : 'border-border bg-card cursor-pointer hover:bg-muted/40'
                           }`}
                         >
@@ -216,30 +218,33 @@ export function ExtractionPanel({
                             checked={!disabled && selectedPrescriptions.has(i)}
                             disabled={disabled}
                             onCheckedChange={() =>
-                              !disabled && toggle(selectedPrescriptions, setSelectedPrescriptions, i)
+                              !disabled &&
+                              toggle(selectedPrescriptions, setSelectedPrescriptions, i)
                             }
                             className="mt-0.5"
                           />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className="text-sm font-medium text-slate-900">
+                              <span className="text-sm font-medium text-foreground">
                                 {p.medicationName}
                               </span>
                               {disabled && (
                                 <Badge
                                   variant="outline"
-                                  className="text-xs border-amber-300 text-amber-700 flex items-center gap-1"
+                                  className="text-xs border-warning/40 text-warning flex items-center gap-1"
                                 >
                                   <AlertTriangle className="h-3 w-3" />
                                   No en catálogo
                                 </Badge>
                               )}
                             </div>
-                            <p className="text-xs text-slate-500 mt-0.5">
+                            <p className="text-xs text-muted-foreground mt-0.5">
                               {p.dosage} · {p.frequency} · {p.durationDays} días
                             </p>
                             {p.instructions && (
-                              <p className="text-xs text-slate-500 mt-0.5 italic">{p.instructions}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5 italic">
+                                {p.instructions}
+                              </p>
                             )}
                           </div>
                         </label>
@@ -271,13 +276,15 @@ export function ExtractionPanel({
                         />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="font-mono text-sm font-medium text-slate-900">
+                            <span className="font-mono text-sm font-medium text-foreground">
                               {proc.code}
                             </span>
                           </div>
-                          <p className="text-sm text-slate-600 mt-0.5">{proc.description}</p>
+                          <p className="text-sm text-muted-foreground mt-0.5">{proc.description}</p>
                           {proc.notes && (
-                            <p className="text-xs text-slate-500 mt-0.5 italic">{proc.notes}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5 italic">
+                              {proc.notes}
+                            </p>
                           )}
                         </div>
                       </label>

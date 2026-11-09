@@ -97,10 +97,8 @@ export function PatientHistoryChat({ patientId }: PatientHistoryChatProps) {
               </div>
 
               <div className="rounded-xl rounded-tl-sm border border-border bg-muted/40 px-4 py-3">
-                <div className="text-sm leading-relaxed [&_p]:mb-2 [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:pl-4 [&_ul]:mb-2 [&_ul]:space-y-0.5 [&_ol]:list-decimal [&_ol]:pl-4 [&_ol]:mb-2 [&_ol]:space-y-0.5 [&_li]:text-slate-700 [&_h2]:font-semibold [&_h2]:text-slate-900 [&_h2]:mt-3 [&_h2]:mb-1 [&_h3]:font-medium [&_h3]:text-slate-800 [&_h3]:mt-2 [&_h3]:mb-1 [&_strong]:font-semibold [&_strong]:text-slate-900 text-slate-700">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {entry.answer.answer}
-                  </ReactMarkdown>
+                <div className="text-sm leading-relaxed [&_p]:mb-2 [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ul]:pl-4 [&_ul]:mb-2 [&_ul]:space-y-0.5 [&_ol]:list-decimal [&_ol]:pl-4 [&_ol]:mb-2 [&_ol]:space-y-0.5 [&_li]:text-foreground [&_h2]:font-semibold [&_h2]:text-foreground [&_h2]:mt-3 [&_h2]:mb-1 [&_h3]:font-medium [&_h3]:text-foreground [&_h3]:mt-2 [&_h3]:mb-1 [&_strong]:font-semibold [&_strong]:text-foreground text-foreground">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{entry.answer.answer}</ReactMarkdown>
                 </div>
 
                 {entry.answer.sources.length > 0 && (
@@ -111,7 +109,7 @@ export function PatientHistoryChat({ patientId }: PatientHistoryChatProps) {
                         key={source.medicalRecordId}
                         to="/medical-records/$id"
                         params={{ id: source.medicalRecordId }}
-                        className="text-xs rounded-full border border-blue-200 bg-blue-50 text-blue-700 px-2.5 py-0.5 hover:bg-blue-100 transition-colors"
+                        className="text-xs rounded-full border border-info/25 bg-info/10 text-info px-2.5 py-0.5 hover:bg-info/15 transition-colors"
                       >
                         Exp. {formatDate(source.recordDate)}
                       </Link>
@@ -167,7 +165,9 @@ export function PatientHistoryChat({ patientId }: PatientHistoryChatProps) {
           <Send className="h-4 w-4" />
         </Button>
       </div>
-      <p className="text-xs text-muted-foreground mt-1.5">Enter para enviar · Shift+Enter para salto de línea</p>
+      <p className="text-xs text-muted-foreground mt-1.5">
+        Enter para enviar · Shift+Enter para salto de línea
+      </p>
     </section>
   )
 }

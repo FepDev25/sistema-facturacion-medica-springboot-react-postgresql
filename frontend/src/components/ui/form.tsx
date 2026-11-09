@@ -18,9 +18,7 @@ type FormFieldContextValue<
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
 > = { name: TName }
 
-const FormFieldContext = React.createContext<FormFieldContextValue>(
-  {} as FormFieldContextValue,
-)
+const FormFieldContext = React.createContext<FormFieldContextValue>({} as FormFieldContextValue)
 
 function FormField<
   TFieldValues extends FieldValues = FieldValues,
@@ -56,9 +54,7 @@ function useFormField() {
 }
 
 type FormItemContextValue = { id: string }
-const FormItemContext = React.createContext<FormItemContextValue>(
-  {} as FormItemContextValue,
-)
+const FormItemContext = React.createContext<FormItemContextValue>({} as FormItemContextValue)
 
 function FormItem({ className, ...props }: React.ComponentProps<'div'>) {
   const id = React.useId()
@@ -72,11 +68,7 @@ function FormItem({ className, ...props }: React.ComponentProps<'div'>) {
 function FormLabel({ className, ...props }: React.ComponentProps<typeof Label>) {
   const { error, formItemId } = useFormField()
   return (
-    <Label
-      className={cn(error && 'text-destructive', className)}
-      htmlFor={formItemId}
-      {...props}
-    />
+    <Label className={cn(error && 'text-destructive', className)} htmlFor={formItemId} {...props} />
   )
 }
 
@@ -85,9 +77,7 @@ function FormControl({ ...props }: React.ComponentProps<typeof Slot>) {
   return (
     <Slot
       id={formItemId}
-      aria-describedby={
-        !error ? formDescriptionId : `${formDescriptionId} ${formMessageId}`
-      }
+      aria-describedby={!error ? formDescriptionId : `${formDescriptionId} ${formMessageId}`}
       aria-invalid={!!error}
       {...props}
     />
@@ -122,12 +112,4 @@ function FormMessage({ className, ...props }: React.ComponentProps<'p'>) {
   )
 }
 
-export {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-}
+export { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage }
