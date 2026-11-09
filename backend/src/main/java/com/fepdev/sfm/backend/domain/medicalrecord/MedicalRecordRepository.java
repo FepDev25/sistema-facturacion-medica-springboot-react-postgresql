@@ -28,7 +28,8 @@ public interface MedicalRecordRepository extends JpaRepository<MedicalRecord, UU
     @Query("SELECT m FROM MedicalRecord m JOIN FETCH m.patient WHERE m.patient.id = :patientId ORDER BY m.recordDate DESC")
     List<MedicalRecord> findByPatientIdEager(@Param("patientId") UUID patientId);
 
-    long countByPatientId(UUID patientId);
+    @Query("SELECT COUNT(mr) FROM MedicalRecord mr WHERE mr.patient.id = :patientId")
+    long countByPatientId(@Param("patientId") UUID patientId);
 
     @Query("SELECT m FROM MedicalRecord m JOIN FETCH m.patient WHERE m.id = :id")
     Optional<MedicalRecord> findByIdWithPatient(@Param("id") UUID id);

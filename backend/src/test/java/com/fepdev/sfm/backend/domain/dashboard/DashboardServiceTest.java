@@ -54,7 +54,7 @@ class DashboardServiceTest {
         OffsetDateTime now = OffsetDateTime.parse("2026-11-08T10:30:00-05:00");
 
         when(patientRepository.count()).thenReturn(42L);
-        when(doctorRepository.countByIsActiveTrue()).thenReturn(5L);
+        when(doctorRepository.countActiveDoctors()).thenReturn(5L);
         when(appointmentRepository.countByStatusInAndScheduledAtBetween(
                 eq(List.of(Status.SCHEDULED, Status.CONFIRMED, Status.IN_PROGRESS)),
                 eq(startOfDay), eq(startOfTomorrow))).thenReturn(3L);

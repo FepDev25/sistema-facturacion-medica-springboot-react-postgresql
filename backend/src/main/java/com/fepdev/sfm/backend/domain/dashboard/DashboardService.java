@@ -63,7 +63,7 @@ public class DashboardService {
 
         return new DashboardMetricsResponse(
                 patientRepository.count(),
-                doctorRepository.countByIsActiveTrue(),
+                doctorRepository.countActiveDoctors(),
                 appointmentRepository.countByStatusInAndScheduledAtBetween(
                         AGENDA_STATUSES, startOfDay, startOfTomorrow),
                 appointmentRepository.countUpcomingByStatusIn(
