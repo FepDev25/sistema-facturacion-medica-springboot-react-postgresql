@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fepdev.sfm.backend.ai.history.dto.PatientHistoryAnswer;
 import com.fepdev.sfm.backend.ai.history.dto.PatientHistoryQuery;
+import com.fepdev.sfm.backend.ai.history.dto.ReindexResponse;
 
 import jakarta.validation.Valid;
 
@@ -29,5 +30,10 @@ public class AiPatientHistoryController {
             @PathVariable UUID patientId,
             @Valid @RequestBody PatientHistoryQuery request) {
         return ResponseEntity.ok(queryService.query(patientId, request.question()));
+    }
+
+    @PostMapping("/{patientId}/reindex")
+    public ResponseEntity<ReindexResponse> reindex(@PathVariable UUID patientId) {
+        return ResponseEntity.ok(queryService.reindex(patientId));
     }
 }

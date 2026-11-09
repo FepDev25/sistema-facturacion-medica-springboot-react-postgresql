@@ -47,4 +47,12 @@ class AiIcd10ControllerWebMvcTest {
                 .andExpect(jsonPath("$.suggestions[0].code").value("I10"))
                 .andExpect(jsonPath("$.suggestions[0].description").value("Hipertension esencial"));
     }
+
+    @Test
+    void suggest_whenQueryExceedsLimit_returns400() throws Exception {
+        mockMvc.perform(post("/api/v1/ai/icd10/suggest")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"query\":\"" + "x".repeat(501) + "\"}"))
+                .andExpect(status().isBadRequest());
+    }
 }

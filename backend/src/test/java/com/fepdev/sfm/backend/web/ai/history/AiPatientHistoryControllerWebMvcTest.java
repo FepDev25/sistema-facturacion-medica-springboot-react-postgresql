@@ -21,6 +21,7 @@ import com.fepdev.sfm.backend.ai.history.AiPatientHistoryController;
 import com.fepdev.sfm.backend.ai.history.PatientHistoryQueryService;
 import com.fepdev.sfm.backend.ai.history.dto.HistorySource;
 import com.fepdev.sfm.backend.ai.history.dto.PatientHistoryAnswer;
+import com.fepdev.sfm.backend.ai.history.dto.ReindexResponse;
 import com.fepdev.sfm.backend.security.JwtAuthenticationFilter;
 import com.fepdev.sfm.backend.shared.exception.HandlerException;
 
@@ -48,5 +49,26 @@ class AiPatientHistoryControllerWebMvcTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.answer").value("El paciente tiene hipertension"))
                 .andExpect(jsonPath("$.sources").isArray());
+    }
+
+    @Test
+    void query_whenQuestionExceedsLimit_returns400() throws Exception {
+        UUID patientId = UUID.randomUUID();
+
+        mockMvc.perform(post("/api/v1/ai/patients/{patientId}/query", patientId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"question\":\"" + "x".repeat(501) + "\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void reindex_returns200WithIndexedCount() throws Exception {
+        UUID patientId = UUID.randomUUID();
+        when(queryService.reindex(patientId)).thenReturn(new ReindexResponse(patientId, 3));
+
+        mockMvc.perform(post("/api/v1/ai/patients/{patientId}/reindex", patientId))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.patientId").value(patientId.toString()))
+                .andExpect(jsonPath("$.recordsIndexed").value(3));
     }
 }

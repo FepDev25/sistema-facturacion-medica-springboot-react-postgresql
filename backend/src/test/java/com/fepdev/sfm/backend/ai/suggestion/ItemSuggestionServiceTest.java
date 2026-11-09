@@ -15,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.fepdev.sfm.backend.domain.invoice.Invoice;
 import com.fepdev.sfm.backend.domain.invoice.InvoiceRepository;
+import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -22,6 +23,7 @@ import jakarta.persistence.EntityNotFoundException;
 class ItemSuggestionServiceTest {
 
     @Mock org.springframework.ai.chat.client.ChatClient chatClient;
+    @Mock com.fepdev.sfm.backend.ai.guard.AiCallExecutor aiCallExecutor;
     @Mock InvoiceRepository invoiceRepo;
     @Mock com.fepdev.sfm.backend.domain.medicalrecord.MedicalRecordRepository medicalRecordRepo;
     @Mock com.fepdev.sfm.backend.domain.medicalrecord.DiagnosisRepository diagnosisRepo;
@@ -41,5 +43,17 @@ class ItemSuggestionServiceTest {
         assertThatThrownBy(() -> service.suggestItems(invoiceId))
                 .isInstanceOf(EntityNotFoundException.class)
                 .hasMessageContaining("Factura no encontrada");
+    }
+
+    @Test
+    void suggestItems_whenInvoiceHasNoAppointment_throwsBusinessRuleException() {
+        UUID invoiceId = UUID.randomUUID();
+        Invoice invoice = new Invoice();
+        invoice.setAppointment(null);
+        when(invoiceRepo.findById(invoiceId)).thenReturn(Optional.of(invoice));
+
+        assertThatThrownBy(() -> service.suggestItems(invoiceId))
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("no tiene una cita asociada");
     }
 }

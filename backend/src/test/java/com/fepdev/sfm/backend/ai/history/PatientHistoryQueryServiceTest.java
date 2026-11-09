@@ -22,12 +22,13 @@ class PatientHistoryQueryServiceTest {
 
     @Mock org.springframework.ai.vectorstore.VectorStore vectorStore;
     @Mock org.springframework.ai.chat.client.ChatClient chatClient;
+    @Mock com.fepdev.sfm.backend.ai.guard.AiCallExecutor aiCallExecutor;
     @Mock PatientHistoryIndexer indexer;
     @Mock PatientRepository patientRepository;
     @Mock MedicalRecordRepository medicalRecordRepository;
 
     private PatientHistoryQueryService buildService() {
-        return new PatientHistoryQueryService(vectorStore, chatClient, indexer,
+        return new PatientHistoryQueryService(vectorStore, chatClient, aiCallExecutor, indexer,
                 patientRepository, medicalRecordRepository);
     }
 

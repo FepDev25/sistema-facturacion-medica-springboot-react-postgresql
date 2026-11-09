@@ -1868,6 +1868,32 @@ paths:
         '401': { $ref: '#/components/responses/UnauthorizedError' }
         '404': { $ref: '#/components/responses/NotFoundError' }
 
+  /api/v1/ai/patients/{patientId}/reindex:
+    post:
+      tags: [AI]
+      operationId: ai_patients_reindex
+      summary: Reparar el indice de historial de un paciente (solo ADMIN)
+      description: |
+        Reindexa todos los expedientes del paciente y elimina documentos huerfanos.
+        Es una operacion de mantenimiento para indices parciales.
+      parameters:
+        - name: patientId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Reindexacion completada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReindexResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+
   /api/v1/dashboard/metrics:
     get:
       tags: [Dashboard]
@@ -2202,6 +2228,12 @@ components:
           type: number
           exclusiveMinimum: 0
           nullable: true
+
+    ReindexResponse:
+      type: object
+      properties:
+        patientId: { type: string, format: uuid }
+        recordsIndexed: { type: integer }
 
     DashboardMetricsResponse:
       type: object

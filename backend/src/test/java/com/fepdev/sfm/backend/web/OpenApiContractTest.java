@@ -48,7 +48,8 @@ class OpenApiContractTest {
                 "/api/v1/ai/records/extract",
                 "/api/v1/ai/invoices/{id}/suggest-items",
                 "/api/v1/ai/icd10/suggest",
-                "/api/v1/ai/patients/{patientId}/query");
+                "/api/v1/ai/patients/{patientId}/query",
+                "/api/v1/ai/patients/{patientId}/reindex");
 
         operation("/api/v1/dashboard/metrics", "get");
         operation("/api/v1/invoices/{id}/items", "post");
@@ -56,6 +57,7 @@ class OpenApiContractTest {
         operation("/api/v1/ai/invoices/{id}/suggest-items", "post");
         operation("/api/v1/ai/icd10/suggest", "post");
         operation("/api/v1/ai/patients/{patientId}/query", "post");
+        operation("/api/v1/ai/patients/{patientId}/reindex", "post");
     }
 
     @Test

@@ -15,6 +15,7 @@ class RecordExtractionServiceTest {
 
     @Mock org.springframework.ai.chat.client.ChatClient chatClient;
     @Mock com.fepdev.sfm.backend.domain.catalog.MedicationsCatalogRepository medicationsRepo;
+    @Mock com.fepdev.sfm.backend.ai.guard.AiCallExecutor aiCallExecutor;
 
     @InjectMocks
     RecordExtractionService service;

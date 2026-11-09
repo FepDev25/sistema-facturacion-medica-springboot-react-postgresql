@@ -10,8 +10,10 @@ import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Service;
 
+import com.fepdev.sfm.backend.ai.guard.AiCallExecutor;
 import com.fepdev.sfm.backend.ai.history.dto.HistorySource;
 import com.fepdev.sfm.backend.ai.history.dto.PatientHistoryAnswer;
+import com.fepdev.sfm.backend.ai.history.dto.ReindexResponse;
 import com.fepdev.sfm.backend.domain.medicalrecord.MedicalRecordRepository;
 import com.fepdev.sfm.backend.domain.patient.PatientRepository;
 
@@ -83,15 +85,18 @@ public class PatientHistoryQueryService {
 
     private final VectorStore vectorStore;
     private final ChatClient chatClient;
+    private final AiCallExecutor aiCallExecutor;
     private final PatientHistoryIndexer indexer;
     private final PatientRepository patientRepository;
     private final MedicalRecordRepository medicalRecordRepository;
 
     public PatientHistoryQueryService(VectorStore vectorStore, ChatClient chatClient,
-            PatientHistoryIndexer indexer, PatientRepository patientRepository,
+            AiCallExecutor aiCallExecutor, PatientHistoryIndexer indexer,
+            PatientRepository patientRepository,
             MedicalRecordRepository medicalRecordRepository) {
         this.vectorStore = vectorStore;
         this.chatClient = chatClient;
+        this.aiCallExecutor = aiCallExecutor;
         this.indexer = indexer;
         this.patientRepository = patientRepository;
         this.medicalRecordRepository = medicalRecordRepository;
@@ -102,13 +107,23 @@ public class PatientHistoryQueryService {
             throw new EntityNotFoundException("Paciente con ID " + patientId + " no encontrado");
         }
 
-        if (!indexer.isPatientIndexed(patientId)) {
+        if (!indexer.isPatientFullyIndexed(patientId)) {
             indexer.indexPatient(patientId);
         }
 
         return isSummaryQuery(question)
                 ? queryWithStructuredContext(patientId, question)
                 : queryWithVectorSearch(patientId, question);
+    }
+
+    // Reparación manual del índice de un paciente (ADMIN). Reindexa todos sus expedientes
+    // y elimina documentos huérfanos.
+    public ReindexResponse reindex(UUID patientId) {
+        if (!patientRepository.existsById(patientId)) {
+            throw new EntityNotFoundException("Paciente con ID " + patientId + " no encontrado");
+        }
+        int indexed = indexer.indexPatient(patientId);
+        return new ReindexResponse(patientId, indexed);
     }
 
     // Ruta A: vector search con topK dinámico según tamaño del historial indexado.
@@ -132,7 +147,7 @@ public class PatientHistoryQueryService {
                 .map(doc -> "--- Expediente del " + doc.getMetadata().get("recordDate") + " ---\n" + doc.getText())
                 .reduce("", (a, b) -> a.isEmpty() ? b : a + "\n\n" + b);
 
-        String answer = chatClient.prompt()
+        String answer = aiCallExecutor.call("history-vector", () -> chatClient.prompt()
                 .system(SYSTEM_PROMPT)
                 .user("""
                         Historial del paciente (expedientes clínicos):
@@ -142,7 +157,7 @@ public class PatientHistoryQueryService {
                         Pregunta: %s
                         """.formatted(context, question))
                 .call()
-                .content();
+                .content());
 
         List<HistorySource> sources = retrieved.stream()
                 .map(doc -> new HistorySource(
@@ -164,7 +179,7 @@ public class PatientHistoryQueryService {
                     List.of());
         }
 
-        String answer = chatClient.prompt()
+        String answer = aiCallExecutor.call("history-summary", () -> chatClient.prompt()
                 .system(SYSTEM_PROMPT)
                 .user("""
                         Historial del paciente (resumen completo desde base de datos):
@@ -174,7 +189,7 @@ public class PatientHistoryQueryService {
                         Pregunta: %s
                         """.formatted(context, question))
                 .call()
-                .content();
+                .content());
 
         // Las fuentes son los expedientes más recientes del paciente
         List<HistorySource> sources = medicalRecordRepository

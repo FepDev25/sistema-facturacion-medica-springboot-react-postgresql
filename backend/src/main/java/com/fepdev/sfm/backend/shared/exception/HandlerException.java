@@ -61,6 +61,20 @@ public class HandlerException {
         return buildErrorResponse(HttpStatus.FORBIDDEN, "No tienes los permisos necesarios para realizar esta acción.", request.getRequestURI());
     }
 
+    // limite de solicitudes de IA excedido: 429 too many requests
+    @ExceptionHandler(com.fepdev.sfm.backend.ai.guard.AiRateLimitExceededException.class)
+    public ResponseEntity<ErrorResponse> handleAiRateLimit(
+            com.fepdev.sfm.backend.ai.guard.AiRateLimitExceededException ex, HttpServletRequest request) {
+        return buildErrorResponse(HttpStatus.TOO_MANY_REQUESTS, ex.getMessage(), request.getRequestURI());
+    }
+
+    // el proveedor de IA fallo o excedio el timeout: 503 service unavailable
+    @ExceptionHandler(com.fepdev.sfm.backend.ai.guard.AiUnavailableException.class)
+    public ResponseEntity<ErrorResponse> handleAiUnavailable(
+            com.fepdev.sfm.backend.ai.guard.AiUnavailableException ex, HttpServletRequest request) {
+        return buildErrorResponse(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage(), request.getRequestURI());
+    }
+
     // metodo privado reutilizable para construir la respuesta de los errores
     private ResponseEntity<ErrorResponse> buildErrorResponse(HttpStatus status, String message, String path){
         ErrorResponse errorResponse = new ErrorResponse(
