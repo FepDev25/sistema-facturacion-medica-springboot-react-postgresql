@@ -52,6 +52,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          gh label create incident --color B60205 --description "Incidente de producción" || true
+
           title="[uptime] Producción no responde"
           body="El chequeo automático falló el $(date -u '+%Y-%m-%d %H:%M UTC').
 
@@ -73,7 +75,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh issue list --state open --label incident --search 'in:title "[uptime]"' --json number -q '.[].number' \
+          { gh issue list --state open --label incident --search 'in:title "[uptime]"' --json number -q '.[].number' 2>/dev/null || true; } \
             | while read -r number; do
                 [ -n "$number" ] || continue
                 gh issue close "$number" --comment "Producción volvió a responder al chequeo automático."
