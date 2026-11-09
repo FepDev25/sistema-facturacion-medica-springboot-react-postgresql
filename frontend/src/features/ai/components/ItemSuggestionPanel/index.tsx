@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { AlertTriangle, CheckCircle2, Loader2, Plus } from 'lucide-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -50,11 +50,6 @@ export function ItemSuggestionPanel({
   const qc = useQueryClient()
   const [addedIndices, setAddedIndices] = useState<Set<number>>(new Set())
   const [pendingIndices, setPendingIndices] = useState<Set<number>>(new Set())
-
-  useEffect(() => {
-    setAddedIndices(new Set())
-    setPendingIndices(new Set())
-  }, [result])
 
   async function handleAdd(item: SuggestedItem, i: number) {
     if (!item.matchedCatalogId || item.unitPrice === null) return

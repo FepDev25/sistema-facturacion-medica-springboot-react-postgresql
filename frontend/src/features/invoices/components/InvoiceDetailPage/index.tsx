@@ -466,6 +466,7 @@ export function InvoiceDetailPage() {
 
       {suggestItems.data && (
         <ItemSuggestionPanel
+          key={String(suggestionsOpen)}
           invoiceId={invoice.id}
           result={suggestItems.data}
           open={suggestionsOpen}
