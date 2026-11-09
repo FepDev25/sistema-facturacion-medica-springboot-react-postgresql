@@ -12,26 +12,26 @@ Resultado de referencia mas reciente:
 
 - Comando: `./mvnw clean verify`
 - Resultado: `BUILD SUCCESS`
-- Totales: `Tests run: 316, Failures: 0, Errors: 0, Skipped: 0`
+- Totales: `Tests run: 425, Failures: 0, Errors: 0, Skipped: 0`
 - JaCoCo: `All coverage checks have been met`
-- Cobertura global (bundle): lineas `89.89%` y ramas `74.55%`
+- Cobertura global (bundle): lineas `82.18%` y ramas `66.83%`
 
 ### Tabla resumen de cobertura por modulo
 
 | Modulo | Paquete | Cobertura lineas | Cobertura ramas |
 |---|---|---:|---:|
 | Security | `com.fepdev.sfm.backend.security` | `100.00%` | `75.00%` |
-| Appointment | `com.fepdev.sfm.backend.domain.appointment` | `96.68%` | `95.00%` |
-| Invoice | `com.fepdev.sfm.backend.domain.invoice` | `95.81%` | `82.64%` |
-| Payment | `com.fepdev.sfm.backend.domain.payment` | `100.00%` | `100.00%` |
-| Insurance | `com.fepdev.sfm.backend.domain.insurance` | `82.81%` | `67.50%` |
-| Patient | `com.fepdev.sfm.backend.domain.patient` | `81.53%` | `72.00%` |
-| Doctor | `com.fepdev.sfm.backend.domain.doctor` | `83.06%` | `87.50%` |
-| Catalog | `com.fepdev.sfm.backend.domain.catalog` | `89.38%` | `60.87%` |
-| Medical Record | `com.fepdev.sfm.backend.domain.medicalrecord` | `89.12%` | `66.00%` |
-| Shared Audit | `com.fepdev.sfm.backend.shared.audit` | `64.20%` | `25.00%` |
+| Appointment | `com.fepdev.sfm.backend.domain.appointment` | `93.63%` | `85.53%` |
+| Invoice | `com.fepdev.sfm.backend.domain.invoice` | `96.19%` | `86.39%` |
+| Payment | `com.fepdev.sfm.backend.domain.payment` | `99.04%` | `93.33%` |
+| Insurance | `com.fepdev.sfm.backend.domain.insurance` | `81.85%` | `65.85%` |
+| Patient | `com.fepdev.sfm.backend.domain.patient` | `79.14%` | `66.67%` |
+| Doctor | `com.fepdev.sfm.backend.domain.doctor` | `75.82%` | `66.67%` |
+| Catalog | `com.fepdev.sfm.backend.domain.catalog` | `89.42%` | `60.64%` |
+| Medical Record | `com.fepdev.sfm.backend.domain.medicalrecord` | `89.41%` | `66.00%` |
+| Shared Audit | `com.fepdev.sfm.backend.shared.audit` | `100.00%` | `75.00%` |
 | Config | `com.fepdev.sfm.backend.config` | `100.00%` | `0.00%` |
-| Auth | `com.fepdev.sfm.backend.domain.auth` | `97.14%` | `83.33%` |
+| Auth | `com.fepdev.sfm.backend.domain.auth` | `97.67%` | `80.00%` |
 
 Fuente: `target/site/jacoco/jacoco.csv` de la ultima ejecucion `./mvnw clean verify`.
 

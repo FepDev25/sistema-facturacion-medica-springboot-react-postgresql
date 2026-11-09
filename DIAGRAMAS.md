@@ -90,8 +90,8 @@ graph TB
 
     subgraph "Infraestructura AI"
         EMB["Google AI Studio<br/>gemini-embedding-001 768d"]
-        VEC["pgvector — HNSW<br/>14 268 códigos ICD-10<br/>+ expedientes de pacientes"]
-        LLM["Claude claude-sonnet-4-6"]
+        VEC["pgvector — HNSW<br/>14 208 códigos ICD-10<br/>+ expedientes de pacientes"]
+        LLM["Claude claude-haiku-4-5-20251001"]
     end
 
     P1 --> RAG
@@ -159,7 +159,7 @@ graph LR
     Q["Pregunta del médico"] --> CLS["Clasificación de intención<br/>44 patrones · Unicode NFD"]
     CLS -->|"query específica<br/>(condición, medicamento, fecha)"| VA["Ruta A — Vector Search<br/>topK dinámico: ≤8 → 6, 9-15 → 10, >15 → 15"]
     CLS -->|"resumen o listado<br/>completo"| VB["Ruta B — Contexto estructurado BD<br/>bypass vector store, cobertura total"]
-    VA & VB --> C["Claude claude-sonnet-4-6<br/>responde basado en expediente"]
+    VA & VB --> C["Claude claude-haiku-4-5-20251001<br/>responde basado en expediente"]
     C --> R["Respuesta + fuentes<br/>(chips → navegan al expediente)"]
 ```
 

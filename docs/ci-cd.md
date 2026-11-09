@@ -21,7 +21,7 @@ El workflow vive en
 
 Se ejecutan dos jobs en paralelo:
 
-- **Backend**: `./mvnw -B -ntp verify`. Corre los 412 tests, incluidos los de
+- **Backend**: `./mvnw -B -ntp verify`. Corre los 425 tests, incluidos los de
   Testcontainers, y aplica el gate de JaCoCo.
 - **Frontend**: `npm ci`, `npm run lint`, `npm run test:coverage` y
   `npm run build`.
