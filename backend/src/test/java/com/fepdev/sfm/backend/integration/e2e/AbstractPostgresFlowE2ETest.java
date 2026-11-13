@@ -1,20 +1,5 @@
 package com.fepdev.sfm.backend.integration.e2e;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.OffsetDateTime;
-import java.util.UUID;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-
 import com.fepdev.sfm.backend.domain.appointment.Appointment;
 import com.fepdev.sfm.backend.domain.appointment.AppointmentRepository;
 import com.fepdev.sfm.backend.domain.appointment.AppointmentService;
@@ -46,8 +31,20 @@ import com.fepdev.sfm.backend.domain.patient.PatientRepository;
 import com.fepdev.sfm.backend.domain.payment.PaymentRepository;
 import com.fepdev.sfm.backend.domain.payment.PaymentService;
 import com.fepdev.sfm.backend.support.DockerTestSupport;
-
 import jakarta.persistence.EntityManager;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.util.UUID;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest
 @Testcontainers
@@ -186,8 +183,15 @@ public abstract class AbstractPostgresFlowE2ETest {
         return insuranceProviderRepository.save(provider);
     }
 
-    protected InsurancePolicy createInsurancePolicy(Patient patient, InsuranceProvider provider, boolean active,
-            LocalDate startDate, LocalDate endDate, BigDecimal coveragePercentage, BigDecimal deductible, String key) {
+    protected InsurancePolicy createInsurancePolicy(
+            Patient patient,
+            InsuranceProvider provider,
+            boolean active,
+            LocalDate startDate,
+            LocalDate endDate,
+            BigDecimal coveragePercentage,
+            BigDecimal deductible,
+            String key) {
         InsurancePolicy policy = new InsurancePolicy();
         policy.setPatient(patient);
         policy.setProvider(provider);
@@ -201,28 +205,25 @@ public abstract class AbstractPostgresFlowE2ETest {
     }
 
     protected AppointmentResponse createAndCompleteAppointment(Patient patient, Doctor doctor) {
-        return createAndCompleteAppointment(patient, doctor,
-                OffsetDateTime.now().plusDays(1).withSecond(0).withNano(0));
+        return createAndCompleteAppointment(
+                patient, doctor, OffsetDateTime.now().plusDays(1).withSecond(0).withNano(0));
     }
 
-    protected AppointmentResponse createAndCompleteAppointment(Patient patient, Doctor doctor,
-            OffsetDateTime scheduledAt) {
+    protected AppointmentResponse createAndCompleteAppointment(
+            Patient patient, Doctor doctor, OffsetDateTime scheduledAt) {
         AppointmentResponse created = appointmentService.createAppointment(new AppointmentCreateRequest(
-                patient.getId(),
-                doctor.getId(),
-                scheduledAt,
-                30,
-                "Control general",
-                "Notas E2E"));
+                patient.getId(), doctor.getId(), scheduledAt, 30, "Control general", "Notas E2E"));
         appointmentService.confirmAppointment(created.id());
         appointmentService.startAppointment(created.id());
-        appointmentService.completeAppointment(created.id(), new MedicalRecordCreateRequest(
-                patient.getId(),
+        appointmentService.completeAppointment(
                 created.id(),
-                null,
-                "Sin hallazgos relevantes",
-                "Evolucion favorable",
-                OffsetDateTime.now()));
+                new MedicalRecordCreateRequest(
+                        patient.getId(),
+                        created.id(),
+                        null,
+                        "Sin hallazgos relevantes",
+                        "Evolucion favorable",
+                        OffsetDateTime.now()));
 
         return appointmentService.getAppointmentById(created.id());
     }
@@ -239,8 +240,8 @@ public abstract class AbstractPostgresFlowE2ETest {
     }
 
     protected Invoice getInvoiceByAppointmentId(UUID appointmentId) {
-        return entityManager.createQuery(
-                        "SELECT i FROM Invoice i WHERE i.appointment.id = :appointmentId", Invoice.class)
+        return entityManager
+                .createQuery("SELECT i FROM Invoice i WHERE i.appointment.id = :appointmentId", Invoice.class)
                 .setParameter("appointmentId", appointmentId)
                 .getSingleResult();
     }
@@ -257,8 +258,8 @@ public abstract class AbstractPostgresFlowE2ETest {
         return invoiceRepository.findById(invoiceId).orElseThrow();
     }
 
-    protected Prescription createPrescription(Appointment appointment, MedicalRecord medicalRecord,
-            MedicationsCatalog medication, String key) {
+    protected Prescription createPrescription(
+            Appointment appointment, MedicalRecord medicalRecord, MedicationsCatalog medication, String key) {
         Prescription prescription = new Prescription();
         prescription.setAppointment(appointment);
         prescription.setMedicalRecord(medicalRecord);

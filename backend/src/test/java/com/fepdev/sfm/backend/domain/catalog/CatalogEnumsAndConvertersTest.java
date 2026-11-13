@@ -16,7 +16,8 @@ class CatalogEnumsAndConvertersTest {
         assertThat(CatalogType.fromJson("medication")).isEqualTo(CatalogType.MEDICATION);
         assertThat(CatalogType.fromJson(null)).isNull();
 
-        assertThat(catalogTypeConverter.convertToDatabaseColumn(CatalogType.MEDICATION)).isEqualTo("medication");
+        assertThat(catalogTypeConverter.convertToDatabaseColumn(CatalogType.MEDICATION))
+                .isEqualTo("medication");
         assertThat(catalogTypeConverter.convertToDatabaseColumn(null)).isNull();
         assertThat(catalogTypeConverter.convertToEntityAttribute("service")).isEqualTo(CatalogType.SERVICE);
         assertThat(catalogTypeConverter.convertToEntityAttribute(null)).isNull();

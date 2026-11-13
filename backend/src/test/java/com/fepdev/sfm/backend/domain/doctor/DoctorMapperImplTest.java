@@ -2,14 +2,12 @@ package com.fepdev.sfm.backend.domain.doctor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.List;
-import java.util.UUID;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
-
 import com.fepdev.sfm.backend.domain.doctor.dto.DoctorCreateRequest;
 import com.fepdev.sfm.backend.domain.doctor.dto.DoctorUpdateRequest;
+import java.util.List;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 class DoctorMapperImplTest {
 
@@ -17,8 +15,8 @@ class DoctorMapperImplTest {
 
     @Test
     void toEntity_toResponse_and_listMappings_mapExpectedFields() {
-        DoctorCreateRequest create = new DoctorCreateRequest(
-                "LIC-001", "Ana", "Lopez", "Cardiologia", "555", "ana@x.com", null);
+        DoctorCreateRequest create =
+                new DoctorCreateRequest("LIC-001", "Ana", "Lopez", "Cardiologia", "555", "ana@x.com", null);
 
         Doctor entity = mapper.toEntity(create);
         ReflectionTestUtils.setField(entity, "id", UUID.randomUUID());

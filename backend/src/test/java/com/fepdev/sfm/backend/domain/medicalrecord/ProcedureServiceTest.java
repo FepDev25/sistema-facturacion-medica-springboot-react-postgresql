@@ -5,10 +5,15 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fepdev.sfm.backend.ai.history.PatientHistoryIndexer;
+import com.fepdev.sfm.backend.domain.appointment.Appointment;
+import com.fepdev.sfm.backend.domain.medicalrecord.dto.ProcedureCreateRequest;
+import com.fepdev.sfm.backend.domain.medicalrecord.dto.ProcedureResponse;
+import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
+import jakarta.persistence.EntityNotFoundException;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -17,14 +22,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import com.fepdev.sfm.backend.domain.appointment.Appointment;
-import com.fepdev.sfm.backend.domain.medicalrecord.dto.ProcedureCreateRequest;
-import com.fepdev.sfm.backend.domain.medicalrecord.dto.ProcedureResponse;
-import com.fepdev.sfm.backend.ai.history.PatientHistoryIndexer;
-import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
-
-import jakarta.persistence.EntityNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
 class ProcedureServiceTest {
@@ -50,8 +47,7 @@ class ProcedureServiceTest {
                 UUID.randomUUID(), UUID.randomUUID(), "PROC-1", "Lavado", null, OffsetDateTime.now());
         when(medicalRecordRepository.findById(request.medicalRecordId())).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> procedureService.createProcedure(request))
-                .isInstanceOf(EntityNotFoundException.class);
+        assertThatThrownBy(() -> procedureService.createProcedure(request)).isInstanceOf(EntityNotFoundException.class);
     }
 
     @Test
@@ -87,8 +83,14 @@ class ProcedureServiceTest {
 
         Procedure entity = new Procedure();
         ProcedureResponse response = new ProcedureResponse(
-                UUID.randomUUID(), appointmentId, medicalRecordId, "PROC-1", "Lavado", "ok",
-                OffsetDateTime.now(), OffsetDateTime.now());
+                UUID.randomUUID(),
+                appointmentId,
+                medicalRecordId,
+                "PROC-1",
+                "Lavado",
+                "ok",
+                OffsetDateTime.now(),
+                OffsetDateTime.now());
 
         when(medicalRecordRepository.findById(medicalRecordId)).thenReturn(Optional.of(medicalRecord));
         when(procedureMapper.toEntity(request)).thenReturn(entity);
@@ -116,8 +118,14 @@ class ProcedureServiceTest {
         UUID medicalRecordId = UUID.randomUUID();
         Procedure procedure = new Procedure();
         ProcedureResponse response = new ProcedureResponse(
-                UUID.randomUUID(), UUID.randomUUID(), medicalRecordId, "PROC-2", "Sutura", null,
-                OffsetDateTime.now(), OffsetDateTime.now());
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                medicalRecordId,
+                "PROC-2",
+                "Sutura",
+                null,
+                OffsetDateTime.now(),
+                OffsetDateTime.now());
         Pageable pageable = Pageable.ofSize(10);
 
         when(medicalRecordRepository.existsById(medicalRecordId)).thenReturn(true);

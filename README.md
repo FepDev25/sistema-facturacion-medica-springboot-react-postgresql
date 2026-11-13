@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/FepDev25/sistema-facturacion-medica-springboot-react-postgresql/actions/workflows/ci.yml/badge.svg)](https://github.com/FepDev25/sistema-facturacion-medica-springboot-react-postgresql/actions/workflows/ci.yml)
 
-Sistema clínico fullstack con cuatro asistentes AI integrados: desde RAG con embeddings de Google Gemini hasta Tool Calling y Structured Output con Claude. El backend es una API RESTful en Spring Boot 4 con máquinas de estados explícitas, auditoría dual y 458 tests unitarios. El frontend es un backoffice React 19 con routing type-safe, estado del servidor con TanStack Query y una suite de 768 tests.
+Sistema clínico fullstack con cuatro asistentes AI integrados: desde RAG con embeddings de Google Gemini hasta Tool Calling y Structured Output con Claude. El backend es una API RESTful en Spring Boot 4 con máquinas de estados explícitas, auditoría dual y **572 tests**. El frontend es un backoffice React 19 con routing type-safe, estado del servidor con TanStack Query y una suite de **692 tests**.
 
 **Demo en producción:** https://sistema-facturacion-medica-springbo.vercel.app
 
@@ -27,7 +27,7 @@ graph TB
         SEC["Spring Security — JWT Filter"]
         SVC["Servicios de Dominio<br/>Maquinas de Estado"]
         AUDIT["AuditAspect — AOP Order 1"]
-        AI["Spring AI 2.0<br/>Claude + RAG + Tool Calling"]
+        AI["Spring AI 2.1<br/>Claude + RAG + Tool Calling"]
     end
 
     subgraph INFRA["Infraestructura"]
@@ -155,21 +155,21 @@ A partir del expediente clínico asociado, Claude sugiere servicios y medicament
 |---|---|---|
 | Lenguaje | Java 21 | TypeScript 5.9 (strict) |
 | Framework | Spring Boot 4 | React 19 + Vite 8 |
-| Routing | — | TanStack Router 1.168 |
-| Estado servidor | — | TanStack Query 5.94 |
+| Routing | — | TanStack Router 1.170 |
+| Estado servidor | — | TanStack Query 5.106 |
 | Persistencia | Spring Data JPA + Hibernate | — |
 | Base de datos | PostgreSQL 16 (Neon) / 17 (homelab) + pgvector | — |
 | Cache / sesiones | Redis 7 | — |
 | Migraciones | Flyway | — |
-| Seguridad | Spring Security + JWT (jjwt 0.12) | Axios interceptors |
-| Validación | Jakarta Bean Validation | React Hook Form + Zod 4.3 |
+| Seguridad | Spring Security + JWT (jjwt 0.13) | Cookies httpOnly + refresh rotativo |
+| Validación | Jakarta Bean Validation | React Hook Form + Zod 4.6 |
 | UI | — | Shadcn/ui + Radix UI + Tailwind 4 |
 | Mapeo DTO | MapStruct 1.6 | — |
 | Auditoría | JPA Auditing + AOP AspectJ | — |
-| **IA — LLM** | **Spring AI 2.0 · Claude claude-haiku-4-5-20251001** | **react-markdown + remark-gfm** |
+| **IA — LLM** | **Spring AI 2.1 · Claude claude-haiku-4-5-20251001** | **react-markdown + remark-gfm** |
 | **IA — Embeddings** | **Google AI Studio · gemini-embedding-001 (768 dims)** | — |
 | **IA — Vector store** | **pgvector (HNSW, cosine)** | — |
-| Testing | JUnit 5 + Mockito + Testcontainers + JaCoCo | Vitest 4 + RTL 16 + Playwright 1.59 |
+| Testing | JUnit 5 + Mockito + Testcontainers + JaCoCo | Vitest 4 + RTL 16 + Playwright 1.65 |
 
 ---
 
@@ -213,12 +213,14 @@ Los permisos se aplican en tres niveles independientes: backend (`@PreAuthorize`
 
 ## Testing
 
-### Backend — 458 tests unitarios, cobertura JaCoCo
+### Backend — 572 tests, cobertura JaCoCo
 
 | Alcance | Líneas | Branches |
 |---|---|---|
-| Global | ≥ 80 % | ≥ 65 % |
+| Global | ≥ 82 % | ≥ 66 % |
 | `invoice*`, `payment*`, `appointment*` | ≥ 90 % | ≥ 75 % |
+
+Cobertura real (2026-11-13): **90.62 % líneas / 73.88 % ramas**.
 
 Flujos E2E verificados con base de datos real (Testcontainers):
 
@@ -228,12 +230,15 @@ Flujos E2E verificados con base de datos real (Testcontainers):
 - `InsuranceCoverageFlowE2ETest` — asignar póliza → verificar cálculo de cobertura
 - `CancellationRulesFlowE2ETest` — cancelar sin pagos (éxito) → cancelar con pagos (rechazo RN-14)
 
-### Frontend — 768 tests
+### Frontend — 692 tests
 
 | Capa | Tests | Herramientas |
 |---|---|---|
-| Unit / componentes | 640 (55 archivos) | Vitest 4 + React Testing Library 16 |
-| E2E | 128 (5 archivos) | Playwright 1.59 + Chromium |
+| Unit / componentes | 692 (62 archivos) | Vitest 4 + React Testing Library 16 |
+| E2E | 129 (5 archivos) | Playwright 1.65 + Chromium |
+
+Cobertura unitaria (2026-11-13): **50.23 / 47.72 / 50.00 / 50.98** (statements,
+branches, functions, lines). Umbral: **41 / 39 / 40 / 42**.
 
 ---
 
@@ -267,7 +272,7 @@ Flujos E2E verificados con base de datos real (Testcontainers):
 │   └── docs/                # Documentación técnica (testing, etc.)
 │
 ├── docs/img/                # Capturas de pantalla del sistema
-├── docker-compose.yml       # PostgreSQL 15 (pgvector) + Redis 7
+├── scripts/                 # dev-up/dev-down y utilidades de operación
 ├── DIAGRAMAS.md             # Diagramas de flujo, máquinas de estado y secuencia
 └── DEPLOY.md                # Proceso de despliegue en la nube
 ```
@@ -341,6 +346,9 @@ npm run dev
 | [`DIAGRAMAS.md`](DIAGRAMAS.md) | Diagramas de flujo, máquinas de estado, secuencias JWT y IA |
 | [`docs/dev-homelab.md`](docs/dev-homelab.md) | Entorno de desarrollo local con PostgreSQL/Redis en el homelab |
 | [`docs/ci-cd.md`](docs/ci-cd.md) | CI/CD con GitHub Actions, Heroku y Vercel |
+| [`docs/operaciones.md`](docs/operaciones.md) | Backups, restore drill, alertas y runbook de incidentes |
+| [`docs/staging.md`](docs/staging.md) | Plan del ambiente de staging (Heroku, Vercel, Neon y rollback) |
+| [`docs/dependabot-majors.md`](docs/dependabot-majors.md) | Plan de migración de los majors pendientes |
 | [`docs/ai-production.md`](docs/ai-production.md) | Guardrails, métricas, evals y robustez de los asistentes AI |
 | [`DEPLOY.md`](DEPLOY.md) | Proceso completo de despliegue en la nube (Heroku, Vercel, Neon, Upstash) |
 | [`backend/README.md`](backend/README.md) | Documentación técnica del backend |

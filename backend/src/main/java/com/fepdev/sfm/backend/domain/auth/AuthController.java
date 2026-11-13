@@ -1,7 +1,22 @@
 package com.fepdev.sfm.backend.domain.auth;
 
+import com.fepdev.sfm.backend.domain.auth.dto.LoginRequest;
+import com.fepdev.sfm.backend.domain.auth.dto.SessionResponse;
+import com.fepdev.sfm.backend.domain.auth.dto.UserProfileResponse;
+import com.fepdev.sfm.backend.domain.auth.token.AuthSessionService;
+import com.fepdev.sfm.backend.domain.auth.token.InvalidRefreshTokenException;
+import com.fepdev.sfm.backend.domain.auth.token.SessionTokens;
+import com.fepdev.sfm.backend.security.AuthCookieService;
+import com.fepdev.sfm.backend.security.JwtService;
+import com.fepdev.sfm.backend.security.LoginAttemptService;
+import com.fepdev.sfm.backend.security.SystemUser;
+import com.fepdev.sfm.backend.security.TokenBlacklistService;
+import com.fepdev.sfm.backend.security.UserDetailsServiceImpl;
+import io.jsonwebtoken.JwtException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import java.time.Duration;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -15,24 +30,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fepdev.sfm.backend.domain.auth.dto.LoginRequest;
-import com.fepdev.sfm.backend.domain.auth.dto.SessionResponse;
-import com.fepdev.sfm.backend.domain.auth.dto.UserProfileResponse;
-import com.fepdev.sfm.backend.domain.auth.token.AuthSessionService;
-import com.fepdev.sfm.backend.domain.auth.token.InvalidRefreshTokenException;
-import com.fepdev.sfm.backend.domain.auth.token.SessionTokens;
-import com.fepdev.sfm.backend.security.AuthCookieService;
-import com.fepdev.sfm.backend.security.JwtService;
-import com.fepdev.sfm.backend.security.LoginAttemptService;
-import com.fepdev.sfm.backend.security.SystemUser;
-import com.fepdev.sfm.backend.security.TokenBlacklistService;
-import com.fepdev.sfm.backend.security.UserDetailsServiceImpl;
-
-import io.jsonwebtoken.JwtException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.Valid;
-
 @RestController
 @RequestMapping("/api/v1/auth")
 public class AuthController {
@@ -45,7 +42,8 @@ public class AuthController {
     private final AuthCookieService authCookieService;
     private final LoginAttemptService loginAttemptService;
 
-    public AuthController(AuthenticationManager authenticationManager,
+    public AuthController(
+            AuthenticationManager authenticationManager,
             JwtService jwtService,
             UserDetailsServiceImpl userDetailsService,
             TokenBlacklistService tokenBlacklistService,
@@ -62,8 +60,8 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<SessionResponse> login(@Valid @RequestBody LoginRequest request,
-            HttpServletRequest httpRequest, HttpServletResponse response) {
+    public ResponseEntity<SessionResponse> login(
+            @Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest, HttpServletResponse response) {
 
         String ip = clientIp(httpRequest);
         loginAttemptService.checkAllowed(ip, request.username());
@@ -114,7 +112,8 @@ public class AuthController {
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(
             @CookieValue(name = AuthCookieService.REFRESH_COOKIE, required = false) String refreshToken,
-            HttpServletRequest request, HttpServletResponse response) {
+            HttpServletRequest request,
+            HttpServletResponse response) {
 
         try {
             authSessionService.revokeSession(refreshToken);

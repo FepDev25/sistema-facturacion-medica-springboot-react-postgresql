@@ -1,22 +1,19 @@
 package com.fepdev.sfm.backend.domain.payment;
 
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.UUID;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.fepdev.sfm.backend.domain.invoice.Invoice;
 import com.fepdev.sfm.backend.domain.invoice.InvoiceRepository;
 import com.fepdev.sfm.backend.domain.invoice.InvoiceStatus;
 import com.fepdev.sfm.backend.domain.payment.dto.PaymentCreateRequest;
 import com.fepdev.sfm.backend.domain.payment.dto.PaymentResponse;
 import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
-
 import jakarta.persistence.EntityNotFoundException;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PaymentService {
@@ -28,8 +25,8 @@ public class PaymentService {
     private final PaymentMapper paymentMapper;
     private final InvoiceRepository invoiceRepository;
 
-    public PaymentService(PaymentRepository paymentRepository, PaymentMapper paymentMapper,
-            InvoiceRepository invoiceRepository) {
+    public PaymentService(
+            PaymentRepository paymentRepository, PaymentMapper paymentMapper, InvoiceRepository invoiceRepository) {
         this.paymentRepository = paymentRepository;
         this.paymentMapper = paymentMapper;
         this.invoiceRepository = invoiceRepository;
@@ -38,23 +35,22 @@ public class PaymentService {
     // registrar pago sobre una factura
     @Transactional
     public PaymentResponse registerPayment(PaymentCreateRequest request) {
-        Invoice invoice = invoiceRepository.findById(request.invoiceId())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Factura con ID: " + request.invoiceId() + " no encontrada"));
+        Invoice invoice = invoiceRepository
+                .findById(request.invoiceId())
+                .orElseThrow(
+                        () -> new EntityNotFoundException("Factura con ID: " + request.invoiceId() + " no encontrada"));
 
         // solo se aceptan pagos en estados PENDING, PARTIAL_PAID u OVERDUE
         if (!PAYABLE_STATUSES.contains(invoice.getStatus())) {
-            throw new BusinessRuleException(
-                    "No se pueden registrar pagos en facturas con estado: " + invoice.getStatus()
-                    + ". Estados válidos: PENDING, PARTIAL_PAID, OVERDUE");
+            throw new BusinessRuleException("No se pueden registrar pagos en facturas con estado: "
+                    + invoice.getStatus() + ". Estados válidos: PENDING, PARTIAL_PAID, OVERDUE");
         }
 
         // El paciente solo responde por patientResponsibility: la parte cubierta por el
         // seguro no se cobra ni se registra como pago. Comparar contra el total permitia
         // cobrar de mas y, con cobertura, dejaba la factura en PARTIAL_PAID para siempre.
-        BigDecimal amountDue = invoice.getPatientResponsibility() != null
-                ? invoice.getPatientResponsibility()
-                : invoice.getTotal();
+        BigDecimal amountDue =
+                invoice.getPatientResponsibility() != null ? invoice.getPatientResponsibility() : invoice.getTotal();
 
         BigDecimal totalPaid = paymentRepository.sumAmountByInvoiceId(request.invoiceId());
         BigDecimal pendingBalance = amountDue.subtract(totalPaid);
@@ -63,8 +59,7 @@ public class PaymentService {
         }
 
         if (request.amount().compareTo(pendingBalance) > 0) {
-            throw new BusinessRuleException(
-                    "El monto del pago (" + request.amount() + ") excede el saldo pendiente ("
+            throw new BusinessRuleException("El monto del pago (" + request.amount() + ") excede el saldo pendiente ("
                     + pendingBalance + ") de la factura");
         }
 
@@ -92,7 +87,8 @@ public class PaymentService {
         if (!invoiceRepository.existsById(invoiceId)) {
             throw new EntityNotFoundException("Factura con ID: " + invoiceId + " no encontrada");
         }
-        return paymentRepository.findByInvoiceIdOrderByPaymentDateDesc(invoiceId, pageable)
+        return paymentRepository
+                .findByInvoiceIdOrderByPaymentDateDesc(invoiceId, pageable)
                 .map(paymentMapper::toResponse);
     }
 }

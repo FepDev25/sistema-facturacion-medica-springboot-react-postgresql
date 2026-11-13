@@ -9,18 +9,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.math.BigDecimal;
-import java.time.OffsetDateTime;
-import java.util.UUID;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
-
 import com.fepdev.sfm.backend.config.SecurityConfig;
 import com.fepdev.sfm.backend.domain.invoice.InvoiceController;
 import com.fepdev.sfm.backend.domain.invoice.InvoiceService;
@@ -36,6 +24,16 @@ import com.fepdev.sfm.backend.security.JwtService;
 import com.fepdev.sfm.backend.security.TokenBlacklistService;
 import com.fepdev.sfm.backend.security.UserDetailsServiceImpl;
 import com.fepdev.sfm.backend.shared.exception.HandlerException;
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 
 // Verifica la matriz RBAC de facturas y pagos directamente sobre el filtro de seguridad.
 @WebMvcTest({InvoiceController.class, PaymentController.class})
@@ -75,9 +73,20 @@ class InvoicePaymentAuthorizationTest {
     @Test
     void admin_canAddInvoiceItem() throws Exception {
         UUID invoiceId = UUID.randomUUID();
-        when(invoiceService.addItem(any(), any())).thenReturn(new InvoiceItemResponse(
-                UUID.randomUUID(), invoiceId, null, null, null, null, ItemType.SERVICE,
-                "Consulta", 1, new BigDecimal("100.00"), new BigDecimal("100.00"), OffsetDateTime.now()));
+        when(invoiceService.addItem(any(), any()))
+                .thenReturn(new InvoiceItemResponse(
+                        UUID.randomUUID(),
+                        invoiceId,
+                        null,
+                        null,
+                        null,
+                        null,
+                        ItemType.SERVICE,
+                        "Consulta",
+                        1,
+                        new BigDecimal("100.00"),
+                        new BigDecimal("100.00"),
+                        OffsetDateTime.now()));
 
         mockMvc.perform(post("/api/v1/invoices/{id}/items", invoiceId)
                         .with(user("admin").authorities(() -> "ADMIN"))
@@ -126,13 +135,27 @@ class InvoicePaymentAuthorizationTest {
     @Test
     void receptionist_canReadInvoices() throws Exception {
         UUID invoiceId = UUID.randomUUID();
-        when(invoiceService.getInvoiceById(invoiceId)).thenReturn(new InvoiceResponse(
-                invoiceId, UUID.randomUUID(), "Ana", "Lopez", null, null, "FAC-2026-00001",
-                new BigDecimal("100.00"), BigDecimal.ZERO, new BigDecimal("100.00"),
-                BigDecimal.ZERO, new BigDecimal("100.00"),
-                com.fepdev.sfm.backend.domain.invoice.InvoiceStatus.PENDING,
-                java.time.LocalDate.now(), java.time.LocalDate.now().plusDays(30), null,
-                java.util.List.of(), null, null));
+        when(invoiceService.getInvoiceById(invoiceId))
+                .thenReturn(new InvoiceResponse(
+                        invoiceId,
+                        UUID.randomUUID(),
+                        "Ana",
+                        "Lopez",
+                        null,
+                        null,
+                        "FAC-2026-00001",
+                        new BigDecimal("100.00"),
+                        BigDecimal.ZERO,
+                        new BigDecimal("100.00"),
+                        BigDecimal.ZERO,
+                        new BigDecimal("100.00"),
+                        com.fepdev.sfm.backend.domain.invoice.InvoiceStatus.PENDING,
+                        java.time.LocalDate.now(),
+                        java.time.LocalDate.now().plusDays(30),
+                        null,
+                        java.util.List.of(),
+                        null,
+                        null));
 
         mockMvc.perform(get("/api/v1/invoices/{id}", invoiceId)
                         .with(user("receptionist").authorities(() -> "RECEPTIONIST")))
@@ -142,10 +165,17 @@ class InvoicePaymentAuthorizationTest {
     @Test
     void receptionist_canRegisterPayment() throws Exception {
         UUID invoiceId = UUID.randomUUID();
-        when(paymentService.registerPayment(any())).thenReturn(new PaymentResponse(
-                UUID.randomUUID(), invoiceId, "FAC-2026-00001", new BigDecimal("20.00"),
-                com.fepdev.sfm.backend.domain.payment.PaymentMethod.CASH, null, null,
-                OffsetDateTime.now(), OffsetDateTime.now()));
+        when(paymentService.registerPayment(any()))
+                .thenReturn(new PaymentResponse(
+                        UUID.randomUUID(),
+                        invoiceId,
+                        "FAC-2026-00001",
+                        new BigDecimal("20.00"),
+                        com.fepdev.sfm.backend.domain.payment.PaymentMethod.CASH,
+                        null,
+                        null,
+                        OffsetDateTime.now(),
+                        OffsetDateTime.now()));
 
         mockMvc.perform(post("/api/v1/payments")
                         .with(user("receptionist").authorities(() -> "RECEPTIONIST"))

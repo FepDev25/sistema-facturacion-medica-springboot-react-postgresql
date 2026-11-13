@@ -2,12 +2,10 @@ package com.fepdev.sfm.backend.domain.appointment;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.time.OffsetDateTime;
-
-import org.junit.jupiter.api.Test;
-
 import com.fepdev.sfm.backend.domain.appointment.dto.AppointmentStatusUpdateRequest;
 import com.fepdev.sfm.backend.domain.appointment.dto.AppointmentUpdateRequest;
+import java.time.OffsetDateTime;
+import org.junit.jupiter.api.Test;
 
 class AppointmentStatusAndDtoTest {
 

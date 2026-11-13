@@ -15,5 +15,4 @@ public class CategoryConverter implements AttributeConverter<Category, String> {
     public Category convertToEntityAttribute(String dbData) {
         return dbData == null ? null : Category.valueOf(dbData.toUpperCase());
     }
-
 }

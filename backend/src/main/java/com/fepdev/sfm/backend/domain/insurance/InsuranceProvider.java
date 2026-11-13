@@ -1,7 +1,6 @@
 package com.fepdev.sfm.backend.domain.insurance;
 
 import com.fepdev.sfm.backend.shared.domain.BaseEntity;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
@@ -14,7 +13,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class InsuranceProvider extends BaseEntity{
+public class InsuranceProvider extends BaseEntity {
 
     @Column(nullable = false, length = 200)
     private String name;
@@ -33,5 +32,4 @@ public class InsuranceProvider extends BaseEntity{
 
     @Column(nullable = false)
     private boolean isActive;
-
 }

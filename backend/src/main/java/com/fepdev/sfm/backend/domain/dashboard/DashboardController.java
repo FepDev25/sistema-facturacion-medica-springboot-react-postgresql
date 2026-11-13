@@ -1,11 +1,10 @@
 package com.fepdev.sfm.backend.domain.dashboard;
 
+import com.fepdev.sfm.backend.domain.dashboard.dto.DashboardMetricsResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.fepdev.sfm.backend.domain.dashboard.dto.DashboardMetricsResponse;
 
 @RestController
 @RequestMapping("/api/v1/dashboard")

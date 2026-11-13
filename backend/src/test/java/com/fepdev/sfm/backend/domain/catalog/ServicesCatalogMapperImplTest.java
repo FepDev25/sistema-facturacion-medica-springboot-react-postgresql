@@ -2,15 +2,13 @@ package com.fepdev.sfm.backend.domain.catalog;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fepdev.sfm.backend.domain.catalog.dto.ServiceCreateRequest;
+import com.fepdev.sfm.backend.domain.catalog.dto.ServiceUpdateRequest;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import com.fepdev.sfm.backend.domain.catalog.dto.ServiceCreateRequest;
-import com.fepdev.sfm.backend.domain.catalog.dto.ServiceUpdateRequest;
 
 class ServicesCatalogMapperImplTest {
 
@@ -40,8 +38,8 @@ class ServicesCatalogMapperImplTest {
         entity.setCategory(Category.OTHER);
         entity.setIsActive(true);
 
-        ServiceUpdateRequest request = new ServiceUpdateRequest("Nuevo", null, new BigDecimal("12.00"), Category.LABORATORY,
-                false);
+        ServiceUpdateRequest request =
+                new ServiceUpdateRequest("Nuevo", null, new BigDecimal("12.00"), Category.LABORATORY, false);
         mapper.updateEntity(request, entity);
 
         assertThat(entity.getCode()).isEqualTo("SRV-ORIG");

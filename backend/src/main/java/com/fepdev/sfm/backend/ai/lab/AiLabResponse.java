@@ -17,17 +17,9 @@ public record AiLabResponse(
         List<FeatureUsage> usage,
         EvalsInfo evals) {
 
-    public record FeatureInfo(
-            String id,
-            String name,
-            String endpoint,
-            String promptVersion,
-            String description) {}
+    public record FeatureInfo(String id, String name, String endpoint, String promptVersion, String description) {}
 
-    public record ModelPricing(
-            String model,
-            double inputPerMillionUsd,
-            double outputPerMillionUsd) {}
+    public record ModelPricing(String model, double inputPerMillionUsd, double outputPerMillionUsd) {}
 
     public record FeatureUsage(
             String feature,
@@ -38,8 +30,5 @@ public record AiLabResponse(
             double costUsd,
             double latencyMaxMs) {}
 
-    public record EvalsInfo(
-            String mode,
-            int thresholdsVersion,
-            Map<String, Map<String, Double>> thresholds) {}
+    public record EvalsInfo(String mode, int thresholdsVersion, Map<String, Map<String, Double>> thresholds) {}
 }

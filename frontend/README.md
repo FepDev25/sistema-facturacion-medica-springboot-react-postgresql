@@ -8,22 +8,22 @@ Interfaz backoffice para la gestión integral de una clínica: agendamiento de c
 
 | Capa                 | Tecnología                     | Versión    |
 | -------------------- | ------------------------------ | ---------- |
-| UI Runtime           | React                          | 19.2       |
+| UI Runtime           | React                          | 19.3       |
 | Lenguaje             | TypeScript (strict)            | 5.9        |
-| Build                | Vite                           | 8.0        |
-| Routing              | TanStack Router                | 1.168      |
-| Estado del servidor  | TanStack Query                 | 5.94       |
+| Build                | Vite                           | 8.3        |
+| Routing              | TanStack Router                | 1.170      |
+| Estado del servidor  | TanStack Query                 | 5.106      |
 | Tablas               | TanStack Table                 | 8.21       |
-| Formularios          | React Hook Form + Zod          | 7.71 + 4.3 |
+| Formularios          | React Hook Form + Zod          | 7.91 + 4.6 |
 | Componentes UI       | Shadcn/ui + Radix UI           | —          |
-| Estilos              | Tailwind CSS                   | 4.0        |
-| HTTP Client          | Axios                          | 1.13       |
+| Estilos              | Tailwind CSS                   | 4.3        |
+| HTTP Client          | Axios                          | 1.21       |
 | Notificaciones       | Sonner                         | 2.0        |
 | Iconos               | Lucide React                   | 0.577      |
-| Renderizado Markdown | react-markdown + remark-gfm    | 9.x        |
+| Renderizado Markdown | react-markdown + remark-gfm    | 10.x       |
 | Tipografía           | Geist Variable                 | —          |
 | Testing unitario     | Vitest + React Testing Library | 4.1 + 16.3 |
-| Testing E2E          | Playwright                     | 1.59       |
+| Testing E2E          | Playwright                     | 1.65       |
 
 ---
 
@@ -128,7 +128,7 @@ Cuatro asistentes Claude conectados a las páginas de dominio. Siguen el mismo p
 
 **`ExtractionPanel`** — Sheet lateral que analiza las notas clínicas del expediente y extrae diagnósticos, prescripciones y procedimientos candidatos. Presenta checkboxes por ítem (todos pre-seleccionados); los ítems con medicamento no resuelto en catálogo quedan deshabilitados. Guarda los seleccionados en paralelo con `Promise.allSettled` e invalida los query keys correspondientes.
 
-**`PatientHistoryChat`** — Interfaz de conversación sobre el historial clínico completo del paciente. El backend es stateless (cada query es independiente); el historial de la sesión vive en estado local del componente. Respuestas renderizadas con `react-markdown + remark-gfm`. Las fuentes aparecen como chips clickeables que navegan al expediente médico correspondiente. El primer query puede tardar hasta 10 s adicionales por indexación on-demand.
+**`PatientHistoryChat`** — Interfaz de conversación sobre el historial clínico completo del paciente. El backend conserva memoria por `userId + patientId` en Redis (TTL y N turnos configurables), así que los seguimientos ("¿y desde cuándo?", "¿y la dosis?") mantienen contexto; `DELETE /ai/patients/{id}/conversation` limpia la memoria. Respuestas renderizadas con `react-markdown + remark-gfm`. Las fuentes aparecen como chips clickeables que navegan al expediente médico correspondiente. El primer query puede tardar hasta 10 s adicionales por indexación on-demand.
 
 **`ItemSuggestionPanel`** — Sheet con ítems de factura sugeridos a partir del expediente médico asociado. Solo disponible en estado `draft`. Cada ítem se agrega individualmente con loading state propio; los ítems sin `matchedCatalogId` se muestran deshabilitados.
 
@@ -182,7 +182,8 @@ Cada request → el navegador adjunta la cookie automáticamente
 
 `src/lib/axios.ts` exporta `apiClient` con dos interceptors:
 
-**Request** — Inyecta `Authorization: Bearer <token>` en todas las requests excepto los endpoints de auth.
+**Request** — No inyecta tokens: el navegador adjunta las cookies `httpOnly`
+automáticamente en cada request al mismo origen. Solo normaliza la base `/api/v1`.
 
 **Response** — Maneja:
 
@@ -213,21 +214,29 @@ Banner amber/rojo que aparece en el detalle de cita y en la historia clínica cu
 
 Suite en dos capas complementarias. Documentación completa en [`docs/02-testing.md`](docs/02-testing.md).
 
-### Unit tests — 640 tests, 55 archivos
+### Unit tests — 692 tests, 62 archivos
 
 Ejecutados con **Vitest 4** + **React Testing Library 16** en entorno `jsdom`.
 
-| Área                         | Archivos | Descripción                                                   |
-| ---------------------------- | -------- | ------------------------------------------------------------- |
-| Utilidades y schemas         | 2        | `utils.test.ts`, `mock-utils.test.ts`                         |
-| API functions                | 9        | Mock de `apiClient`, verificación de argumentos HTTP          |
-| API integration              | 9        | Tests con datos mock reales del dominio                       |
-| Hooks TanStack Query         | 9        | `renderHook`, estados loading / error / data                  |
-| Columnas de tabla            | 12       | Formato de celdas, badges, acciones, rendering condicional    |
-| Componentes showcase         | 3        | `AppointmentStatusFlow`, `InvoiceCoverageBar`, `AllergyAlert` |
-| Componentes compartidos      | 4        | `AppShell`, `DataTable`, `BackToListButton`, `LoginPage`      |
-| Pages con lógica condicional | 2        | `AppointmentDetailPage`, `InvoiceDetailPage`                  |
-| Auth store                   | 1        | `authSessionStore` — 21 tests                                 |
+| Área                      | Archivos |
+| ------------------------- | -------- |
+| Pacientes                 | 10       |
+| Citas                     | 7        |
+| Auth                      | 7        |
+| Facturas                  | 7        |
+| Médicos                   | 6        |
+| Catálogo                  | 5        |
+| Seguros                   | 5        |
+| Componentes compartidos   | 5        |
+| Historias clínicas        | 4        |
+| Dashboard                 | 3        |
+| Utilidades y HTTP (`lib`) | 3        |
+| **Total**                 | **62**   |
+
+Cobertura real (2026-11-13): **50.23 % statements / 47.72 % branches /
+50.00 % functions / 50.98 % lines**. Umbral en `vitest.config.ts`:
+**41 / 39 / 40 / 42**. No se baja para destrabar un PR; se sube cuando la
+cobertura real mejore.
 
 Infraestructura en `src/test/`:
 
@@ -238,17 +247,20 @@ Infraestructura en `src/test/`:
 | `api-test-utils.ts`     | `mockApiClient()` para aislar la capa HTTP                                       |
 | `drawer-test-utils.tsx` | Helpers para componentes Radix Sheet / Dialog                                    |
 
-### E2E — 126 tests, 5 archivos
+### E2E — 129 tests, 5 archivos
 
-Ejecutados con **Playwright 1.59** sobre Chromium, secuencialmente (`fullyParallel: false`) para reproducibilidad con estado compartido.
+Ejecutados con **Playwright 1.65** sobre Chromium, secuencialmente (`fullyParallel: false`) para reproducibilidad con estado compartido.
 
 | Archivo                     | Tests | Flujos cubiertos                                   |
 | --------------------------- | ----- | -------------------------------------------------- |
-| `auth-flow.spec.ts`         | 27    | Login, logout, permisos por rol, redirección       |
+| `auth-flow.spec.ts`         | 29    | Login, logout, permisos por rol, redirección       |
 | `patients-flow.spec.ts`     | 25    | CRUD, búsqueda por DNI, paginación, drawer edición |
 | `appointments-flow.spec.ts` | 25    | Transiciones de estado, expedientes, diagnósticos  |
-| `invoices-flow.spec.ts`     | 25    | Confirmación, pagos, cobertura de seguro           |
+| `invoices-flow.spec.ts`     | 26    | Confirmación, pagos, cobertura de seguro           |
 | `role-permissions.spec.ts`  | 24    | Acceso por rol: admin, doctor, recepcionista       |
+
+Estado: **129 passed, 0 skipped** con el seed determinista
+`V14__e2e_scenarios.sql`.
 
 ---
 

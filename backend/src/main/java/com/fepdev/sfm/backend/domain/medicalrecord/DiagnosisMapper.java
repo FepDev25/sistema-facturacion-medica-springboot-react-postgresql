@@ -1,12 +1,10 @@
 package com.fepdev.sfm.backend.domain.medicalrecord;
 
-import java.util.List;
-
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-
 import com.fepdev.sfm.backend.domain.medicalrecord.dto.DiagnosisCreateRequest;
 import com.fepdev.sfm.backend.domain.medicalrecord.dto.DiagnosisResponse;
+import java.util.List;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface DiagnosisMapper {

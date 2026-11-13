@@ -1,19 +1,17 @@
 package com.fepdev.sfm.backend.domain.invoice;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-
 import com.fepdev.sfm.backend.domain.appointment.Appointment;
 import com.fepdev.sfm.backend.domain.insurance.InsurancePolicy;
 import com.fepdev.sfm.backend.domain.patient.Patient;
 import com.fepdev.sfm.backend.shared.domain.BaseEntity;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -69,5 +67,4 @@ public class Invoice extends BaseEntity {
 
     // Obligatorio cuando appointment_id es null (constraint chk_invoices_requires_reference)
     private String notes;
-
 }

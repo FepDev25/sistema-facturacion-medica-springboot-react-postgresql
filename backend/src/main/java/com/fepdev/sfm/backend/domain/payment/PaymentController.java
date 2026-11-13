@@ -1,8 +1,10 @@
 package com.fepdev.sfm.backend.domain.payment;
 
+import com.fepdev.sfm.backend.domain.payment.dto.PaymentCreateRequest;
+import com.fepdev.sfm.backend.domain.payment.dto.PaymentResponse;
+import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.UUID;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -16,11 +18,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.fepdev.sfm.backend.domain.payment.dto.PaymentCreateRequest;
-import com.fepdev.sfm.backend.domain.payment.dto.PaymentResponse;
-
-import jakarta.validation.Valid;
-
 @RestController
 @RequestMapping("/api/v1/payments")
 public class PaymentController {
@@ -33,12 +30,13 @@ public class PaymentController {
 
     @PostMapping
     public ResponseEntity<PaymentResponse> register(
-            @Valid @RequestBody PaymentCreateRequest request,
-            UriComponentsBuilder uriBuilder) {
+            @Valid @RequestBody PaymentCreateRequest request, UriComponentsBuilder uriBuilder) {
 
         PaymentResponse response = paymentService.registerPayment(request);
-        URI location = uriBuilder.path("/api/v1/payments/{id}")
-                .buildAndExpand(response.id()).toUri();
+        URI location = uriBuilder
+                .path("/api/v1/payments/{id}")
+                .buildAndExpand(response.id())
+                .toUri();
         return ResponseEntity.created(location).body(response);
     }
 

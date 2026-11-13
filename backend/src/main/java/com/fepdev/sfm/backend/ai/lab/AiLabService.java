@@ -1,10 +1,5 @@
 package com.fepdev.sfm.backend.ai.lab;
 
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import org.springframework.stereotype.Service;
-
 import com.fepdev.sfm.backend.ai.guard.AiRateLimiter;
 import com.fepdev.sfm.backend.ai.history.PatientConversationMemory;
 import com.fepdev.sfm.backend.ai.lab.AiLabResponse.EvalsInfo;
@@ -13,10 +8,12 @@ import com.fepdev.sfm.backend.ai.lab.AiLabResponse.FeatureUsage;
 import com.fepdev.sfm.backend.ai.lab.AiLabResponse.ModelPricing;
 import com.fepdev.sfm.backend.ai.metrics.AiPricingProperties;
 import com.fepdev.sfm.backend.ai.metrics.AiUsageRecorder;
-
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import org.springframework.stereotype.Service;
 
 // Consolida en una sola lectura los datos que ya produce la capa de IA. Es de solo
 // lectura y no consulta proveedores ni bases de datos.
@@ -24,23 +21,41 @@ import io.micrometer.core.instrument.Timer;
 public class AiLabService {
 
     private static final List<FeatureInfo> FEATURES = List.of(
-            new FeatureInfo("icd10-normalize", "Normalizacion CIE-10",
-                    "POST /api/v1/ai/icd10/suggest", "v1",
+            new FeatureInfo(
+                    "icd10-normalize",
+                    "Normalizacion CIE-10",
+                    "POST /api/v1/ai/icd10/suggest",
+                    "v1",
                     "Convierte lenguaje coloquial a terminologia CIE-10 formal."),
-            new FeatureInfo("icd10-rerank", "Reranking CIE-10",
-                    "POST /api/v1/ai/icd10/suggest", "v1",
+            new FeatureInfo(
+                    "icd10-rerank",
+                    "Reranking CIE-10",
+                    "POST /api/v1/ai/icd10/suggest",
+                    "v1",
                     "Ordena los candidatos recuperados por el vector store."),
-            new FeatureInfo("records-extract", "Extraccion de notas",
-                    "POST /api/v1/ai/records/extract", "v1",
+            new FeatureInfo(
+                    "records-extract",
+                    "Extraccion de notas",
+                    "POST /api/v1/ai/records/extract",
+                    "v1",
                     "Extrae diagnosticos, prescripciones y procedimientos con tool calling."),
-            new FeatureInfo("history-vector", "Historial (vectorial)",
-                    "POST /api/v1/ai/patients/{id}/query", "v1",
+            new FeatureInfo(
+                    "history-vector",
+                    "Historial (vectorial)",
+                    "POST /api/v1/ai/patients/{id}/query",
+                    "v1",
                     "Responde preguntas sobre expedientes recuperados semanticamente."),
-            new FeatureInfo("history-summary", "Historial (resumen)",
-                    "POST /api/v1/ai/patients/{id}/query", "v1",
+            new FeatureInfo(
+                    "history-summary",
+                    "Historial (resumen)",
+                    "POST /api/v1/ai/patients/{id}/query",
+                    "v1",
                     "Responde sobre el historial completo construido desde BD."),
-            new FeatureInfo("items-suggest", "Sugerencia de items",
-                    "POST /api/v1/ai/invoices/{id}/suggest-items", "v1",
+            new FeatureInfo(
+                    "items-suggest",
+                    "Sugerencia de items",
+                    "POST /api/v1/ai/invoices/{id}/suggest-items",
+                    "v1",
                     "Sugiere servicios y medicamentos del catalogo para facturar."));
 
     private final MeterRegistry meterRegistry;
@@ -49,8 +64,11 @@ public class AiLabService {
     private final PatientConversationMemory conversationMemory;
     private final AiEvalThresholds evalThresholds;
 
-    public AiLabService(MeterRegistry meterRegistry, AiUsageRecorder usageRecorder,
-            AiRateLimiter rateLimiter, PatientConversationMemory conversationMemory,
+    public AiLabService(
+            MeterRegistry meterRegistry,
+            AiUsageRecorder usageRecorder,
+            AiRateLimiter rateLimiter,
+            PatientConversationMemory conversationMemory,
             AiEvalThresholds evalThresholds) {
         this.meterRegistry = meterRegistry;
         this.usageRecorder = usageRecorder;
@@ -63,7 +81,8 @@ public class AiLabService {
         AiPricingProperties pricing = usageRecorder.getPricing();
 
         List<ModelPricing> prices = pricing.models().entrySet().stream()
-                .map(entry -> new ModelPricing(entry.getKey(),
+                .map(entry -> new ModelPricing(
+                        entry.getKey(),
                         entry.getValue().inputPerMillionUsd(),
                         entry.getValue().outputPerMillionUsd()))
                 .toList();
@@ -79,8 +98,8 @@ public class AiLabService {
                         latencyMaxMs(feature.id())))
                 .toList();
 
-        EvalsInfo evals = new EvalsInfo(evalThresholds.getMode(),
-                evalThresholds.getVersion(), evalThresholds.getFeatures());
+        EvalsInfo evals =
+                new EvalsInfo(evalThresholds.getMode(), evalThresholds.getVersion(), evalThresholds.getFeatures());
 
         return new AiLabResponse(
                 pricing.defaultModel(),

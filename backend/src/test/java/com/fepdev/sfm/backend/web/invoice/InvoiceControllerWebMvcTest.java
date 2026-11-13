@@ -4,28 +4,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.UUID;
-
-import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
 
 import com.fepdev.sfm.backend.domain.invoice.InvoiceController;
 import com.fepdev.sfm.backend.domain.invoice.InvoiceService;
@@ -36,8 +20,21 @@ import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceResponse;
 import com.fepdev.sfm.backend.security.JwtAuthenticationFilter;
 import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
 import com.fepdev.sfm.backend.shared.exception.HandlerException;
-
 import jakarta.persistence.EntityNotFoundException;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 @WebMvcTest(InvoiceController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -57,10 +54,25 @@ class InvoiceControllerWebMvcTest {
     void getById_whenFound_returns200() throws Exception {
         UUID id = UUID.randomUUID();
         InvoiceResponse response = new InvoiceResponse(
-                id, UUID.randomUUID(), "Ana", "Lopez", UUID.randomUUID(), null, "FAC-2026-00001",
-                new BigDecimal("100.00"), new BigDecimal("15.00"), new BigDecimal("115.00"),
-                BigDecimal.ZERO, new BigDecimal("115.00"), InvoiceStatus.PENDING,
-                LocalDate.now(), LocalDate.now().plusDays(30), null, List.of(), null, null);
+                id,
+                UUID.randomUUID(),
+                "Ana",
+                "Lopez",
+                UUID.randomUUID(),
+                null,
+                "FAC-2026-00001",
+                new BigDecimal("100.00"),
+                new BigDecimal("15.00"),
+                new BigDecimal("115.00"),
+                BigDecimal.ZERO,
+                new BigDecimal("115.00"),
+                InvoiceStatus.PENDING,
+                LocalDate.now(),
+                LocalDate.now().plusDays(30),
+                null,
+                List.of(),
+                null,
+                null);
 
         when(invoiceService.getInvoiceById(id)).thenReturn(response);
 
@@ -74,10 +86,25 @@ class InvoiceControllerWebMvcTest {
         UUID appointmentId = UUID.randomUUID();
         UUID invoiceId = UUID.randomUUID();
         InvoiceResponse response = new InvoiceResponse(
-                invoiceId, UUID.randomUUID(), "Ana", "Lopez", appointmentId, null, "FAC-2026-00099",
-                new BigDecimal("100.00"), new BigDecimal("15.00"), new BigDecimal("115.00"),
-                BigDecimal.ZERO, new BigDecimal("115.00"), InvoiceStatus.PENDING,
-                LocalDate.now(), LocalDate.now().plusDays(30), null, List.of(), null, null);
+                invoiceId,
+                UUID.randomUUID(),
+                "Ana",
+                "Lopez",
+                appointmentId,
+                null,
+                "FAC-2026-00099",
+                new BigDecimal("100.00"),
+                new BigDecimal("15.00"),
+                new BigDecimal("115.00"),
+                BigDecimal.ZERO,
+                new BigDecimal("115.00"),
+                InvoiceStatus.PENDING,
+                LocalDate.now(),
+                LocalDate.now().plusDays(30),
+                null,
+                List.of(),
+                null,
+                null);
 
         when(invoiceService.getInvoiceByAppointmentId(appointmentId)).thenReturn(response);
 
@@ -171,10 +198,25 @@ class InvoiceControllerWebMvcTest {
     void confirm_whenServiceSucceeds_returnsUpdatedInvoiceResponse() throws Exception {
         UUID id = UUID.randomUUID();
         InvoiceResponse response = new InvoiceResponse(
-                id, UUID.randomUUID(), "Ana", "Lopez", UUID.randomUUID(), null, "FAC-2026-00012",
-                new BigDecimal("100.00"), new BigDecimal("15.00"), new BigDecimal("115.00"),
-                BigDecimal.ZERO, new BigDecimal("115.00"), InvoiceStatus.PENDING,
-                LocalDate.now(), LocalDate.now().plusDays(30), "ok", List.of(), null, null);
+                id,
+                UUID.randomUUID(),
+                "Ana",
+                "Lopez",
+                UUID.randomUUID(),
+                null,
+                "FAC-2026-00012",
+                new BigDecimal("100.00"),
+                new BigDecimal("15.00"),
+                new BigDecimal("115.00"),
+                BigDecimal.ZERO,
+                new BigDecimal("115.00"),
+                InvoiceStatus.PENDING,
+                LocalDate.now(),
+                LocalDate.now().plusDays(30),
+                "ok",
+                List.of(),
+                null,
+                null);
 
         when(invoiceService.getInvoiceById(id)).thenReturn(response);
 
@@ -190,13 +232,30 @@ class InvoiceControllerWebMvcTest {
     void list_whenStatusAndDateFiltersProvided_returnsPage() throws Exception {
         UUID patientId = UUID.randomUUID();
         InvoiceResponse response = new InvoiceResponse(
-                UUID.randomUUID(), patientId, "Ana", "Lopez", null, null, "FAC-2026-00021",
-                new BigDecimal("200.00"), new BigDecimal("30.00"), new BigDecimal("230.00"),
-                BigDecimal.ZERO, new BigDecimal("230.00"), InvoiceStatus.OVERDUE,
-                LocalDate.now(), LocalDate.now().plusDays(30), null, List.of(), null, null);
-        var page = new org.springframework.data.domain.PageImpl<>(List.of(response), org.springframework.data.domain.PageRequest.of(0, 20), 1);
+                UUID.randomUUID(),
+                patientId,
+                "Ana",
+                "Lopez",
+                null,
+                null,
+                "FAC-2026-00021",
+                new BigDecimal("200.00"),
+                new BigDecimal("30.00"),
+                new BigDecimal("230.00"),
+                BigDecimal.ZERO,
+                new BigDecimal("230.00"),
+                InvoiceStatus.OVERDUE,
+                LocalDate.now(),
+                LocalDate.now().plusDays(30),
+                null,
+                List.of(),
+                null,
+                null);
+        var page = new org.springframework.data.domain.PageImpl<>(
+                List.of(response), org.springframework.data.domain.PageRequest.of(0, 20), 1);
 
-        when(invoiceService.getInvoicesWithFilters(any(), any(), any(), any(), any())).thenReturn(page);
+        when(invoiceService.getInvoicesWithFilters(any(), any(), any(), any(), any()))
+                .thenReturn(page);
 
         mockMvc.perform(get("/api/v1/invoices")
                         .param("patientId", patientId.toString())
@@ -212,10 +271,25 @@ class InvoiceControllerWebMvcTest {
     void getByNumber_whenFound_returns200() throws Exception {
         String number = "FAC-2026-00077";
         InvoiceResponse response = new InvoiceResponse(
-                UUID.randomUUID(), UUID.randomUUID(), "Ana", "Lopez", null, null, number,
-                new BigDecimal("100.00"), new BigDecimal("15.00"), new BigDecimal("115.00"),
-                BigDecimal.ZERO, new BigDecimal("115.00"), InvoiceStatus.PENDING,
-                LocalDate.now(), LocalDate.now().plusDays(30), null, List.of(), null, null);
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                "Ana",
+                "Lopez",
+                null,
+                null,
+                number,
+                new BigDecimal("100.00"),
+                new BigDecimal("15.00"),
+                new BigDecimal("115.00"),
+                BigDecimal.ZERO,
+                new BigDecimal("115.00"),
+                InvoiceStatus.PENDING,
+                LocalDate.now(),
+                LocalDate.now().plusDays(30),
+                null,
+                List.of(),
+                null,
+                null);
         when(invoiceService.getInvoiceByNumber(number)).thenReturn(response);
 
         mockMvc.perform(get("/api/v1/invoices/number/{invoiceNumber}", number))
@@ -227,15 +301,45 @@ class InvoiceControllerWebMvcTest {
     void markOverdue_and_cancel_whenSuccess_returnUpdatedInvoice() throws Exception {
         UUID id = UUID.randomUUID();
         InvoiceResponse overdueResponse = new InvoiceResponse(
-                id, UUID.randomUUID(), "Ana", "Lopez", null, null, "FAC-2026-00033",
-                new BigDecimal("80.00"), new BigDecimal("12.00"), new BigDecimal("92.00"),
-                BigDecimal.ZERO, new BigDecimal("92.00"), InvoiceStatus.OVERDUE,
-                LocalDate.now(), LocalDate.now().plusDays(30), null, List.of(), null, null);
+                id,
+                UUID.randomUUID(),
+                "Ana",
+                "Lopez",
+                null,
+                null,
+                "FAC-2026-00033",
+                new BigDecimal("80.00"),
+                new BigDecimal("12.00"),
+                new BigDecimal("92.00"),
+                BigDecimal.ZERO,
+                new BigDecimal("92.00"),
+                InvoiceStatus.OVERDUE,
+                LocalDate.now(),
+                LocalDate.now().plusDays(30),
+                null,
+                List.of(),
+                null,
+                null);
         InvoiceResponse cancelledResponse = new InvoiceResponse(
-                id, UUID.randomUUID(), "Ana", "Lopez", null, null, "FAC-2026-00033",
-                new BigDecimal("80.00"), new BigDecimal("12.00"), new BigDecimal("92.00"),
-                BigDecimal.ZERO, new BigDecimal("92.00"), InvoiceStatus.CANCELLED,
-                LocalDate.now(), LocalDate.now().plusDays(30), null, List.of(), null, null);
+                id,
+                UUID.randomUUID(),
+                "Ana",
+                "Lopez",
+                null,
+                null,
+                "FAC-2026-00033",
+                new BigDecimal("80.00"),
+                new BigDecimal("12.00"),
+                new BigDecimal("92.00"),
+                BigDecimal.ZERO,
+                new BigDecimal("92.00"),
+                InvoiceStatus.CANCELLED,
+                LocalDate.now(),
+                LocalDate.now().plusDays(30),
+                null,
+                List.of(),
+                null,
+                null);
 
         when(invoiceService.getInvoiceById(id)).thenReturn(overdueResponse, cancelledResponse);
 

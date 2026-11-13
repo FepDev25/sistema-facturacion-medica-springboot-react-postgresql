@@ -2,15 +2,13 @@ package com.fepdev.sfm.backend.domain.patient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fepdev.sfm.backend.domain.patient.dto.PatientCreateRequest;
+import com.fepdev.sfm.backend.domain.patient.dto.PatientUpdateRequest;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import com.fepdev.sfm.backend.domain.patient.dto.PatientCreateRequest;
-import com.fepdev.sfm.backend.domain.patient.dto.PatientUpdateRequest;
 
 class PatientMapperImplTest {
 
@@ -19,8 +17,16 @@ class PatientMapperImplTest {
     @Test
     void toEntity_update_toResponse_and_summaryList_mapFields() {
         PatientCreateRequest create = new PatientCreateRequest(
-                "12345678", "Ana", "Lopez", LocalDate.of(1990, 1, 1), Gender.FEMALE,
-                "555", "ana@x.com", "Dir", "O+", "none");
+                "12345678",
+                "Ana",
+                "Lopez",
+                LocalDate.of(1990, 1, 1),
+                Gender.FEMALE,
+                "555",
+                "ana@x.com",
+                "Dir",
+                "O+",
+                "none");
         Patient entity = mapper.toEntity(create);
         assertThat(entity.getDni()).isEqualTo("12345678");
         assertThat(entity.getFirstName()).isEqualTo("Ana");

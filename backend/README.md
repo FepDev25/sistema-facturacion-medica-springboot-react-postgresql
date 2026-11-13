@@ -8,16 +8,16 @@ Backend RESTful para la gestion integral de una clinica medica: agendamiento de 
 
 | Capa | Tecnologia |
 |---|---|
-| Runtime | Java 21, Spring Boot 4.0.3 |
+| Runtime | Java 21, Spring Boot 4.1.2 |
 | Persistencia | Spring Data JPA, Hibernate, PostgreSQL 16 (Neon) |
 | Migraciones | Flyway |
 | Cache / Revocacion | Redis 7 |
-| Seguridad | Spring Security, JWT (jjwt 0.12.5), BCrypt |
+| Seguridad | Spring Security, JWT (jjwt 0.13.0), BCrypt |
 | Mapeo DTO | MapStruct 1.6.3 |
 | Validacion | Jakarta Bean Validation |
 | Auditoria | Spring Data Auditing, AOP (AspectJ) |
 | Monitoreo | Spring Boot Actuator |
-| IA — LLM | Spring AI 2.0.0-M4, Anthropic Claude (claude-haiku-4-5-20251001) |
+| IA — LLM | Spring AI 2.1.0-RC2, Anthropic Claude (claude-haiku-4-5-20251001) |
 | IA — Embeddings | Google AI Studio (gemini-embedding-001, 768 dims) |
 | IA — Vector store | pgvector (HNSW, cosine distance) |
 | Testing | JUnit 5, Mockito, MockMvc, Testcontainers, JaCoCo |
@@ -346,33 +346,36 @@ Formato de respuesta: `{ timestamp, status, error, message, path }`
 
 ## Estrategia de Testing
 
-Piramide de tests con tres capas, 458 tests unitarios, cobertura exigida por JaCoCo.
+Piramide de tests con tres capas, 572 tests, cobertura exigida por JaCoCo.
 
 ### Umbrales JaCoCo
 
 | Alcance | Lineas | Branches |
 |---|---|---|
-| Global (bundle) | 80% | 65% |
+| Global (bundle) | 82% | 66% |
 | `invoice*`, `payment*`, `appointment*` | 90% | 75% |
+
+Cobertura real (2026-11-13): **90.62% lineas / 73.88% ramas**.
 
 ### Capas de Testing
 
 ```mermaid
 graph TB
     subgraph "E2E (Testcontainers)"
-        E2E[5 flujos de negocio<br/>PostgreSQL real en Docker]
+        E2E[7 flujos de negocio<br/>PostgreSQL real en Docker]
     end
 
     subgraph "Slice (MockMvc / DataJPA)"
-        WEB[12 WebMvc tests<br/>Controllers + Security]
+        WEB[17 WebMvc tests<br/>Controllers + Security]
         JPA[9 DataJPA tests<br/>Repositories + Constraints]
     end
 
     subgraph "Unit (Mockito)"
-        SVC[30 Service tests<br/>Logica de negocio]
-        MAP[16 Mapper/DTO tests<br/>MapStruct + Records]
-        SEC[5 Security tests<br/>JWT + Filter]
+        SVC[23 Service tests<br/>Logica de negocio]
+        MAP[17 Mapper/DTO tests<br/>MapStruct + Records]
+        SEC[6 Security tests<br/>JWT + Filter]
         AUD[1 Audit test<br/>AOP Aspect]
+        OTH[13 tests de config/enums/IA<br/>Properties, converters, guards]
     end
 
     E2E --> JPA
@@ -380,13 +383,13 @@ graph TB
     SVC --> MAP
 ```
 
-| Capa | Cantidad | Framework | Proposito |
+| Capa | Clases | Framework | Proposito |
 |---|---|---|---|
-| Unitarios | ~52 | JUnit 5 + Mockito | Logica de servicio, mappers, enums, converters |
-| WebMvc | ~12 | MockMvc + @WebMvcTest | Controladores, validacion, autorizacion HTTP |
-| DataJPA | ~9 | Testcontainers + @DataJpaTest | Repositorios, queries nativas, constraints DB |
-| E2E | ~5 | Testcontainers + SpringBootTest | Flujos completos de negocio contra BD real |
-| Totales | **450** | -- | **0 fallos, BUILD SUCCESS** |
+| Unitarios | 60 | JUnit 5 + Mockito | Logica de servicio, mappers, enums, converters, IA |
+| WebMvc | 17 | MockMvc + @WebMvcTest | Controladores, validacion, autorizacion HTTP |
+| DataJPA | 9 | Testcontainers + @DataJpaTest | Repositorios, queries nativas, constraints DB |
+| E2E | 7 | Testcontainers + SpringBootTest | Flujos completos de negocio contra BD real |
+| Totales | **93 clases / 572 tests** | -- | **0 fallos, BUILD SUCCESS** |
 
 ### Flujos E2E
 
@@ -485,7 +488,7 @@ Ejecuta todos los tests (unitarios, WebMvc, DataJPA, E2E), genera reporte JaCoCo
 ./mvnw -Punit test
 ```
 
-Corre 384 tests y omite los `*DataJpaTest`, `*FlowE2ETest` y
+Corre 541 tests y omite los `*DataJpaTest`, `*FlowE2ETest` y
 `BackendApplicationTests`, que necesitan PostgreSQL con Testcontainers. El
 perfil `unit` también desactiva JaCoCo porque el reporte quedaría incompleto.
 

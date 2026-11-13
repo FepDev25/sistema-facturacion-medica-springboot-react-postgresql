@@ -1,7 +1,12 @@
 package com.fepdev.sfm.backend.domain.catalog;
 
+import com.fepdev.sfm.backend.domain.catalog.dto.MedicationCreateRequest;
+import com.fepdev.sfm.backend.domain.catalog.dto.MedicationResponse;
+import com.fepdev.sfm.backend.domain.catalog.dto.MedicationSummaryResponse;
+import com.fepdev.sfm.backend.domain.catalog.dto.MedicationUpdateRequest;
+import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
+import jakarta.persistence.EntityNotFoundException;
 import java.util.UUID;
-
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -10,14 +15,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fepdev.sfm.backend.domain.catalog.dto.MedicationCreateRequest;
-import com.fepdev.sfm.backend.domain.catalog.dto.MedicationResponse;
-import com.fepdev.sfm.backend.domain.catalog.dto.MedicationSummaryResponse;
-import com.fepdev.sfm.backend.domain.catalog.dto.MedicationUpdateRequest;
-import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
-
-import jakarta.persistence.EntityNotFoundException;
-
 @Service
 public class MedicationsCatalogService {
 
@@ -25,19 +22,23 @@ public class MedicationsCatalogService {
     private final MedicationsCatalogMapper mapper;
     private final CatalogPriceHistoryRepository catalogPriceHistoryRepository;
 
-    public MedicationsCatalogService(MedicationsCatalogRepository repository, MedicationsCatalogMapper mapper, CatalogPriceHistoryRepository catalogPriceHistoryRepository) {
+    public MedicationsCatalogService(
+            MedicationsCatalogRepository repository,
+            MedicationsCatalogMapper mapper,
+            CatalogPriceHistoryRepository catalogPriceHistoryRepository) {
         this.repository = repository;
         this.mapper = mapper;
         this.catalogPriceHistoryRepository = catalogPriceHistoryRepository;
     }
 
     // crear medicamento
-    @Caching(evict = {
-        @CacheEvict(value = "medications", allEntries = true),
-        @CacheEvict(value = "medications-list", allEntries = true)
-    })
+    @Caching(
+            evict = {
+                @CacheEvict(value = "medications", allEntries = true),
+                @CacheEvict(value = "medications-list", allEntries = true)
+            })
     @Transactional
-    public MedicationResponse createMedication(MedicationCreateRequest request){
+    public MedicationResponse createMedication(MedicationCreateRequest request) {
         MedicationsCatalog entity = mapper.toEntity(request);
         entity.setActive(true);
         MedicationsCatalog savedEntity = repository.save(entity);
@@ -45,14 +46,16 @@ public class MedicationsCatalogService {
     }
 
     // actualizar medicamento, si cambia el precio, guardar el cambio en CatalogPriceHistory
-    @Caching(evict = {
-        @CacheEvict(value = "medications", allEntries = true),
-        @CacheEvict(value = "medications-list", allEntries = true)
-    })
+    @Caching(
+            evict = {
+                @CacheEvict(value = "medications", allEntries = true),
+                @CacheEvict(value = "medications-list", allEntries = true)
+            })
     @Transactional
-    public MedicationResponse updateMedication(UUID id, MedicationUpdateRequest request){
-        MedicationsCatalog entity = repository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException("Medicamento con ID " + id + " no encontrado"));
+    public MedicationResponse updateMedication(UUID id, MedicationUpdateRequest request) {
+        MedicationsCatalog entity = repository
+                .findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Medicamento con ID " + id + " no encontrado"));
 
         if (request.price() != null && !request.price().equals(entity.getPrice())) {
             CatalogPriceHistory history = new CatalogPriceHistory();
@@ -64,21 +67,23 @@ public class MedicationsCatalogService {
             history.setNewPrice(request.price());
             catalogPriceHistoryRepository.save(history);
         }
-        
+
         mapper.updateEntity(request, entity);
         MedicationsCatalog updatedEntity = repository.save(entity);
         return mapper.toResponse(updatedEntity);
     }
 
     // desactivar medicamento
-    @Caching(evict = {
-        @CacheEvict(value = "medications", allEntries = true),
-        @CacheEvict(value = "medications-list", allEntries = true)
-    })
+    @Caching(
+            evict = {
+                @CacheEvict(value = "medications", allEntries = true),
+                @CacheEvict(value = "medications-list", allEntries = true)
+            })
     @Transactional
     public void deactivateMedication(UUID id) {
-        MedicationsCatalog entity = repository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException("Medicamento con ID " + id + " no encontrado"));
+        MedicationsCatalog entity = repository
+                .findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Medicamento con ID " + id + " no encontrado"));
         entity.setActive(false);
         repository.save(entity);
     }
@@ -87,31 +92,34 @@ public class MedicationsCatalogService {
     @Cacheable(value = "medications", key = "#id")
     @Transactional(readOnly = true)
     public MedicationResponse getMedicationById(UUID id) {
-        MedicationsCatalog entity = repository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException("Medicamento con ID " + id + " no encontrado"));
+        MedicationsCatalog entity = repository
+                .findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Medicamento con ID " + id + " no encontrado"));
         return mapper.toResponse(entity);
     }
 
     // obtener medicamento por código
     @Transactional(readOnly = true)
     public MedicationResponse getMedicationByCode(String code) {
-        MedicationsCatalog entity = repository.findByCode(code)
-            .orElseThrow(() -> new EntityNotFoundException("Medicamento con código " + code + " no encontrado"));
+        MedicationsCatalog entity = repository
+                .findByCode(code)
+                .orElseThrow(() -> new EntityNotFoundException("Medicamento con código " + code + " no encontrado"));
         return mapper.toResponse(entity);
     }
 
-    // método de búsqueda con filtros y paginación, si el nombre tiene menos de 2 caracteres y no está vacío, lanzar excepción
+    // método de búsqueda con filtros y paginación, si el nombre tiene menos de 2 caracteres y no está vacío, lanzar
+    // excepción
     @Transactional(readOnly = true)
-    public Page<MedicationSummaryResponse> searchMedications(Boolean isActive, Unit unit, Boolean requiresPrescription, String name, Pageable pageable) {
+    public Page<MedicationSummaryResponse> searchMedications(
+            Boolean isActive, Unit unit, Boolean requiresPrescription, String name, Pageable pageable) {
         if (name != null && name.trim().length() < 2 && !name.trim().isEmpty()) {
             throw new BusinessRuleException("El término de búsqueda debe tener al menos 2 caracteres.");
         }
 
         String normalizedName = name == null ? "" : name.trim();
-        
-        Page<MedicationsCatalog> page = repository.search(isActive, unit, requiresPrescription, normalizedName, pageable);
+
+        Page<MedicationsCatalog> page =
+                repository.search(isActive, unit, requiresPrescription, normalizedName, pageable);
         return page.map(mapper::toSummaryResponse);
     }
-
-
 }

@@ -1,15 +1,5 @@
 package com.fepdev.sfm.backend.domain.patient;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.fepdev.sfm.backend.domain.appointment.AppointmentMapper;
 import com.fepdev.sfm.backend.domain.appointment.AppointmentRepository;
 import com.fepdev.sfm.backend.domain.appointment.dto.AppointmentSummaryResponse;
@@ -24,8 +14,15 @@ import com.fepdev.sfm.backend.domain.patient.dto.PatientResponse;
 import com.fepdev.sfm.backend.domain.patient.dto.PatientSummaryResponse;
 import com.fepdev.sfm.backend.domain.patient.dto.PatientUpdateRequest;
 import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
-
 import jakarta.persistence.EntityNotFoundException;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PatientService {
@@ -40,10 +37,14 @@ public class PatientService {
     private final InsurancePolicyMapper insurancePolicyMapper;
     private final InvoiceRepository invoiceRepository;
 
-    public PatientService(PatientRepository patientRepository, PatientMapper patientMapper, 
-        AppointmentRepository appointmentRepository, InsurancePolicyRepository insurancePolicyRepository, 
-        InsurancePolicyMapper insurancePolicyMapper, AppointmentMapper appointmentMapper,
-        InvoiceRepository invoiceRepository) {
+    public PatientService(
+            PatientRepository patientRepository,
+            PatientMapper patientMapper,
+            AppointmentRepository appointmentRepository,
+            InsurancePolicyRepository insurancePolicyRepository,
+            InsurancePolicyMapper insurancePolicyMapper,
+            AppointmentMapper appointmentMapper,
+            InvoiceRepository invoiceRepository) {
 
         this.patientRepository = patientRepository;
         this.patientMapper = patientMapper;
@@ -56,7 +57,7 @@ public class PatientService {
 
     // crear un nuevo paciente, si el DNI ya existe, lanzar una excepción de regla de negocio
     @Transactional
-    public PatientResponse createPatient(PatientCreateRequest request){
+    public PatientResponse createPatient(PatientCreateRequest request) {
 
         if (request.dni() != null && patientRepository.existsByDni(request.dni())) {
             throw new BusinessRuleException("El DNI " + request.dni() + " ya se encuentra registrado en el sistema.");
@@ -70,9 +71,10 @@ public class PatientService {
 
     // actualizar un paciente existente, si el paciente no existe, lanzar una excepción de regla de negocio
     @Transactional
-    public PatientResponse updatePatient(UUID id, PatientUpdateRequest request){
-        Patient entity = patientRepository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException("Paciente con ID " + id + " no encontrado."));
+    public PatientResponse updatePatient(UUID id, PatientUpdateRequest request) {
+        Patient entity = patientRepository
+                .findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Paciente con ID " + id + " no encontrado."));
 
         patientMapper.updateEntity(request, entity);
 
@@ -82,23 +84,25 @@ public class PatientService {
 
     // obtener un paciente por ID, si el paciente no existe, lanzar una excepción de regla de negocio
     @Transactional(readOnly = true)
-    public PatientResponse getPatientById(UUID id){
-        Patient patient = patientRepository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException("Paciente con ID " + id + " no encontrado."));
+    public PatientResponse getPatientById(UUID id) {
+        Patient patient = patientRepository
+                .findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Paciente con ID " + id + " no encontrado."));
         return patientMapper.toResponse(patient);
     }
 
     // obtener un paciente por DNI, si el paciente no existe, lanzar una excepción de regla de negocio
     @Transactional(readOnly = true)
-    public PatientResponse getPatientByDni(String dni){
-        Patient patient = patientRepository.findByDni(dni)
-            .orElseThrow(() -> new EntityNotFoundException("Paciente con DNI " + dni + " no encontrado."));
+    public PatientResponse getPatientByDni(String dni) {
+        Patient patient = patientRepository
+                .findByDni(dni)
+                .orElseThrow(() -> new EntityNotFoundException("Paciente con DNI " + dni + " no encontrado."));
         return patientMapper.toResponse(patient);
     }
 
     // listar pacientes con filtro por apellido y paginacion
     @Transactional(readOnly = true)
-    public Page<PatientSummaryResponse> listPatients(String lastName, Pageable pageable){
+    public Page<PatientSummaryResponse> listPatients(String lastName, Pageable pageable) {
         String normalizedLastName = lastName == null ? "" : lastName.trim();
         Page<Patient> patients = patientRepository.findWithFilters(normalizedLastName, pageable);
         return patients.map(patientMapper::toSummaryResponse);
@@ -108,9 +112,9 @@ public class PatientService {
     @Transactional(readOnly = true)
     public List<PatientSummaryResponse> autocomplete(String searchTerm) {
         if (searchTerm == null || searchTerm.trim().length() < 2) {
-            return Collections.emptyList(); //si hay menos de 2 letras, no se busca nada
+            return Collections.emptyList(); // si hay menos de 2 letras, no se busca nada
         }
-        
+
         // limitamos a los 10 primeros resultados para no sobrecargar la respuesta
         Pageable limit = PageRequest.of(0, 10);
         List<Patient> entities = patientRepository.quickSearch(searchTerm.trim(), limit);
@@ -120,29 +124,26 @@ public class PatientService {
     // historial de citas
     @Transactional(readOnly = true)
     public Page<AppointmentSummaryResponse> getPatientAppointments(UUID patientId, Pageable pageable) {
-        patientRepository.findById(patientId)
-            .orElseThrow(() -> new EntityNotFoundException("Paciente no encontrado"));
-        return appointmentRepository.findByPatientId(patientId, pageable)
-            .map(appointmentMapper::toSummaryResponse);
+        patientRepository.findById(patientId).orElseThrow(() -> new EntityNotFoundException("Paciente no encontrado"));
+        return appointmentRepository.findByPatientId(patientId, pageable).map(appointmentMapper::toSummaryResponse);
     }
 
     // obtener las pólizas de un paciente con paginación y filtro de activas
     @Transactional(readOnly = true)
-    public Page<InsurancePolicySummaryResponse> getPatientPolicies(UUID patientId, Boolean onlyActive, Pageable pageable) {
-        
+    public Page<InsurancePolicySummaryResponse> getPatientPolicies(
+            UUID patientId, Boolean onlyActive, Pageable pageable) {
+
         if (!patientRepository.existsById(patientId)) {
             throw new EntityNotFoundException("Paciente con ID " + patientId + " no encontrado.");
         }
 
-        return insurancePolicyRepository.findByPatientIdWithFilter(patientId, onlyActive, pageable)
-            .map(insurancePolicyMapper::toSummaryResponse);
+        return insurancePolicyRepository
+                .findByPatientIdWithFilter(patientId, onlyActive, pageable)
+                .map(insurancePolicyMapper::toSummaryResponse);
     }
 
     @Transactional(readOnly = true)
-    public Page<InvoiceListViewResponse> getPatientInvoices(
-            UUID patientId,
-            InvoiceStatus status,
-            Pageable pageable) {
+    public Page<InvoiceListViewResponse> getPatientInvoices(UUID patientId, InvoiceStatus status, Pageable pageable) {
 
         if (!patientRepository.existsById(patientId)) {
             throw new EntityNotFoundException("Paciente con ID " + patientId + " no encontrado.");

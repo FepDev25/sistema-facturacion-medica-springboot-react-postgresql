@@ -2,12 +2,6 @@ package com.fepdev.sfm.backend.integration.e2e;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.math.BigDecimal;
-import java.time.OffsetDateTime;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.test.context.jdbc.Sql;
-
 import com.fepdev.sfm.backend.domain.appointment.dto.AppointmentCreateRequest;
 import com.fepdev.sfm.backend.domain.doctor.Doctor;
 import com.fepdev.sfm.backend.domain.invoice.InvoiceStatus;
@@ -16,6 +10,10 @@ import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceItemRequest;
 import com.fepdev.sfm.backend.domain.patient.Patient;
 import com.fepdev.sfm.backend.domain.payment.PaymentMethod;
 import com.fepdev.sfm.backend.domain.payment.dto.PaymentCreateRequest;
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import org.junit.jupiter.api.Test;
+import org.springframework.test.context.jdbc.Sql;
 
 @Sql(scripts = "/sql/cleanup_test_data.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class DashboardFlowE2ETest extends AbstractPostgresFlowE2ETest {
@@ -28,31 +26,43 @@ class DashboardFlowE2ETest extends AbstractPostgresFlowE2ETest {
 
         OffsetDateTime now = OffsetDateTime.now(clock);
         OffsetDateTime todayEarly = now.withHour(0).withMinute(1).withSecond(0).withNano(0);
-        OffsetDateTime tomorrowMorning = now.plusDays(1)
-                .withHour(9).withMinute(0).withSecond(0).withNano(0);
+        OffsetDateTime tomorrowMorning =
+                now.plusDays(1).withHour(9).withMinute(0).withSecond(0).withNano(0);
 
-        appointmentService.createAppointment(new AppointmentCreateRequest(
-                patient.getId(), doctor.getId(), todayEarly, 30, "Control del día", null));
+        appointmentService.createAppointment(
+                new AppointmentCreateRequest(patient.getId(), doctor.getId(), todayEarly, 30, "Control del día", null));
         appointmentService.createAppointment(new AppointmentCreateRequest(
                 patient.getId(), doctor.getId(), tomorrowMorning, 30, "Control de mañana", null));
 
         // Factura parcialmente pagada: total 100 + 15 % IVA = 115, abono 40.
-        var firstCompleted = createAndCompleteAppointment(patient, doctor, now.plusDays(2)
-                .withHour(10).withMinute(0).withSecond(0).withNano(0));
+        var firstCompleted = createAndCompleteAppointment(
+                patient,
+                doctor,
+                now.plusDays(2).withHour(10).withMinute(0).withSecond(0).withNano(0));
         var firstInvoice = getInvoiceByAppointmentId(firstCompleted.id());
-        invoiceService.addItem(firstInvoice.getId(), new InvoiceItemRequest(
-                service.getId(), null, ItemType.SERVICE, "Consulta", 1, new BigDecimal("100.00")));
+        invoiceService.addItem(
+                firstInvoice.getId(),
+                new InvoiceItemRequest(
+                        service.getId(), null, ItemType.SERVICE, "Consulta", 1, new BigDecimal("100.00")));
         invoiceService.confirmInvoice(firstInvoice.getId());
         paymentService.registerPayment(new PaymentCreateRequest(
-                firstInvoice.getId(), new BigDecimal("40.00"), PaymentMethod.CASH,
-                null, "Abono", OffsetDateTime.now()));
+                firstInvoice.getId(),
+                new BigDecimal("40.00"),
+                PaymentMethod.CASH,
+                null,
+                "Abono",
+                OffsetDateTime.now()));
 
         // Factura vencida sin pagos: total 115.
-        var secondCompleted = createAndCompleteAppointment(patient, doctor, now.plusDays(3)
-                .withHour(10).withMinute(0).withSecond(0).withNano(0));
+        var secondCompleted = createAndCompleteAppointment(
+                patient,
+                doctor,
+                now.plusDays(3).withHour(10).withMinute(0).withSecond(0).withNano(0));
         var secondInvoice = getInvoiceByAppointmentId(secondCompleted.id());
-        invoiceService.addItem(secondInvoice.getId(), new InvoiceItemRequest(
-                service.getId(), null, ItemType.SERVICE, "Consulta", 1, new BigDecimal("100.00")));
+        invoiceService.addItem(
+                secondInvoice.getId(),
+                new InvoiceItemRequest(
+                        service.getId(), null, ItemType.SERVICE, "Consulta", 1, new BigDecimal("100.00")));
         invoiceService.confirmInvoice(secondInvoice.getId());
         invoiceService.markOverdue(secondInvoice.getId());
 

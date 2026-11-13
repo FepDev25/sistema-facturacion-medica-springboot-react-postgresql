@@ -3,20 +3,19 @@ package com.fepdev.sfm.backend.security;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.concurrent.atomic.AtomicLong;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-
 class LoginAttemptServiceTest {
 
-    private final AtomicLong now = new AtomicLong(Instant.parse("2026-01-01T10:00:00Z").toEpochMilli());
+    private final AtomicLong now =
+            new AtomicLong(Instant.parse("2026-01-01T10:00:00Z").toEpochMilli());
     private final Clock clock = new Clock() {
         @Override
         public ZoneId getZone() {
@@ -90,8 +89,7 @@ class LoginAttemptServiceTest {
         service.recordFailure("10.0.0.1", "user4");
         service.recordFailure("10.0.0.1", "user5");
 
-        assertThatThrownBy(() -> service.checkAllowed("10.0.0.1", "user6"))
-                .isInstanceOf(LoginBlockedException.class);
+        assertThatThrownBy(() -> service.checkAllowed("10.0.0.1", "user6")).isInstanceOf(LoginBlockedException.class);
     }
 
     @Test
@@ -112,8 +110,7 @@ class LoginAttemptServiceTest {
         for (int i = 0; i < 3; i++) {
             service.recordFailure("10.0.0.1", "admin");
         }
-        assertThatThrownBy(() -> service.checkAllowed("10.0.0.1", "admin"))
-                .isInstanceOf(LoginBlockedException.class);
+        assertThatThrownBy(() -> service.checkAllowed("10.0.0.1", "admin")).isInstanceOf(LoginBlockedException.class);
 
         now.addAndGet(61_000);
 
@@ -126,7 +123,6 @@ class LoginAttemptServiceTest {
         service.recordFailure("10.0.0.1", "admin");
         service.recordFailure("10.0.0.1", "ADMIN");
 
-        assertThatThrownBy(() -> service.checkAllowed("10.0.0.1", "admin"))
-                .isInstanceOf(LoginBlockedException.class);
+        assertThatThrownBy(() -> service.checkAllowed("10.0.0.1", "admin")).isInstanceOf(LoginBlockedException.class);
     }
 }

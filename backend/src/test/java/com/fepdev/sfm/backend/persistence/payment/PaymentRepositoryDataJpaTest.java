@@ -2,19 +2,6 @@ package com.fepdev.sfm.backend.persistence.payment;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.OffsetDateTime;
-import java.util.UUID;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
-import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.test.context.jdbc.Sql;
-
 import com.fepdev.sfm.backend.domain.invoice.Invoice;
 import com.fepdev.sfm.backend.domain.invoice.InvoiceStatus;
 import com.fepdev.sfm.backend.domain.patient.Gender;
@@ -24,8 +11,18 @@ import com.fepdev.sfm.backend.domain.payment.PaymentMethod;
 import com.fepdev.sfm.backend.domain.payment.PaymentRepository;
 import com.fepdev.sfm.backend.persistence.AbstractPostgresDataJpaTest;
 import com.fepdev.sfm.backend.persistence.TestJpaAuditingConfig;
-
 import jakarta.persistence.EntityManager;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
+import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.test.context.jdbc.Sql;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -62,7 +59,8 @@ class PaymentRepositoryDataJpaTest extends AbstractPostgresDataJpaTest {
     @Test
     void findByInvoiceIdOrderByPaymentDateDesc_returnsSortedPage() {
         Invoice invoice = persistInvoice("FAC-2026-90003");
-        Payment first = persistPayment(invoice, new BigDecimal("10.00"), OffsetDateTime.now().minusDays(1));
+        Payment first = persistPayment(
+                invoice, new BigDecimal("10.00"), OffsetDateTime.now().minusDays(1));
         Payment second = persistPayment(invoice, new BigDecimal("15.00"), OffsetDateTime.now());
 
         var page = paymentRepository.findByInvoiceIdOrderByPaymentDateDesc(invoice.getId(), PageRequest.of(0, 10));

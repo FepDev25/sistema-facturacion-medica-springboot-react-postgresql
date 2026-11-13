@@ -15,5 +15,4 @@ public class PaymentMethodConverter implements AttributeConverter<PaymentMethod,
     public PaymentMethod convertToEntityAttribute(String dbData) {
         return dbData == null ? null : PaymentMethod.valueOf(dbData.toUpperCase());
     }
-    
 }

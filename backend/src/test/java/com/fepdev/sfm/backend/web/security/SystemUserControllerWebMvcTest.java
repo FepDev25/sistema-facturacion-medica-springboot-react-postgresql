@@ -7,9 +7,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fepdev.sfm.backend.security.JwtAuthenticationFilter;
+import com.fepdev.sfm.backend.security.Role;
+import com.fepdev.sfm.backend.security.SystemUser;
+import com.fepdev.sfm.backend.security.SystemUserController;
+import com.fepdev.sfm.backend.security.SystemUserRepository;
+import com.fepdev.sfm.backend.shared.exception.HandlerException;
 import java.util.List;
 import java.util.UUID;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -20,13 +25,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
-
-import com.fepdev.sfm.backend.security.JwtAuthenticationFilter;
-import com.fepdev.sfm.backend.security.Role;
-import com.fepdev.sfm.backend.security.SystemUser;
-import com.fepdev.sfm.backend.security.SystemUserController;
-import com.fepdev.sfm.backend.security.SystemUserRepository;
-import com.fepdev.sfm.backend.shared.exception.HandlerException;
 
 @WebMvcTest(SystemUserController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -77,9 +75,7 @@ class SystemUserControllerWebMvcTest {
         when(systemUserRepository.findWithFilters(eq(Role.DOCTOR), eq(Boolean.TRUE), any()))
                 .thenReturn(new PageImpl<>(List.of(user), pageable, 1));
 
-        mockMvc.perform(get("/api/v1/system-users")
-                        .param("role", "DOCTOR")
-                        .param("active", "true"))
+        mockMvc.perform(get("/api/v1/system-users").param("role", "DOCTOR").param("active", "true"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content[0].username").value("doctor2"));
     }

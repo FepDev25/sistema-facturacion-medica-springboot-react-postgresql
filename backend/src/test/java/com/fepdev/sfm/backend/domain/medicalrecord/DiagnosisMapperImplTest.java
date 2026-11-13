@@ -2,15 +2,13 @@ package com.fepdev.sfm.backend.domain.medicalrecord;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fepdev.sfm.backend.domain.appointment.Appointment;
+import com.fepdev.sfm.backend.domain.medicalrecord.dto.DiagnosisCreateRequest;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import com.fepdev.sfm.backend.domain.appointment.Appointment;
-import com.fepdev.sfm.backend.domain.medicalrecord.dto.DiagnosisCreateRequest;
 
 class DiagnosisMapperImplTest {
 
@@ -20,12 +18,7 @@ class DiagnosisMapperImplTest {
     void toEntity_mapsCreateRequest() {
         OffsetDateTime diagnosedAt = OffsetDateTime.now();
         DiagnosisCreateRequest request = new DiagnosisCreateRequest(
-                UUID.randomUUID(),
-                UUID.randomUUID(),
-                "J02.9",
-                "Faringitis aguda",
-                Severity.MILD,
-                diagnosedAt);
+                UUID.randomUUID(), UUID.randomUUID(), "J02.9", "Faringitis aguda", Severity.MILD, diagnosedAt);
 
         Diagnosis entity = mapper.toEntity(request);
 

@@ -2,6 +2,11 @@ package com.fepdev.sfm.backend.persistence.doctor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fepdev.sfm.backend.domain.doctor.Doctor;
+import com.fepdev.sfm.backend.domain.doctor.DoctorRepository;
+import com.fepdev.sfm.backend.persistence.AbstractPostgresDataJpaTest;
+import com.fepdev.sfm.backend.persistence.TestJpaAuditingConfig;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -9,13 +14,6 @@ import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabas
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.jdbc.Sql;
-
-import com.fepdev.sfm.backend.domain.doctor.Doctor;
-import com.fepdev.sfm.backend.domain.doctor.DoctorRepository;
-import com.fepdev.sfm.backend.persistence.AbstractPostgresDataJpaTest;
-import com.fepdev.sfm.backend.persistence.TestJpaAuditingConfig;
-
-import jakarta.persistence.EntityManager;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)

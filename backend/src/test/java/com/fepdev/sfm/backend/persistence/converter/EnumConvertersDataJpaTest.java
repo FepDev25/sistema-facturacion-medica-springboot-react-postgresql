@@ -2,18 +2,6 @@ package com.fepdev.sfm.backend.persistence.converter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.OffsetDateTime;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
-import org.springframework.context.annotation.Import;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.jdbc.Sql;
-
 import com.fepdev.sfm.backend.domain.appointment.Appointment;
 import com.fepdev.sfm.backend.domain.appointment.Status;
 import com.fepdev.sfm.backend.domain.doctor.Doctor;
@@ -28,8 +16,17 @@ import com.fepdev.sfm.backend.domain.payment.Payment;
 import com.fepdev.sfm.backend.domain.payment.PaymentMethod;
 import com.fepdev.sfm.backend.persistence.AbstractPostgresDataJpaTest;
 import com.fepdev.sfm.backend.persistence.TestJpaAuditingConfig;
-
 import jakarta.persistence.EntityManager;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
+import org.springframework.context.annotation.Import;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.jdbc.Sql;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -98,14 +95,14 @@ class EnumConvertersDataJpaTest extends AbstractPostgresDataJpaTest {
 
         String appointmentStatus = jdbcTemplate.queryForObject(
                 "select status from appointments where id = ?", String.class, appointment.getId());
-        String invoiceStatus = jdbcTemplate.queryForObject(
-                "select status from invoices where id = ?", String.class, invoice.getId());
+        String invoiceStatus =
+                jdbcTemplate.queryForObject("select status from invoices where id = ?", String.class, invoice.getId());
         String paymentMethod = jdbcTemplate.queryForObject(
                 "select payment_method from payments where id = ?", String.class, payment.getId());
         String diagnosisSeverity = jdbcTemplate.queryForObject(
                 "select severity from diagnoses where id = ?", String.class, diagnosis.getId());
-        String patientGender = jdbcTemplate.queryForObject(
-                "select gender from patients where id = ?", String.class, patient.getId());
+        String patientGender =
+                jdbcTemplate.queryForObject("select gender from patients where id = ?", String.class, patient.getId());
 
         assertThat(appointmentStatus).isEqualTo("confirmed");
         assertThat(invoiceStatus).isEqualTo("pending");

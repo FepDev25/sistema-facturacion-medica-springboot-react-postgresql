@@ -1,30 +1,28 @@
 package com.fepdev.sfm.backend.domain.medicalrecord;
 
-import java.time.OffsetDateTime;
-import java.util.Optional;
-import java.util.UUID;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.test.util.ReflectionTestUtils;
 
+import com.fepdev.sfm.backend.ai.history.PatientHistoryIndexer;
 import com.fepdev.sfm.backend.domain.appointment.Appointment;
 import com.fepdev.sfm.backend.domain.appointment.Status;
 import com.fepdev.sfm.backend.domain.medicalrecord.dto.DiagnosisCreateRequest;
 import com.fepdev.sfm.backend.domain.medicalrecord.dto.DiagnosisResponse;
-import com.fepdev.sfm.backend.ai.history.PatientHistoryIndexer;
 import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
-
 import jakarta.persistence.EntityNotFoundException;
+import java.time.OffsetDateTime;
+import java.util.Optional;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class DiagnosisServiceTest {
@@ -50,8 +48,7 @@ class DiagnosisServiceTest {
                 UUID.randomUUID(), UUID.randomUUID(), "J02.9", "Faringitis", Severity.MILD, OffsetDateTime.now());
         when(medicalRecordRepository.findById(request.medicalRecordId())).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> diagnosisService.addDiagnosis(request))
-                .isInstanceOf(EntityNotFoundException.class);
+        assertThatThrownBy(() -> diagnosisService.addDiagnosis(request)).isInstanceOf(EntityNotFoundException.class);
     }
 
     @Test
@@ -109,8 +106,14 @@ class DiagnosisServiceTest {
 
         Diagnosis entity = new Diagnosis();
         DiagnosisResponse response = new DiagnosisResponse(
-                UUID.randomUUID(), appointmentId, medicalRecordId, "J02.9", "Faringitis",
-                Severity.MODERATE, OffsetDateTime.now(), OffsetDateTime.now());
+                UUID.randomUUID(),
+                appointmentId,
+                medicalRecordId,
+                "J02.9",
+                "Faringitis",
+                Severity.MODERATE,
+                OffsetDateTime.now(),
+                OffsetDateTime.now());
 
         when(medicalRecordRepository.findById(medicalRecordId)).thenReturn(Optional.of(mr));
         when(diagnosisMapper.toEntity(request)).thenReturn(entity);
@@ -138,8 +141,14 @@ class DiagnosisServiceTest {
         UUID medicalRecordId = UUID.randomUUID();
         Diagnosis diagnosis = new Diagnosis();
         DiagnosisResponse response = new DiagnosisResponse(
-                UUID.randomUUID(), UUID.randomUUID(), medicalRecordId, "E11.9", "Diabetes",
-                Severity.MODERATE, OffsetDateTime.now(), OffsetDateTime.now());
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                medicalRecordId,
+                "E11.9",
+                "Diabetes",
+                Severity.MODERATE,
+                OffsetDateTime.now(),
+                OffsetDateTime.now());
         Pageable pageable = Pageable.ofSize(10);
 
         when(medicalRecordRepository.existsById(medicalRecordId)).thenReturn(true);
@@ -157,8 +166,14 @@ class DiagnosisServiceTest {
     void getDiagnosesByIcd10Code_returnsMappedPage() {
         Diagnosis diagnosis = new Diagnosis();
         DiagnosisResponse response = new DiagnosisResponse(
-                UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "J02.9", "Faringitis",
-                Severity.MILD, OffsetDateTime.now(), OffsetDateTime.now());
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                "J02.9",
+                "Faringitis",
+                Severity.MILD,
+                OffsetDateTime.now(),
+                OffsetDateTime.now());
         Pageable pageable = Pageable.ofSize(10);
 
         when(diagnosisRepository.findByIcd10Code("J02.9", pageable))

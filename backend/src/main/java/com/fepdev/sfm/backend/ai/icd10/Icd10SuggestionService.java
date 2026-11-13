@@ -1,11 +1,13 @@
 package com.fepdev.sfm.backend.ai.icd10;
 
+import com.fepdev.sfm.backend.ai.guard.AiCallExecutor;
+import com.fepdev.sfm.backend.ai.icd10.dto.Icd10Suggestion;
+import com.fepdev.sfm.backend.ai.icd10.dto.Icd10SuggestionResult;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ChatClient;
@@ -15,10 +17,6 @@ import org.springframework.ai.document.Document;
 import org.springframework.ai.vectorstore.SearchRequest;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Service;
-
-import com.fepdev.sfm.backend.ai.guard.AiCallExecutor;
-import com.fepdev.sfm.backend.ai.icd10.dto.Icd10Suggestion;
-import com.fepdev.sfm.backend.ai.icd10.dto.Icd10SuggestionResult;
 
 @Service
 public class Icd10SuggestionService {
@@ -49,8 +47,7 @@ public class Icd10SuggestionService {
     private final ChatClient chatClient;
     private final AiCallExecutor aiCallExecutor;
 
-    public Icd10SuggestionService(VectorStore vectorStore, ChatClient chatClient,
-            AiCallExecutor aiCallExecutor) {
+    public Icd10SuggestionService(VectorStore vectorStore, ChatClient chatClient, AiCallExecutor aiCallExecutor) {
         this.vectorStore = vectorStore;
         this.chatClient = chatClient;
         this.aiCallExecutor = aiCallExecutor;
@@ -58,11 +55,14 @@ public class Icd10SuggestionService {
 
     public Icd10SuggestionResult suggest(String query) {
         // 1. Normalizar la query a terminología CIE-10 formal
-        ChatResponse normalization = aiCallExecutor.callChat("icd10-normalize", () -> chatClient.prompt()
-                .system(NORMALIZE_PROMPT)
-                .user(query)
-                .call()
-                .chatResponse());
+        ChatResponse normalization = aiCallExecutor.callChat(
+                "icd10-normalize",
+                () -> chatClient
+                        .prompt()
+                        .system(NORMALIZE_PROMPT)
+                        .user(query)
+                        .call()
+                        .chatResponse());
         String normalizedQuery = contentOf(normalization);
 
         if (normalizedQuery == null || normalizedQuery.isBlank()) {
@@ -81,10 +81,7 @@ public class Icd10SuggestionService {
 
         // 3. Mapa código → documento para lookup posterior
         Map<String, Document> byCode = candidates.stream()
-                .collect(Collectors.toMap(
-                        doc -> (String) doc.getMetadata().get("code"),
-                        doc -> doc,
-                        (a, b) -> a));
+                .collect(Collectors.toMap(doc -> (String) doc.getMetadata().get("code"), doc -> doc, (a, b) -> a));
 
         // 4. Construir lista de candidatos para el reranking
         String candidateList = IntStream.range(0, candidates.size())
@@ -106,7 +103,9 @@ public class Icd10SuggestionService {
 
         // 5. Reranking con Claude
         ResponseEntity<ChatResponse, RerankResult> rerankResponse = aiCallExecutor.callEntity(
-                "icd10-rerank", () -> chatClient.prompt()
+                "icd10-rerank",
+                () -> chatClient
+                        .prompt()
                         .system(RERANK_PROMPT)
                         .user(rerankPrompt)
                         .call()
@@ -114,13 +113,13 @@ public class Icd10SuggestionService {
         RerankResult reranked = rerankResponse != null ? rerankResponse.entity() : null;
 
         if (reranked == null || reranked.codes() == null || reranked.codes().isEmpty()) {
-            log.warn("Reranking retornó vacío — query='{}' normalizada='{}' — usando candidatos del vector search como fallback",
-                    query, normalizedQuery);
+            log.warn(
+                    "Reranking retornó vacío — query='{}' normalizada='{}' — usando candidatos del vector search como fallback",
+                    query,
+                    normalizedQuery);
             List<Icd10Suggestion> fallback = candidates.stream()
-                    .map(doc -> new Icd10Suggestion(
-                            (String) doc.getMetadata().get("code"),
-                            doc.getText(),
-                            doc.getScore()))
+                    .map(doc ->
+                            new Icd10Suggestion((String) doc.getMetadata().get("code"), doc.getText(), doc.getScore()))
                     .limit(5)
                     .toList();
             return new Icd10SuggestionResult(fallback);
@@ -144,7 +143,9 @@ public class Icd10SuggestionService {
     }
 
     private static String contentOf(ChatResponse response) {
-        if (response == null || response.getResult() == null || response.getResult().getOutput() == null) {
+        if (response == null
+                || response.getResult() == null
+                || response.getResult().getOutput() == null) {
             return null;
         }
         return response.getResult().getOutput().getText();

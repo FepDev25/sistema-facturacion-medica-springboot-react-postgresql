@@ -2,17 +2,15 @@ package com.fepdev.sfm.backend.domain.insurance;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fepdev.sfm.backend.domain.insurance.dto.InsurancePolicyCreateRequest;
+import com.fepdev.sfm.backend.domain.insurance.dto.InsurancePolicyUpdateRequest;
+import com.fepdev.sfm.backend.domain.patient.Patient;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import com.fepdev.sfm.backend.domain.insurance.dto.InsurancePolicyCreateRequest;
-import com.fepdev.sfm.backend.domain.insurance.dto.InsurancePolicyUpdateRequest;
-import com.fepdev.sfm.backend.domain.patient.Patient;
 
 class InsurancePolicyMapperImplTest {
 
@@ -21,9 +19,13 @@ class InsurancePolicyMapperImplTest {
     @Test
     void toEntity_and_update_and_toResponseList_mapFields() {
         InsurancePolicyCreateRequest create = new InsurancePolicyCreateRequest(
-                UUID.randomUUID(), UUID.randomUUID(), "POL-1",
-                new BigDecimal("80.00"), new BigDecimal("0.00"),
-                LocalDate.now(), LocalDate.now().plusDays(30));
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                "POL-1",
+                new BigDecimal("80.00"),
+                new BigDecimal("0.00"),
+                LocalDate.now(),
+                LocalDate.now().plusDays(30));
 
         InsurancePolicy entity = mapper.toEntity(create);
         assertThat(entity.getPolicyNumber()).isEqualTo("POL-1");

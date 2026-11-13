@@ -2,15 +2,12 @@ package com.fepdev.sfm.backend.ai.metrics;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 // Precios configurables por modelo. No contiene secretos: solo tarifas publicas
 // expresadas en USD por millon de tokens.
 @ConfigurationProperties(prefix = "app.ai.pricing")
-public record AiPricingProperties(
-        String defaultModel,
-        Map<String, ModelPrice> models) {
+public record AiPricingProperties(String defaultModel, Map<String, ModelPrice> models) {
 
     public static final String FALLBACK_MODEL = "claude-haiku-4-5-20251001";
 
@@ -20,9 +17,7 @@ public record AiPricingProperties(
         if (defaultModel == null || defaultModel.isBlank()) {
             defaultModel = FALLBACK_MODEL;
         }
-        models = models == null || models.isEmpty()
-                ? new LinkedHashMap<>()
-                : new LinkedHashMap<>(models);
+        models = models == null || models.isEmpty() ? new LinkedHashMap<>() : new LinkedHashMap<>(models);
         if (!models.containsKey(defaultModel)) {
             models.put(defaultModel, new ModelPrice(1.0, 5.0));
         }

@@ -5,19 +5,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.math.BigDecimal;
-import java.time.Clock;
-import java.time.Instant;
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
-import java.util.List;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
 import com.fepdev.sfm.backend.domain.appointment.AppointmentRepository;
 import com.fepdev.sfm.backend.domain.appointment.Status;
 import com.fepdev.sfm.backend.domain.doctor.DoctorRepository;
@@ -25,26 +12,50 @@ import com.fepdev.sfm.backend.domain.invoice.InvoiceRepository;
 import com.fepdev.sfm.backend.domain.invoice.InvoiceStatus;
 import com.fepdev.sfm.backend.domain.patient.PatientRepository;
 import com.fepdev.sfm.backend.domain.payment.PaymentRepository;
+import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class DashboardServiceTest {
 
     private static final ZoneId ZONE = ZoneId.of("America/Bogota");
-    private static final Clock FIXED_CLOCK =
-            Clock.fixed(Instant.parse("2026-11-08T15:30:00Z"), ZONE);
+    private static final Clock FIXED_CLOCK = Clock.fixed(Instant.parse("2026-11-08T15:30:00Z"), ZONE);
 
-    @Mock PatientRepository patientRepository;
-    @Mock DoctorRepository doctorRepository;
-    @Mock AppointmentRepository appointmentRepository;
-    @Mock InvoiceRepository invoiceRepository;
-    @Mock PaymentRepository paymentRepository;
+    @Mock
+    PatientRepository patientRepository;
+
+    @Mock
+    DoctorRepository doctorRepository;
+
+    @Mock
+    AppointmentRepository appointmentRepository;
+
+    @Mock
+    InvoiceRepository invoiceRepository;
+
+    @Mock
+    PaymentRepository paymentRepository;
 
     DashboardService dashboardService;
 
     @BeforeEach
     void setUp() {
-        dashboardService = new DashboardService(patientRepository, doctorRepository,
-                appointmentRepository, invoiceRepository, paymentRepository, FIXED_CLOCK);
+        dashboardService = new DashboardService(
+                patientRepository,
+                doctorRepository,
+                appointmentRepository,
+                invoiceRepository,
+                paymentRepository,
+                FIXED_CLOCK);
     }
 
     @Test
@@ -56,13 +67,16 @@ class DashboardServiceTest {
         when(patientRepository.count()).thenReturn(42L);
         when(doctorRepository.countActiveDoctors()).thenReturn(5L);
         when(appointmentRepository.countByStatusInAndScheduledAtBetween(
-                eq(List.of(Status.SCHEDULED, Status.CONFIRMED, Status.IN_PROGRESS)),
-                eq(startOfDay), eq(startOfTomorrow))).thenReturn(3L);
-        when(appointmentRepository.countUpcomingByStatusIn(
-                eq(List.of(Status.SCHEDULED, Status.CONFIRMED)), eq(now))).thenReturn(7L);
-        when(invoiceRepository.countByStatusIn(
-                eq(List.of(InvoiceStatus.PENDING, InvoiceStatus.PARTIAL_PAID)))).thenReturn(4L);
-        when(invoiceRepository.countByStatusIn(eq(List.of(InvoiceStatus.OVERDUE)))).thenReturn(2L);
+                        eq(List.of(Status.SCHEDULED, Status.CONFIRMED, Status.IN_PROGRESS)),
+                        eq(startOfDay),
+                        eq(startOfTomorrow)))
+                .thenReturn(3L);
+        when(appointmentRepository.countUpcomingByStatusIn(eq(List.of(Status.SCHEDULED, Status.CONFIRMED)), eq(now)))
+                .thenReturn(7L);
+        when(invoiceRepository.countByStatusIn(eq(List.of(InvoiceStatus.PENDING, InvoiceStatus.PARTIAL_PAID))))
+                .thenReturn(4L);
+        when(invoiceRepository.countByStatusIn(eq(List.of(InvoiceStatus.OVERDUE))))
+                .thenReturn(2L);
         when(paymentRepository.sumAllAmounts()).thenReturn(new BigDecimal("1500.50"));
         when(invoiceRepository.sumPendingCollection()).thenReturn(new BigDecimal("800.25"));
 

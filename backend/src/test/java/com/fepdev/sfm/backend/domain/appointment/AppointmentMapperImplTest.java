@@ -1,17 +1,16 @@
 package com.fepdev.sfm.backend.domain.appointment;
 
-import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.UUID;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import com.fepdev.sfm.backend.domain.appointment.dto.AppointmentCreateRequest;
 import com.fepdev.sfm.backend.domain.appointment.dto.AppointmentUpdateRequest;
 import com.fepdev.sfm.backend.domain.doctor.Doctor;
 import com.fepdev.sfm.backend.domain.patient.Patient;
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 class AppointmentMapperImplTest {
 

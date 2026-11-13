@@ -9,19 +9,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.UUID;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
-
 import com.fepdev.sfm.backend.domain.catalog.MedicationsCatalogController;
 import com.fepdev.sfm.backend.domain.catalog.MedicationsCatalogService;
 import com.fepdev.sfm.backend.domain.catalog.Unit;
@@ -30,8 +17,18 @@ import com.fepdev.sfm.backend.domain.catalog.dto.MedicationSummaryResponse;
 import com.fepdev.sfm.backend.security.JwtAuthenticationFilter;
 import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
 import com.fepdev.sfm.backend.shared.exception.HandlerException;
-
 import jakarta.persistence.EntityNotFoundException;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(MedicationsCatalogController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -51,8 +48,7 @@ class MedicationsCatalogControllerWebMvcTest {
     void create_whenValidRequest_returns201() throws Exception {
         UUID id = UUID.randomUUID();
         MedicationResponse response = new MedicationResponse(
-                id, "MED-1", "Amoxicilina", "desc", new BigDecimal("12.50"),
-                Unit.TABLET, true, true, null, null);
+                id, "MED-1", "Amoxicilina", "desc", new BigDecimal("12.50"), Unit.TABLET, true, true, null, null);
         when(medicationsCatalogService.createMedication(any())).thenReturn(response);
 
         String body = """
@@ -86,8 +82,7 @@ class MedicationsCatalogControllerWebMvcTest {
 
     @Test
     void getByCode_whenNotFound_returns404() throws Exception {
-        when(medicationsCatalogService.getMedicationByCode("NOPE"))
-                .thenThrow(new EntityNotFoundException("No existe"));
+        when(medicationsCatalogService.getMedicationByCode("NOPE")).thenThrow(new EntityNotFoundException("No existe"));
 
         mockMvc.perform(get("/api/v1/catalog/medications/code/{code}", "NOPE"))
                 .andExpect(status().isNotFound())
@@ -98,9 +93,10 @@ class MedicationsCatalogControllerWebMvcTest {
     void list_whenFiltered_returnsPage() throws Exception {
         MedicationSummaryResponse summary = new MedicationSummaryResponse(
                 UUID.randomUUID(), "MED-1", "Amoxicilina", new BigDecimal("12.50"), Unit.TABLET);
-        var page = new org.springframework.data.domain.PageImpl<>(List.of(summary),
-                org.springframework.data.domain.PageRequest.of(0, 20), 1);
-        when(medicationsCatalogService.searchMedications(any(), any(), any(), any(), any())).thenReturn(page);
+        var page = new org.springframework.data.domain.PageImpl<>(
+                List.of(summary), org.springframework.data.domain.PageRequest.of(0, 20), 1);
+        when(medicationsCatalogService.searchMedications(any(), any(), any(), any(), any()))
+                .thenReturn(page);
 
         mockMvc.perform(get("/api/v1/catalog/medications")
                         .param("active", "true")
@@ -132,8 +128,7 @@ class MedicationsCatalogControllerWebMvcTest {
     void update_whenValidRequest_returns200() throws Exception {
         UUID id = UUID.randomUUID();
         MedicationResponse response = new MedicationResponse(
-                id, "MED-1", "Amoxicilina", "nuevo", new BigDecimal("15.00"),
-                Unit.TABLET, true, true, null, null);
+                id, "MED-1", "Amoxicilina", "nuevo", new BigDecimal("15.00"), Unit.TABLET, true, true, null, null);
         when(medicationsCatalogService.updateMedication(any(), any())).thenReturn(response);
 
         String body = """

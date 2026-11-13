@@ -43,6 +43,10 @@ jobs:
           cache: maven
           cache-dependency-path: backend/pom.xml
 
+      - name: Verificar formato Java
+        working-directory: backend
+        run: ./mvnw -B -ntp spotless:check
+
       - name: Tests y cobertura
         working-directory: backend
         run: |

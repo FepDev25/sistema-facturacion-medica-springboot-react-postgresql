@@ -2,18 +2,16 @@ package com.fepdev.sfm.backend.domain.medicalrecord;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
-
 import com.fepdev.sfm.backend.domain.appointment.Appointment;
 import com.fepdev.sfm.backend.domain.medicalrecord.dto.MedicalRecordCreateRequest;
 import com.fepdev.sfm.backend.domain.medicalrecord.dto.MedicalRecordUpdateRequest;
 import com.fepdev.sfm.backend.domain.patient.Patient;
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 class MedicalRecordMapperImplTest {
 
@@ -23,12 +21,7 @@ class MedicalRecordMapperImplTest {
     void toEntity_mapsCreateRequest() {
         OffsetDateTime now = OffsetDateTime.now();
         MedicalRecordCreateRequest request = new MedicalRecordCreateRequest(
-                UUID.randomUUID(),
-                UUID.randomUUID(),
-                Map.of("hr", 72),
-                "normal",
-                "clinica",
-                now);
+                UUID.randomUUID(), UUID.randomUUID(), Map.of("hr", 72), "normal", "clinica", now);
 
         MedicalRecord entity = mapper.toEntity(request);
 

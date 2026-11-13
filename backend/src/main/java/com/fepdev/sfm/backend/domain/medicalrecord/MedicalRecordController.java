@@ -1,7 +1,14 @@
 package com.fepdev.sfm.backend.domain.medicalrecord;
 
+import com.fepdev.sfm.backend.domain.medicalrecord.dto.DiagnosisCreateRequest;
+import com.fepdev.sfm.backend.domain.medicalrecord.dto.DiagnosisResponse;
+import com.fepdev.sfm.backend.domain.medicalrecord.dto.MedicalRecordResponse;
+import com.fepdev.sfm.backend.domain.medicalrecord.dto.PrescriptionCreateRequest;
+import com.fepdev.sfm.backend.domain.medicalrecord.dto.PrescriptionResponse;
+import com.fepdev.sfm.backend.domain.medicalrecord.dto.ProcedureCreateRequest;
+import com.fepdev.sfm.backend.domain.medicalrecord.dto.ProcedureResponse;
+import jakarta.validation.Valid;
 import java.util.UUID;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -15,16 +22,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fepdev.sfm.backend.domain.medicalrecord.dto.DiagnosisCreateRequest;
-import com.fepdev.sfm.backend.domain.medicalrecord.dto.DiagnosisResponse;
-import com.fepdev.sfm.backend.domain.medicalrecord.dto.MedicalRecordResponse;
-import com.fepdev.sfm.backend.domain.medicalrecord.dto.PrescriptionCreateRequest;
-import com.fepdev.sfm.backend.domain.medicalrecord.dto.PrescriptionResponse;
-import com.fepdev.sfm.backend.domain.medicalrecord.dto.ProcedureCreateRequest;
-import com.fepdev.sfm.backend.domain.medicalrecord.dto.ProcedureResponse;
-
-import jakarta.validation.Valid;
-
 @RestController
 @RequestMapping("/api/v1/medical-records")
 public class MedicalRecordController {
@@ -34,7 +31,8 @@ public class MedicalRecordController {
     private final PrescriptionService prescriptionService;
     private final ProcedureService procedureService;
 
-    public MedicalRecordController(MedicalRecordService medicalRecordService,
+    public MedicalRecordController(
+            MedicalRecordService medicalRecordService,
             DiagnosisService diagnosisService,
             PrescriptionService prescriptionService,
             ProcedureService procedureService) {
@@ -68,8 +66,7 @@ public class MedicalRecordController {
 
     @PostMapping("/{id}/diagnoses")
     public ResponseEntity<DiagnosisResponse> addDiagnosis(
-            @PathVariable UUID id,
-            @Valid @RequestBody DiagnosisCreateRequest request) {
+            @PathVariable UUID id, @Valid @RequestBody DiagnosisCreateRequest request) {
 
         return ResponseEntity.ok(diagnosisService.addDiagnosis(request));
     }
@@ -95,8 +92,7 @@ public class MedicalRecordController {
 
     @PostMapping("/{id}/prescriptions")
     public ResponseEntity<PrescriptionResponse> addPrescription(
-            @PathVariable UUID id,
-            @Valid @RequestBody PrescriptionCreateRequest request) {
+            @PathVariable UUID id, @Valid @RequestBody PrescriptionCreateRequest request) {
 
         return ResponseEntity.ok(prescriptionService.createPrescription(request));
     }
@@ -113,8 +109,7 @@ public class MedicalRecordController {
 
     @PostMapping("/{id}/procedures")
     public ResponseEntity<ProcedureResponse> addProcedure(
-            @PathVariable UUID id,
-            @Valid @RequestBody ProcedureCreateRequest request) {
+            @PathVariable UUID id, @Valid @RequestBody ProcedureCreateRequest request) {
 
         return ResponseEntity.ok(procedureService.createProcedure(request));
     }

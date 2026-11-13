@@ -1,15 +1,13 @@
 package com.fepdev.sfm.backend.ai.guard;
 
-import java.io.IOException;
-
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.filter.OncePerRequestFilter;
-
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 // Corre despues de Spring Security, por lo que el SecurityContext ya tiene el usuario
 // autenticado. Se registra desde AiGuardConfig (no como @Component) para que los
@@ -30,8 +28,8 @@ public class AiRateLimitFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-            FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String user = auth != null && auth.isAuthenticated() ? auth.getName() : "anonymous";
 
@@ -43,8 +41,7 @@ public class AiRateLimitFilter extends OncePerRequestFilter {
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
             response.getWriter().write("""
-                    {"status":429,"error":"Too Many Requests","message":"%s","path":"%s"}"""
-                    .formatted(ex.getMessage().replace("\"", "'"), request.getRequestURI()));
+                    {"status":429,"error":"Too Many Requests","message":"%s","path":"%s"}""".formatted(ex.getMessage().replace("\"", "'"), request.getRequestURI()));
             return;
         }
 

@@ -1,16 +1,14 @@
 package com.fepdev.sfm.backend.domain.medicalrecord;
 
+import com.fepdev.sfm.backend.domain.medicalrecord.dto.MedicalRecordCreateRequest;
+import com.fepdev.sfm.backend.domain.medicalrecord.dto.MedicalRecordResponse;
+import com.fepdev.sfm.backend.domain.medicalrecord.dto.MedicalRecordUpdateRequest;
 import java.util.List;
-
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
-
-import com.fepdev.sfm.backend.domain.medicalrecord.dto.MedicalRecordCreateRequest;
-import com.fepdev.sfm.backend.domain.medicalrecord.dto.MedicalRecordResponse;
-import com.fepdev.sfm.backend.domain.medicalrecord.dto.MedicalRecordUpdateRequest;
 
 @Mapper(componentModel = "spring")
 public interface MedicalRecordMapper {

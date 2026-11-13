@@ -3,28 +3,11 @@ package com.fepdev.sfm.backend.domain.invoice;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
-import static org.mockito.ArgumentMatchers.eq;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.test.util.ReflectionTestUtils;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.fepdev.sfm.backend.domain.appointment.Appointment;
 import com.fepdev.sfm.backend.domain.catalog.MedicationsCatalog;
@@ -44,26 +27,64 @@ import com.fepdev.sfm.backend.domain.patient.Patient;
 import com.fepdev.sfm.backend.domain.patient.PatientRepository;
 import com.fepdev.sfm.backend.domain.payment.PaymentRepository;
 import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
-
 import jakarta.persistence.EntityNotFoundException;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class InvoiceServiceTest {
 
-    @Mock InvoiceRepository invoiceRepository;
-    @Mock InvoiceItemRepository invoiceItemRepository;
-    @Mock InvoiceSequenceRepository invoiceSequenceRepository;
-    @Mock InvoiceMapper invoiceMapper;
-    @Mock InvoiceItemMapper invoiceItemMapper;
-    @Mock PatientRepository patientRepository;
-    @Mock ServicesCatalogRepository servicesCatalogRepository;
-    @Mock MedicationsCatalogRepository medicationsCatalogRepository;
-    @Mock PrescriptionRepository prescriptionRepository;
-    @Mock PaymentRepository paymentRepository;
-    @Mock InsurancePolicyRepository insurancePolicyRepository;
-    @Mock InvoiceViewMapper invoiceViewMapper;
+    @Mock
+    InvoiceRepository invoiceRepository;
 
-    @InjectMocks InvoiceService invoiceService;
+    @Mock
+    InvoiceItemRepository invoiceItemRepository;
+
+    @Mock
+    InvoiceSequenceRepository invoiceSequenceRepository;
+
+    @Mock
+    InvoiceMapper invoiceMapper;
+
+    @Mock
+    InvoiceItemMapper invoiceItemMapper;
+
+    @Mock
+    PatientRepository patientRepository;
+
+    @Mock
+    ServicesCatalogRepository servicesCatalogRepository;
+
+    @Mock
+    MedicationsCatalogRepository medicationsCatalogRepository;
+
+    @Mock
+    PrescriptionRepository prescriptionRepository;
+
+    @Mock
+    PaymentRepository paymentRepository;
+
+    @Mock
+    InsurancePolicyRepository insurancePolicyRepository;
+
+    @Mock
+    InvoiceViewMapper invoiceViewMapper;
+
+    @InjectMocks
+    InvoiceService invoiceService;
 
     @BeforeEach
     void setUp() {
@@ -80,7 +101,8 @@ class InvoiceServiceTest {
 
     // serviceId, medicationId, itemType, description, quantity, unitPrice
     private InvoiceItemRequest serviceItemRequest(UUID serviceId) {
-        return new InvoiceItemRequest(serviceId, null, ItemType.SERVICE, "Consulta médica", 1, new BigDecimal("100.00"));
+        return new InvoiceItemRequest(
+                serviceId, null, ItemType.SERVICE, "Consulta médica", 1, new BigDecimal("100.00"));
     }
 
     private InvoiceItemRequest medicationItemRequest(UUID medId) {
@@ -101,12 +123,28 @@ class InvoiceServiceTest {
         invoice.setInvoiceNumber("FAC-2026-00123");
 
         InvoiceResponse base = new InvoiceResponse(
-                invoiceId, null, null, null, null, null, "FAC-2026-00123",
-                BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
-                BigDecimal.ZERO, BigDecimal.ZERO, InvoiceStatus.DRAFT,
-                LocalDate.now(), LocalDate.now().plusDays(30), null, List.of(), null, null);
+                invoiceId,
+                null,
+                null,
+                null,
+                null,
+                null,
+                "FAC-2026-00123",
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                InvoiceStatus.DRAFT,
+                LocalDate.now(),
+                LocalDate.now().plusDays(30),
+                null,
+                List.of(),
+                null,
+                null);
 
-        when(invoiceRepository.findTopByAppointmentIdOrderByCreatedAtDesc(appointmentId)).thenReturn(Optional.of(invoice));
+        when(invoiceRepository.findTopByAppointmentIdOrderByCreatedAtDesc(appointmentId))
+                .thenReturn(Optional.of(invoice));
         when(invoiceMapper.toResponse(invoice)).thenReturn(base);
         when(invoiceItemRepository.findByInvoiceId(invoiceId)).thenReturn(List.of());
         when(invoiceItemMapper.toResponseList(List.of())).thenReturn(List.of());
@@ -120,7 +158,8 @@ class InvoiceServiceTest {
     @Test
     void getInvoiceByAppointmentId_whenNotFound_throwsEntityNotFoundException() {
         UUID appointmentId = UUID.randomUUID();
-        when(invoiceRepository.findTopByAppointmentIdOrderByCreatedAtDesc(appointmentId)).thenReturn(Optional.empty());
+        when(invoiceRepository.findTopByAppointmentIdOrderByCreatedAtDesc(appointmentId))
+                .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> invoiceService.getInvoiceByAppointmentId(appointmentId))
                 .isInstanceOf(EntityNotFoundException.class);
@@ -135,8 +174,8 @@ class InvoiceServiceTest {
         when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
 
         assertThatThrownBy(() -> invoiceService.addItem(invoiceId, serviceItemRequest(UUID.randomUUID())))
-            .isInstanceOf(BusinessRuleException.class)
-            .hasMessageContaining("DRAFT");
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("DRAFT");
     }
 
     @Test
@@ -149,8 +188,8 @@ class InvoiceServiceTest {
         when(invoiceItemMapper.toEntity(req)).thenReturn(item);
 
         assertThatThrownBy(() -> invoiceService.addItem(invoiceId, req))
-            .isInstanceOf(BusinessRuleException.class)
-            .hasMessageContaining("serviceId");
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("serviceId");
     }
 
     @Test
@@ -165,8 +204,7 @@ class InvoiceServiceTest {
         InvoiceItem item = new InvoiceItem();
         when(invoiceItemMapper.toEntity(req)).thenReturn(item);
 
-        assertThatThrownBy(() -> invoiceService.addItem(invoiceId, req))
-            .isInstanceOf(EntityNotFoundException.class);
+        assertThatThrownBy(() -> invoiceService.addItem(invoiceId, req)).isInstanceOf(EntityNotFoundException.class);
     }
 
     @Test
@@ -176,8 +214,7 @@ class InvoiceServiceTest {
 
         when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> invoiceService.addItem(invoiceId, req))
-                .isInstanceOf(EntityNotFoundException.class);
+        assertThatThrownBy(() -> invoiceService.addItem(invoiceId, req)).isInstanceOf(EntityNotFoundException.class);
     }
 
     @Test
@@ -195,8 +232,8 @@ class InvoiceServiceTest {
         when(invoiceItemMapper.toEntity(req)).thenReturn(item);
 
         assertThatThrownBy(() -> invoiceService.addItem(invoiceId, req))
-            .isInstanceOf(BusinessRuleException.class)
-            .hasMessageContaining("activo");
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("activo");
     }
 
     @Test
@@ -209,8 +246,8 @@ class InvoiceServiceTest {
         when(invoiceItemMapper.toEntity(req)).thenReturn(item);
 
         assertThatThrownBy(() -> invoiceService.addItem(invoiceId, req))
-            .isInstanceOf(BusinessRuleException.class)
-            .hasMessageContaining("medicationId");
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("medicationId");
     }
 
     @Test
@@ -228,8 +265,8 @@ class InvoiceServiceTest {
         when(invoiceItemMapper.toEntity(req)).thenReturn(item);
 
         assertThatThrownBy(() -> invoiceService.addItem(invoiceId, req))
-            .isInstanceOf(BusinessRuleException.class)
-            .hasMessageContaining("activo");
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("activo");
     }
 
     @Test
@@ -243,7 +280,7 @@ class InvoiceServiceTest {
         med.setRequiresPrescription(true);
 
         com.fepdev.sfm.backend.domain.appointment.Appointment appointment =
-            new com.fepdev.sfm.backend.domain.appointment.Appointment();
+                new com.fepdev.sfm.backend.domain.appointment.Appointment();
         ReflectionTestUtils.setField(appointment, "id", appointmentId);
 
         Invoice invoice = draftInvoice();
@@ -251,19 +288,21 @@ class InvoiceServiceTest {
 
         when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
         when(medicationsCatalogRepository.findById(medId)).thenReturn(Optional.of(med));
-        when(prescriptionRepository.existsByAppointmentIdAndMedicationId(appointmentId, medId)).thenReturn(false);
+        when(prescriptionRepository.existsByAppointmentIdAndMedicationId(appointmentId, medId))
+                .thenReturn(false);
 
         InvoiceItemRequest req = medicationItemRequest(medId);
         InvoiceItem item = new InvoiceItem();
         when(invoiceItemMapper.toEntity(req)).thenReturn(item);
 
         assertThatThrownBy(() -> invoiceService.addItem(invoiceId, req))
-            .isInstanceOf(BusinessRuleException.class)
-            .hasMessageContaining("prescripción");
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("prescripción");
     }
 
     @Test
-    void addItem_medicationType_whenMedicationRequiresPrescriptionButInvoiceHasNoAppointment_throwsBusinessRuleException() {
+    void
+            addItem_medicationType_whenMedicationRequiresPrescriptionButInvoiceHasNoAppointment_throwsBusinessRuleException() {
         UUID invoiceId = UUID.randomUUID();
         UUID medId = UUID.randomUUID();
 
@@ -304,12 +343,23 @@ class InvoiceServiceTest {
 
         InvoiceItem item = new InvoiceItem();
         InvoiceItemResponse mapped = new InvoiceItemResponse(
-                UUID.randomUUID(), invoiceId, null, null, medId, null,
-                ItemType.MEDICATION, "Amoxicilina", 2, new BigDecimal("15.00"), new BigDecimal("30.00"), null);
+                UUID.randomUUID(),
+                invoiceId,
+                null,
+                null,
+                medId,
+                null,
+                ItemType.MEDICATION,
+                "Amoxicilina",
+                2,
+                new BigDecimal("15.00"),
+                new BigDecimal("30.00"),
+                null);
 
         when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
         when(medicationsCatalogRepository.findById(medId)).thenReturn(Optional.of(med));
-        when(prescriptionRepository.existsByAppointmentIdAndMedicationId(appointmentId, medId)).thenReturn(true);
+        when(prescriptionRepository.existsByAppointmentIdAndMedicationId(appointmentId, medId))
+                .thenReturn(true);
         when(invoiceItemMapper.toEntity(any())).thenReturn(item);
         when(invoiceItemRepository.save(item)).thenReturn(item);
         when(invoiceItemMapper.toResponse(item)).thenReturn(mapped);
@@ -332,14 +382,24 @@ class InvoiceServiceTest {
         service.setName("Consulta");
         service.setPrice(new BigDecimal("50.00"));
 
-        InvoiceItemRequest req = new InvoiceItemRequest(
-            serviceId, null, ItemType.SERVICE, "Consulta", 2, new BigDecimal("50.00"));
+        InvoiceItemRequest req =
+                new InvoiceItemRequest(serviceId, null, ItemType.SERVICE, "Consulta", 2, new BigDecimal("50.00"));
         // subtotal esperado: 2 * 50.00 = 100.00
 
         InvoiceItem item = new InvoiceItem();
         InvoiceItemResponse itemResponse = new InvoiceItemResponse(
-            UUID.randomUUID(), invoiceId, serviceId, null, null, null,
-            ItemType.SERVICE, "Consulta", 2, new BigDecimal("50.00"), new BigDecimal("100.00"), null);
+                UUID.randomUUID(),
+                invoiceId,
+                serviceId,
+                null,
+                null,
+                null,
+                ItemType.SERVICE,
+                "Consulta",
+                2,
+                new BigDecimal("50.00"),
+                new BigDecimal("100.00"),
+                null);
 
         Invoice invoice = draftInvoice();
 
@@ -413,9 +473,9 @@ class InvoiceServiceTest {
         when(invoiceRepository.save(any(Invoice.class))).thenReturn(invoice);
         when(invoiceItemMapper.toResponse(item)).thenReturn(null);
 
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken("admin", null,
-                        List.of(new SimpleGrantedAuthority("ADMIN"))));
+        SecurityContextHolder.getContext()
+                .setAuthentication(new UsernamePasswordAuthenticationToken(
+                        "admin", null, List.of(new SimpleGrantedAuthority("ADMIN"))));
         try {
             invoiceService.addItem(invoiceId, req);
         } finally {
@@ -429,8 +489,7 @@ class InvoiceServiceTest {
     @Test
     void addItem_procedureType_withoutPrice_throwsBusinessRuleException() {
         UUID invoiceId = UUID.randomUUID();
-        InvoiceItemRequest req = new InvoiceItemRequest(
-                null, null, ItemType.PROCEDURE, "Procedimiento", 1, null);
+        InvoiceItemRequest req = new InvoiceItemRequest(null, null, ItemType.PROCEDURE, "Procedimiento", 1, null);
 
         when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(draftInvoice()));
         when(invoiceItemMapper.toEntity(req)).thenReturn(new InvoiceItem());
@@ -443,8 +502,8 @@ class InvoiceServiceTest {
     @Test
     void addItem_otherType_withFreePrice_savesItem() {
         UUID invoiceId = UUID.randomUUID();
-        InvoiceItemRequest req = new InvoiceItemRequest(
-                null, null, ItemType.OTHER, "Insumo especial", 2, new BigDecimal("25.00"));
+        InvoiceItemRequest req =
+                new InvoiceItemRequest(null, null, ItemType.OTHER, "Insumo especial", 2, new BigDecimal("25.00"));
 
         InvoiceItem item = new InvoiceItem();
         Invoice invoice = draftInvoice();
@@ -476,8 +535,8 @@ class InvoiceServiceTest {
         when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
 
         assertThatThrownBy(() -> invoiceService.confirmInvoice(invoiceId))
-            .isInstanceOf(BusinessRuleException.class)
-            .hasMessageContaining("DRAFT");
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("DRAFT");
     }
 
     @Test
@@ -487,8 +546,8 @@ class InvoiceServiceTest {
         when(invoiceItemRepository.findByInvoiceId(invoiceId)).thenReturn(List.of());
 
         assertThatThrownBy(() -> invoiceService.confirmInvoice(invoiceId))
-            .isInstanceOf(BusinessRuleException.class)
-            .hasMessageContaining("sin ítems");
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("sin ítems");
     }
 
     @Test
@@ -543,8 +602,7 @@ class InvoiceServiceTest {
         UUID invoiceId = UUID.randomUUID();
         when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> invoiceService.confirmInvoice(invoiceId))
-                .isInstanceOf(EntityNotFoundException.class);
+        assertThatThrownBy(() -> invoiceService.confirmInvoice(invoiceId)).isInstanceOf(EntityNotFoundException.class);
     }
 
     // =========================================================
@@ -560,8 +618,8 @@ class InvoiceServiceTest {
         when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
 
         assertThatThrownBy(() -> invoiceService.cancelInvoice(invoiceId))
-            .isInstanceOf(BusinessRuleException.class)
-            .hasMessageContaining("DRAFT o PENDING");
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("DRAFT o PENDING");
     }
 
     @Test
@@ -574,8 +632,8 @@ class InvoiceServiceTest {
         when(paymentRepository.existsByInvoiceId(invoiceId)).thenReturn(true);
 
         assertThatThrownBy(() -> invoiceService.cancelInvoice(invoiceId))
-            .isInstanceOf(BusinessRuleException.class)
-            .hasMessageContaining("pagos aplicados");
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("pagos aplicados");
     }
 
     @Test
@@ -612,8 +670,7 @@ class InvoiceServiceTest {
         UUID invoiceId = UUID.randomUUID();
         when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> invoiceService.cancelInvoice(invoiceId))
-                .isInstanceOf(EntityNotFoundException.class);
+        assertThatThrownBy(() -> invoiceService.cancelInvoice(invoiceId)).isInstanceOf(EntityNotFoundException.class);
         verify(paymentRepository, never()).existsByInvoiceId(invoiceId);
     }
 
@@ -627,8 +684,8 @@ class InvoiceServiceTest {
         when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(draftInvoice()));
 
         assertThatThrownBy(() -> invoiceService.markOverdue(invoiceId))
-            .isInstanceOf(BusinessRuleException.class)
-            .hasMessageContaining("PENDING o PARTIAL_PAID");
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("PENDING o PARTIAL_PAID");
     }
 
     @Test
@@ -666,8 +723,8 @@ class InvoiceServiceTest {
     @Test
     void removeItem_whenItemDoesNotBelongToInvoice_throwsBusinessRuleException() {
         UUID invoiceId = UUID.randomUUID();
-        UUID itemId    = UUID.randomUUID();
-        UUID otherId   = UUID.randomUUID();
+        UUID itemId = UUID.randomUUID();
+        UUID otherId = UUID.randomUUID();
 
         Invoice invoiceForItem = new Invoice();
         ReflectionTestUtils.setField(invoiceForItem, "id", otherId);
@@ -681,8 +738,8 @@ class InvoiceServiceTest {
         when(invoiceItemRepository.findById(itemId)).thenReturn(Optional.of(item));
 
         assertThatThrownBy(() -> invoiceService.removeItem(invoiceId, itemId))
-            .isInstanceOf(BusinessRuleException.class)
-            .hasMessageContaining("no pertenece");
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("no pertenece");
     }
 
     @Test
@@ -725,8 +782,8 @@ class InvoiceServiceTest {
         UUID patientId = UUID.randomUUID();
         when(patientRepository.existsById(patientId)).thenReturn(false);
 
-        assertThatThrownBy(() -> invoiceService.getInvoicesWithFilters(patientId, null, null, null,
-                org.springframework.data.domain.Pageable.unpaged()))
+        assertThatThrownBy(() -> invoiceService.getInvoicesWithFilters(
+                        patientId, null, null, null, org.springframework.data.domain.Pageable.unpaged()))
                 .isInstanceOf(EntityNotFoundException.class);
     }
 
@@ -737,10 +794,25 @@ class InvoiceServiceTest {
         ReflectionTestUtils.setField(invoice, "id", UUID.randomUUID());
         var pageable = org.springframework.data.domain.PageRequest.of(0, 10);
         var mapped = new com.fepdev.sfm.backend.domain.invoice.dto.InvoiceResponse(
-                UUID.randomUUID(), patientId, "Ana", "Lopez", null, null, "FAC-2026-09999",
-                new BigDecimal("100.00"), new BigDecimal("15.00"), new BigDecimal("115.00"),
-                BigDecimal.ZERO, new BigDecimal("115.00"), InvoiceStatus.PENDING,
-                LocalDate.now(), LocalDate.now().plusDays(30), null, List.of(), null, null);
+                UUID.randomUUID(),
+                patientId,
+                "Ana",
+                "Lopez",
+                null,
+                null,
+                "FAC-2026-09999",
+                new BigDecimal("100.00"),
+                new BigDecimal("15.00"),
+                new BigDecimal("115.00"),
+                BigDecimal.ZERO,
+                new BigDecimal("115.00"),
+                InvoiceStatus.PENDING,
+                LocalDate.now(),
+                LocalDate.now().plusDays(30),
+                null,
+                List.of(),
+                null,
+                null);
 
         when(patientRepository.existsById(patientId)).thenReturn(true);
         when(invoiceRepository.findWithFilters(eq(patientId), eq(null), eq(null), eq(null), eq(pageable)))
@@ -762,13 +834,38 @@ class InvoiceServiceTest {
         ReflectionTestUtils.setField(invoice, "id", invoiceId);
 
         var base = new com.fepdev.sfm.backend.domain.invoice.dto.InvoiceResponse(
-                invoiceId, patientId, "Ana", "Lopez", null, null, "FAC-2026-01001",
-                new BigDecimal("100.00"), new BigDecimal("15.00"), new BigDecimal("115.00"),
-                BigDecimal.ZERO, new BigDecimal("115.00"), InvoiceStatus.PENDING,
-                LocalDate.now(), LocalDate.now().plusDays(30), null, List.of(), null, null);
+                invoiceId,
+                patientId,
+                "Ana",
+                "Lopez",
+                null,
+                null,
+                "FAC-2026-01001",
+                new BigDecimal("100.00"),
+                new BigDecimal("15.00"),
+                new BigDecimal("115.00"),
+                BigDecimal.ZERO,
+                new BigDecimal("115.00"),
+                InvoiceStatus.PENDING,
+                LocalDate.now(),
+                LocalDate.now().plusDays(30),
+                null,
+                List.of(),
+                null,
+                null);
         var item = new com.fepdev.sfm.backend.domain.invoice.dto.InvoiceItemResponse(
-                UUID.randomUUID(), invoiceId, null, null, null, null,
-                ItemType.OTHER, "Insumo", 1, new BigDecimal("10.00"), new BigDecimal("10.00"), null);
+                UUID.randomUUID(),
+                invoiceId,
+                null,
+                null,
+                null,
+                null,
+                ItemType.OTHER,
+                "Insumo",
+                1,
+                new BigDecimal("10.00"),
+                new BigDecimal("10.00"),
+                null);
 
         when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
         when(invoiceMapper.toResponse(invoice)).thenReturn(base);
@@ -794,8 +891,8 @@ class InvoiceServiceTest {
     void addItem_withOtherType_skipsCatalogLookupsAndPersists() {
         UUID invoiceId = UUID.randomUUID();
         Invoice invoice = draftInvoice();
-        InvoiceItemRequest req = new InvoiceItemRequest(
-                null, null, ItemType.OTHER, "Material", 2, new BigDecimal("5.00"));
+        InvoiceItemRequest req =
+                new InvoiceItemRequest(null, null, ItemType.OTHER, "Material", 2, new BigDecimal("5.00"));
         InvoiceItem item = new InvoiceItem();
 
         when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
@@ -803,9 +900,20 @@ class InvoiceServiceTest {
         when(invoiceItemRepository.save(item)).thenReturn(item);
         when(invoiceItemRepository.findByInvoiceId(invoiceId)).thenReturn(List.of(item));
         when(invoiceRepository.save(invoice)).thenReturn(invoice);
-        when(invoiceItemMapper.toResponse(item)).thenReturn(new InvoiceItemResponse(
-                UUID.randomUUID(), invoiceId, null, null, null, null,
-                ItemType.OTHER, "Material", 2, new BigDecimal("5.00"), new BigDecimal("10.00"), null));
+        when(invoiceItemMapper.toResponse(item))
+                .thenReturn(new InvoiceItemResponse(
+                        UUID.randomUUID(),
+                        invoiceId,
+                        null,
+                        null,
+                        null,
+                        null,
+                        ItemType.OTHER,
+                        "Material",
+                        2,
+                        new BigDecimal("5.00"),
+                        new BigDecimal("10.00"),
+                        null));
 
         var result = invoiceService.addItem(invoiceId, req);
 
@@ -1006,8 +1114,7 @@ class InvoiceServiceTest {
         int year = LocalDate.now().getYear();
 
         when(invoiceSequenceRepository.findByYearForUpdate(year)).thenReturn(Optional.empty());
-        when(invoiceSequenceRepository.saveAndFlush(any(InvoiceSequence.class)))
-                .thenAnswer(inv -> inv.getArgument(0));
+        when(invoiceSequenceRepository.saveAndFlush(any(InvoiceSequence.class))).thenAnswer(inv -> inv.getArgument(0));
         when(invoiceRepository.save(any(Invoice.class))).thenAnswer(inv -> inv.getArgument(0));
 
         Invoice result = invoiceService.createDraftInvoice(appointment);
@@ -1024,8 +1131,7 @@ class InvoiceServiceTest {
         UUID invoiceId = UUID.randomUUID();
         when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> invoiceService.getInvoiceById(invoiceId))
-                .isInstanceOf(EntityNotFoundException.class);
+        assertThatThrownBy(() -> invoiceService.getInvoiceById(invoiceId)).isInstanceOf(EntityNotFoundException.class);
     }
 
     // =========================================================
@@ -1048,14 +1154,27 @@ class InvoiceServiceTest {
         ReflectionTestUtils.setField(invoice, "id", invoiceId);
 
         InvoiceViewResponse viewResponse = new InvoiceViewResponse(
-                invoiceId, "FAC-2026-00001", null, null, null,
-                BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
-                BigDecimal.ZERO, BigDecimal.ZERO, InvoiceStatus.DRAFT,
-                LocalDate.now(), LocalDate.now().plusDays(30), null,
-                List.of(), null, null);
+                invoiceId,
+                "FAC-2026-00001",
+                null,
+                null,
+                null,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                InvoiceStatus.DRAFT,
+                LocalDate.now(),
+                LocalDate.now().plusDays(30),
+                null,
+                List.of(),
+                null,
+                null);
 
         when(invoiceRepository.findViewById(invoiceId)).thenReturn(Optional.of(invoice));
-        when(invoiceItemRepository.findByInvoiceIdOrderByCreatedAtAsc(invoiceId)).thenReturn(List.of());
+        when(invoiceItemRepository.findByInvoiceIdOrderByCreatedAtAsc(invoiceId))
+                .thenReturn(List.of());
         when(invoiceViewMapper.toView(invoice, List.of())).thenReturn(viewResponse);
 
         InvoiceViewResponse result = invoiceService.getInvoiceViewById(invoiceId);
@@ -1075,10 +1194,25 @@ class InvoiceServiceTest {
         invoice.setInvoiceNumber("FAC-2026-00042");
 
         InvoiceResponse base = new InvoiceResponse(
-                invoiceId, null, null, null, null, null, "FAC-2026-00042",
-                BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
-                BigDecimal.ZERO, BigDecimal.ZERO, InvoiceStatus.DRAFT,
-                LocalDate.now(), LocalDate.now().plusDays(30), null, List.of(), null, null);
+                invoiceId,
+                null,
+                null,
+                null,
+                null,
+                null,
+                "FAC-2026-00042",
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                BigDecimal.ZERO,
+                InvoiceStatus.DRAFT,
+                LocalDate.now(),
+                LocalDate.now().plusDays(30),
+                null,
+                List.of(),
+                null,
+                null);
 
         when(invoiceRepository.findByInvoiceNumber("FAC-2026-00042")).thenReturn(Optional.of(invoice));
         when(invoiceMapper.toResponse(invoice)).thenReturn(base);
@@ -1099,8 +1233,8 @@ class InvoiceServiceTest {
         UUID patientId = UUID.randomUUID();
         when(patientRepository.existsById(patientId)).thenReturn(false);
 
-        assertThatThrownBy(() -> invoiceService.getInvoiceListViewWithFilters(patientId, null, null, null,
-                org.springframework.data.domain.Pageable.unpaged()))
+        assertThatThrownBy(() -> invoiceService.getInvoiceListViewWithFilters(
+                        patientId, null, null, null, org.springframework.data.domain.Pageable.unpaged()))
                 .isInstanceOf(EntityNotFoundException.class);
     }
 
@@ -1110,9 +1244,17 @@ class InvoiceServiceTest {
         var pageable = org.springframework.data.domain.PageRequest.of(0, 10);
 
         InvoiceListViewResponse lvi = new InvoiceListViewResponse(
-                UUID.randomUUID(), patientId, "Ana", "Lopez", "FAC-2026-00001",
-                new BigDecimal("100.00"), new BigDecimal("100.00"), InvoiceStatus.PENDING,
-                LocalDate.now(), LocalDate.now().plusDays(30), null);
+                UUID.randomUUID(),
+                patientId,
+                "Ana",
+                "Lopez",
+                "FAC-2026-00001",
+                new BigDecimal("100.00"),
+                new BigDecimal("100.00"),
+                InvoiceStatus.PENDING,
+                LocalDate.now(),
+                LocalDate.now().plusDays(30),
+                null);
 
         when(patientRepository.existsById(patientId)).thenReturn(true);
         when(invoiceRepository.findListViewWithFilters(eq(patientId), eq(null), eq(null), eq(null), eq(pageable)))
@@ -1316,8 +1458,8 @@ class InvoiceServiceTest {
     void addItem_withProcedureType_skipsCatalogLookupsAndPersists() {
         UUID invoiceId = UUID.randomUUID();
         Invoice invoice = draftInvoice();
-        InvoiceItemRequest req = new InvoiceItemRequest(
-                null, null, ItemType.PROCEDURE, "Extracción", 1, new BigDecimal("200.00"));
+        InvoiceItemRequest req =
+                new InvoiceItemRequest(null, null, ItemType.PROCEDURE, "Extracción", 1, new BigDecimal("200.00"));
         InvoiceItem item = new InvoiceItem();
 
         when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
@@ -1325,9 +1467,20 @@ class InvoiceServiceTest {
         when(invoiceItemRepository.save(item)).thenReturn(item);
         when(invoiceItemRepository.findByInvoiceId(invoiceId)).thenReturn(List.of(item));
         when(invoiceRepository.save(invoice)).thenReturn(invoice);
-        when(invoiceItemMapper.toResponse(item)).thenReturn(new InvoiceItemResponse(
-                UUID.randomUUID(), invoiceId, null, null, null, null,
-                ItemType.PROCEDURE, "Extracción", 1, new BigDecimal("200.00"), new BigDecimal("200.00"), null));
+        when(invoiceItemMapper.toResponse(item))
+                .thenReturn(new InvoiceItemResponse(
+                        UUID.randomUUID(),
+                        invoiceId,
+                        null,
+                        null,
+                        null,
+                        null,
+                        ItemType.PROCEDURE,
+                        "Extracción",
+                        1,
+                        new BigDecimal("200.00"),
+                        new BigDecimal("200.00"),
+                        null));
 
         var result = invoiceService.addItem(invoiceId, req);
 

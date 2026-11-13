@@ -8,15 +8,13 @@ import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
-
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
@@ -42,7 +40,8 @@ public class PatientConversationMemory {
     private final ConcurrentHashMap<String, Deque<ConversationTurn>> fallback = new ConcurrentHashMap<>();
 
     @Autowired
-    public PatientConversationMemory(ObjectProvider<StringRedisTemplate> redisProvider,
+    public PatientConversationMemory(
+            ObjectProvider<StringRedisTemplate> redisProvider,
             ObjectMapper objectMapper,
             @Value("${app.ai.memory.ttl-seconds:1800}") long ttlSeconds,
             @Value("${app.ai.memory.max-turns:6}") int maxTurns) {
@@ -50,8 +49,8 @@ public class PatientConversationMemory {
     }
 
     // Constructor explicito para tests (redisTemplate puede ser null).
-    public PatientConversationMemory(StringRedisTemplate redisTemplate, ObjectMapper objectMapper,
-            long ttlSeconds, int maxTurns) {
+    public PatientConversationMemory(
+            StringRedisTemplate redisTemplate, ObjectMapper objectMapper, long ttlSeconds, int maxTurns) {
         this.redisTemplate = redisTemplate;
         this.objectMapper = objectMapper;
         this.ttl = Duration.ofSeconds(Math.max(60, ttlSeconds));
@@ -66,8 +65,7 @@ public class PatientConversationMemory {
                 return deserialize(raw);
             }
         } catch (RuntimeException ex) {
-            log.warn("Memoria conversacional no disponible en Redis; usando memoria local: {}",
-                    ex.getMessage());
+            log.warn("Memoria conversacional no disponible en Redis; usando memoria local: {}", ex.getMessage());
         }
         return localRecent(key);
     }
@@ -86,8 +84,7 @@ public class PatientConversationMemory {
                 return;
             }
         } catch (RuntimeException ex) {
-            log.warn("No se pudo guardar la conversacion en Redis; usando memoria local: {}",
-                    ex.getMessage());
+            log.warn("No se pudo guardar la conversacion en Redis; usando memoria local: {}", ex.getMessage());
         }
         localAppend(key, turn);
     }

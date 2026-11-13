@@ -1,10 +1,14 @@
 package com.fepdev.sfm.backend.domain.appointment;
 
+import com.fepdev.sfm.backend.domain.appointment.dto.AppointmentCreateRequest;
+import com.fepdev.sfm.backend.domain.appointment.dto.AppointmentResponse;
+import com.fepdev.sfm.backend.domain.appointment.dto.AppointmentSummaryResponse;
+import com.fepdev.sfm.backend.domain.medicalrecord.dto.MedicalRecordCreateRequest;
+import jakarta.validation.Valid;
 import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -21,13 +25,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.fepdev.sfm.backend.domain.appointment.dto.AppointmentCreateRequest;
-import com.fepdev.sfm.backend.domain.appointment.dto.AppointmentResponse;
-import com.fepdev.sfm.backend.domain.appointment.dto.AppointmentSummaryResponse;
-import com.fepdev.sfm.backend.domain.medicalrecord.dto.MedicalRecordCreateRequest;
-
-import jakarta.validation.Valid;
-
 @RestController
 @RequestMapping("/api/v1/appointments")
 public class AppointmentController {
@@ -40,12 +37,13 @@ public class AppointmentController {
 
     @PostMapping
     public ResponseEntity<AppointmentResponse> create(
-            @Valid @RequestBody AppointmentCreateRequest request,
-            UriComponentsBuilder uriBuilder) {
+            @Valid @RequestBody AppointmentCreateRequest request, UriComponentsBuilder uriBuilder) {
 
         AppointmentResponse response = appointmentService.createAppointment(request);
-        URI location = uriBuilder.path("/api/v1/appointments/{id}")
-                .buildAndExpand(response.id()).toUri();
+        URI location = uriBuilder
+                .path("/api/v1/appointments/{id}")
+                .buildAndExpand(response.id())
+                .toUri();
         return ResponseEntity.created(location).body(response);
     }
 
@@ -63,8 +61,7 @@ public class AppointmentController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime to,
             @PageableDefault(size = 20, sort = "scheduledAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
-        return ResponseEntity.ok(
-                appointmentService.getAppointments(doctorId, patientId, status, from, to, pageable));
+        return ResponseEntity.ok(appointmentService.getAppointments(doctorId, patientId, status, from, to, pageable));
     }
 
     // Devuelve los bloques ocupados del médico en el rango. El cliente calcula los huecos libres.
@@ -92,8 +89,7 @@ public class AppointmentController {
     // complete recibe el body del expediente clínico: cita + expediente + factura en una sola transacción
     @PatchMapping("/{id}/complete")
     public ResponseEntity<AppointmentResponse> complete(
-            @PathVariable UUID id,
-            @Valid @RequestBody MedicalRecordCreateRequest medicalRecordRequest) {
+            @PathVariable UUID id, @Valid @RequestBody MedicalRecordCreateRequest medicalRecordRequest) {
 
         return ResponseEntity.ok(appointmentService.completeAppointment(id, medicalRecordRequest));
     }

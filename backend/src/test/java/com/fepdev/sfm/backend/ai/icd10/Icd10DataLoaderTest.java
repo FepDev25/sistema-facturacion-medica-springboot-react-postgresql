@@ -8,7 +8,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
-
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.ai.document.Document;
@@ -59,16 +58,15 @@ class Icd10DataLoaderTest {
         assertThat(indexed).isEqualTo(2);
         ArgumentCaptor<List<Document>> captor = ArgumentCaptor.forClass(List.class);
         verify(vectorStore).add(captor.capture());
-        assertThat(captor.getValue()).extracting(doc -> doc.getMetadata().get("code"))
+        assertThat(captor.getValue())
+                .extracting(doc -> doc.getMetadata().get("code"))
                 .containsExactly("A09", "E11.9");
-        assertThat(captor.getValue().get(1).getText())
-                .isEqualTo("Diabetes tipo 2 sin complicaciones");
+        assertThat(captor.getValue().get(1).getText()).isEqualTo("Diabetes tipo 2 sin complicaciones");
     }
 
     @Test
     void loadCsv_whenEverythingIsAlreadyIndexed_doesNotAddDocuments() throws Exception {
-        when(jdbc.queryForList(anyString(), eq(String.class)))
-                .thenReturn(List.of("A09", "E11.9", "I10"));
+        when(jdbc.queryForList(anyString(), eq(String.class))).thenReturn(List.of("A09", "E11.9", "I10"));
 
         int indexed = loader.loadCsv(new ClassPathResource("ai-evals/cie10-test.csv"));
 

@@ -2,18 +2,16 @@ package com.fepdev.sfm.backend.integration.e2e;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.math.BigDecimal;
-import java.util.regex.Pattern;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.test.context.jdbc.Sql;
-
 import com.fepdev.sfm.backend.domain.appointment.Status;
 import com.fepdev.sfm.backend.domain.doctor.Doctor;
 import com.fepdev.sfm.backend.domain.invoice.Invoice;
 import com.fepdev.sfm.backend.domain.invoice.InvoiceStatus;
 import com.fepdev.sfm.backend.domain.medicalrecord.MedicalRecord;
 import com.fepdev.sfm.backend.domain.patient.Patient;
+import java.math.BigDecimal;
+import java.util.regex.Pattern;
+import org.junit.jupiter.api.Test;
+import org.springframework.test.context.jdbc.Sql;
 
 @Sql(scripts = "/sql/cleanup_test_data.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class AppointmentCompletionFlowE2ETest extends AbstractPostgresFlowE2ETest {
@@ -42,6 +40,7 @@ class AppointmentCompletionFlowE2ETest extends AbstractPostgresFlowE2ETest {
         assertThat(invoice.getTotal()).isEqualByComparingTo(BigDecimal.ZERO.setScale(2));
         assertThat(invoice.getInsuranceCoverage()).isEqualByComparingTo(BigDecimal.ZERO.setScale(2));
         assertThat(invoice.getPatientResponsibility()).isEqualByComparingTo(BigDecimal.ZERO.setScale(2));
-        assertThat(INVOICE_NUMBER_PATTERN.matcher(invoice.getInvoiceNumber()).matches()).isTrue();
+        assertThat(INVOICE_NUMBER_PATTERN.matcher(invoice.getInvoiceNumber()).matches())
+                .isTrue();
     }
 }

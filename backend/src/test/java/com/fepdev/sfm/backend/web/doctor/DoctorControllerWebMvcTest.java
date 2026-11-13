@@ -9,8 +9,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fepdev.sfm.backend.domain.doctor.DoctorController;
+import com.fepdev.sfm.backend.domain.doctor.DoctorService;
+import com.fepdev.sfm.backend.domain.doctor.dto.DoctorResponse;
+import com.fepdev.sfm.backend.security.JwtAuthenticationFilter;
+import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
+import com.fepdev.sfm.backend.shared.exception.HandlerException;
+import jakarta.persistence.EntityNotFoundException;
 import java.util.UUID;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -19,15 +25,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
-import com.fepdev.sfm.backend.domain.doctor.DoctorController;
-import com.fepdev.sfm.backend.domain.doctor.DoctorService;
-import com.fepdev.sfm.backend.domain.doctor.dto.DoctorResponse;
-import com.fepdev.sfm.backend.security.JwtAuthenticationFilter;
-import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
-import com.fepdev.sfm.backend.shared.exception.HandlerException;
-
-import jakarta.persistence.EntityNotFoundException;
 
 @WebMvcTest(DoctorController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -46,7 +43,8 @@ class DoctorControllerWebMvcTest {
     @Test
     void create_whenValidRequest_returns201() throws Exception {
         UUID id = UUID.randomUUID();
-        DoctorResponse response = new DoctorResponse(id, "LIC-1", "Ana", "Lopez", "Cardio", "555", "ana@x.com", true, null, null, null, null);
+        DoctorResponse response = new DoctorResponse(
+                id, "LIC-1", "Ana", "Lopez", "Cardio", "555", "ana@x.com", true, null, null, null, null);
         when(doctorService.createDoctor(any())).thenReturn(response);
 
         String body = """
@@ -60,7 +58,9 @@ class DoctorControllerWebMvcTest {
                 }
                 """;
 
-        mockMvc.perform(post("/api/v1/doctors").contentType(MediaType.APPLICATION_JSON).content(body))
+        mockMvc.perform(post("/api/v1/doctors")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", containsString("/api/v1/doctors/" + id)))
                 .andExpect(jsonPath("$.id").value(id.toString()));
@@ -68,7 +68,9 @@ class DoctorControllerWebMvcTest {
 
     @Test
     void create_whenInvalidRequest_returns400() throws Exception {
-        mockMvc.perform(post("/api/v1/doctors").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        mockMvc.perform(post("/api/v1/doctors")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400));
     }
@@ -98,7 +100,9 @@ class DoctorControllerWebMvcTest {
                 }
                 """;
 
-        mockMvc.perform(post("/api/v1/doctors").contentType(MediaType.APPLICATION_JSON).content(body))
+        mockMvc.perform(post("/api/v1/doctors")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isUnprocessableContent())
                 .andExpect(jsonPath("$.status").value(422));
     }

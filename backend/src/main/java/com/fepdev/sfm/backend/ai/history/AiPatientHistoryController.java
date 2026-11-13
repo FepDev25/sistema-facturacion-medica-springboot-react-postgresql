@@ -1,9 +1,12 @@
 package com.fepdev.sfm.backend.ai.history;
 
+import com.fepdev.sfm.backend.ai.history.dto.PatientHistoryAnswer;
+import com.fepdev.sfm.backend.ai.history.dto.PatientHistoryQuery;
+import com.fepdev.sfm.backend.ai.history.dto.ReindexResponse;
+import jakarta.validation.Valid;
 import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
-
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -14,12 +17,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
-
-import com.fepdev.sfm.backend.ai.history.dto.PatientHistoryAnswer;
-import com.fepdev.sfm.backend.ai.history.dto.PatientHistoryQuery;
-import com.fepdev.sfm.backend.ai.history.dto.ReindexResponse;
-
-import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/v1/ai/patients")
@@ -52,17 +49,24 @@ public class AiPatientHistoryController {
         String userId = userId(authentication);
 
         try {
-            var subscription = queryService.streamQuery(patientId, request.question(), userId,
+            var subscription = queryService.streamQuery(
+                    patientId,
+                    request.question(),
+                    userId,
                     token -> send(emitter, "token", token),
                     answer -> {
                         send(emitter, "done", answer);
                         emitter.complete();
                     },
                     error -> {
-                        send(emitter, "error", Map.of(
-                                "message", error.getMessage() != null
-                                        ? error.getMessage()
-                                        : "Error al consultar el historial"));
+                        send(
+                                emitter,
+                                "error",
+                                Map.of(
+                                        "message",
+                                        error.getMessage() != null
+                                                ? error.getMessage()
+                                                : "Error al consultar el historial"));
                         emitter.complete();
                     });
             // Si el cliente cierra la conexión, se cancela la llamada al proveedor para
@@ -88,16 +92,13 @@ public class AiPatientHistoryController {
     // Limpia la memoria server-side del usuario para ese paciente (el boton "Limpiar"
     // del chat tambien debe olvidar los turnos anteriores).
     @DeleteMapping("/{patientId}/conversation")
-    public ResponseEntity<Void> clearConversation(@PathVariable UUID patientId,
-            Authentication authentication) {
+    public ResponseEntity<Void> clearConversation(@PathVariable UUID patientId, Authentication authentication) {
         queryService.clearConversation(patientId, userId(authentication));
         return ResponseEntity.noContent().build();
     }
 
     private static String userId(Authentication authentication) {
-        return authentication != null && authentication.isAuthenticated()
-                ? authentication.getName()
-                : "anonymous";
+        return authentication != null && authentication.isAuthenticated() ? authentication.getName() : "anonymous";
     }
 
     private static void send(SseEmitter emitter, String event, Object data) {

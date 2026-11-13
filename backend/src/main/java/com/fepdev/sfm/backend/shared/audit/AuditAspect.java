@@ -1,18 +1,5 @@
 package com.fepdev.sfm.backend.shared.audit;
 
-import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
-import java.util.Map;
-import java.util.UUID;
-
-import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Aspect;
-import org.springframework.core.annotation.Order;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Component;
-
 import com.fepdev.sfm.backend.domain.invoice.Invoice;
 import com.fepdev.sfm.backend.domain.invoice.InvoiceItem;
 import com.fepdev.sfm.backend.domain.invoice.InvoiceItemRepository;
@@ -20,7 +7,17 @@ import com.fepdev.sfm.backend.domain.invoice.InvoiceRepository;
 import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceItemResponse;
 import com.fepdev.sfm.backend.domain.medicalrecord.dto.DiagnosisResponse;
 import com.fepdev.sfm.backend.domain.medicalrecord.dto.PrescriptionResponse;
-
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.Map;
+import java.util.UUID;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
@@ -41,10 +38,11 @@ public class AuditAspect {
     private final InvoiceItemRepository invoiceItemRepository;
     private final ObjectMapper objectMapper;
 
-    public AuditAspect(AuditLogRepository auditLogRepository,
-                       InvoiceRepository invoiceRepository,
-                       InvoiceItemRepository invoiceItemRepository,
-                       ObjectMapper objectMapper) {
+    public AuditAspect(
+            AuditLogRepository auditLogRepository,
+            InvoiceRepository invoiceRepository,
+            InvoiceItemRepository invoiceItemRepository,
+            ObjectMapper objectMapper) {
         this.auditLogRepository = auditLogRepository;
         this.invoiceRepository = invoiceRepository;
         this.invoiceItemRepository = invoiceItemRepository;
@@ -77,8 +75,7 @@ public class AuditAspect {
         Map<String, Object> newValues = Map.of(
                 "invoiceNumber", invoice.getInvoiceNumber(),
                 "status", invoice.getStatus().name(),
-                "patientId", invoice.getPatient().getId().toString()
-        );
+                "patientId", invoice.getPatient().getId().toString());
         saveAudit("Invoice", invoice.getId(), AuditAction.CREATE, null, toJson(newValues));
         return result;
     }
@@ -112,10 +109,11 @@ public class AuditAspect {
     @Around("execution(* com.fepdev.sfm.backend.domain.invoice.InvoiceService.removeItem(..))")
     public Object auditRemoveItem(ProceedingJoinPoint pjp) throws Throwable {
         UUID invoiceId = (UUID) pjp.getArgs()[0];
-        UUID itemId    = (UUID) pjp.getArgs()[1];
+        UUID itemId = (UUID) pjp.getArgs()[1];
 
         // leemos el ítem antes de que el servicio lo elimine
-        String oldValues = invoiceItemRepository.findById(itemId)
+        String oldValues = invoiceItemRepository
+                .findById(itemId)
                 .map(this::invoiceItemToMap)
                 .map(this::toJson)
                 .orElse(null);
@@ -130,14 +128,16 @@ public class AuditAspect {
     private Object auditInvoiceStatusChange(ProceedingJoinPoint pjp) throws Throwable {
         UUID invoiceId = (UUID) pjp.getArgs()[0];
 
-        String oldValues = invoiceRepository.findById(invoiceId)
+        String oldValues = invoiceRepository
+                .findById(invoiceId)
                 .map(inv -> Map.of("status", inv.getStatus().name()))
                 .map(this::toJson)
                 .orElse(null);
 
         pjp.proceed();
 
-        String newValues = invoiceRepository.findById(invoiceId)
+        String newValues = invoiceRepository
+                .findById(invoiceId)
                 .map(inv -> Map.of("status", inv.getStatus().name()))
                 .map(this::toJson)
                 .orElse(null);
@@ -146,8 +146,7 @@ public class AuditAspect {
         return null;
     }
 
-    private void saveAudit(String entityName, UUID entityId, AuditAction action,
-                           String oldValues, String newValues) {
+    private void saveAudit(String entityName, UUID entityId, AuditAction action, String oldValues, String newValues) {
         AuditLog entry = AuditLog.builder()
                 .entityName(entityName)
                 .entityId(entityId)
@@ -188,7 +187,6 @@ public class AuditAspect {
                 "description", item.getDescription(),
                 "quantity", item.getQuantity(),
                 "unitPrice", item.getUnitPrice().toPlainString(),
-                "subtotal", item.getSubtotal().toPlainString()
-        );
+                "subtotal", item.getSubtotal().toPlainString());
     }
 }

@@ -3,11 +3,9 @@ package com.fepdev.sfm.backend.ai.extraction;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.fepdev.sfm.backend.ai.extraction.dto.ExtractedDiagnosis;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import com.fepdev.sfm.backend.ai.extraction.dto.ExtractedDiagnosis;
-import com.fepdev.sfm.backend.ai.extraction.dto.ExtractedProcedure;
 
 class ExtractionToolsTest {
 

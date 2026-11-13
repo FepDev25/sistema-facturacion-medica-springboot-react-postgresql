@@ -14,22 +14,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.time.Duration;
-import java.util.UUID;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.test.web.servlet.MockMvc;
-
 import com.fepdev.sfm.backend.domain.auth.AuthController;
 import com.fepdev.sfm.backend.domain.auth.token.AuthSessionService;
 import com.fepdev.sfm.backend.domain.auth.token.InvalidRefreshTokenException;
@@ -44,19 +28,33 @@ import com.fepdev.sfm.backend.security.SystemUser;
 import com.fepdev.sfm.backend.security.TokenBlacklistService;
 import com.fepdev.sfm.backend.security.UserDetailsServiceImpl;
 import com.fepdev.sfm.backend.shared.exception.HandlerException;
-
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.Cookie;
+import java.time.Duration;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(AuthController.class)
 @AutoConfigureMockMvc(addFilters = false)
 @Import({HandlerException.class, AuthCookieService.class})
-@TestPropertySource(properties = {
-        "app.auth.cookies.secure=false",
-        "app.auth.cookies.same-site=Strict",
-        "app.jwt.access-token-expiration=900000",
-        "app.jwt.refresh-token-expiration=604800000"
-})
+@TestPropertySource(
+        properties = {
+            "app.auth.cookies.secure=false",
+            "app.auth.cookies.same-site=Strict",
+            "app.jwt.access-token-expiration=900000",
+            "app.jwt.refresh-token-expiration=604800000"
+        })
 class AuthControllerWebMvcTest {
 
     private static final UUID USER_ID = UUID.fromString("11111111-1111-1111-1111-111111111111");
@@ -115,19 +113,22 @@ class AuthControllerWebMvcTest {
                 }
                 """;
 
-        mockMvc.perform(post("/api/v1/auth/login").contentType("application/json").content(body))
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType("application/json")
+                        .content(body))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.role").value("ADMIN"))
                 .andExpect(jsonPath("$.userId").value(USER_ID.toString()))
                 .andExpect(jsonPath("$.username").value("admin"))
                 .andExpect(jsonPath("$.accessToken").doesNotExist())
                 .andExpect(jsonPath("$.refreshToken").doesNotExist())
-                .andExpect(header().stringValues("Set-Cookie",
-                        org.hamcrest.Matchers.hasItem(containsString("sfm_access=access-token"))))
-                .andExpect(header().stringValues("Set-Cookie",
-                        org.hamcrest.Matchers.hasItem(containsString("sfm_refresh=refresh-token"))))
-                .andExpect(header().stringValues("Set-Cookie",
-                        org.hamcrest.Matchers.hasItem(containsString("HttpOnly"))));
+                .andExpect(header().stringValues(
+                                "Set-Cookie", org.hamcrest.Matchers.hasItem(containsString("sfm_access=access-token"))))
+                .andExpect(header().stringValues(
+                                "Set-Cookie",
+                                org.hamcrest.Matchers.hasItem(containsString("sfm_refresh=refresh-token"))))
+                .andExpect(
+                        header().stringValues("Set-Cookie", org.hamcrest.Matchers.hasItem(containsString("HttpOnly"))));
 
         verify(loginAttemptService).recordSuccess(any(), eq("admin"));
     }
@@ -144,7 +145,9 @@ class AuthControllerWebMvcTest {
                 }
                 """;
 
-        mockMvc.perform(post("/api/v1/auth/login").contentType("application/json").content(body))
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType("application/json")
+                        .content(body))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.status").value(401));
 
@@ -154,10 +157,10 @@ class AuthControllerWebMvcTest {
 
     @Test
     void login_whenRateLimited_returns429WithRetryAfter() throws Exception {
-        doThrow(new LoginBlockedException(120))
-                .when(loginAttemptService).checkAllowed(any(), any());
+        doThrow(new LoginBlockedException(120)).when(loginAttemptService).checkAllowed(any(), any());
 
-        mockMvc.perform(post("/api/v1/auth/login").contentType("application/json")
+        mockMvc.perform(post("/api/v1/auth/login")
+                        .contentType("application/json")
                         .content("{\"username\":\"admin\",\"password\":\"123456\"}"))
                 .andExpect(status().isTooManyRequests())
                 .andExpect(header().string("Retry-After", "120"))
@@ -178,8 +181,8 @@ class AuthControllerWebMvcTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.role").value("ADMIN"))
                 .andExpect(jsonPath("$.accessToken").doesNotExist())
-                .andExpect(header().stringValues("Set-Cookie",
-                        org.hamcrest.Matchers.hasItem(containsString("sfm_refresh=refresh-2"))));
+                .andExpect(header().stringValues(
+                                "Set-Cookie", org.hamcrest.Matchers.hasItem(containsString("sfm_refresh=refresh-2"))));
     }
 
     @Test
@@ -193,11 +196,10 @@ class AuthControllerWebMvcTest {
     void refresh_whenTokenMalformed_returns401AndClearsCookies() throws Exception {
         when(jwtService.extractUsername("bad-token")).thenThrow(new JwtException("Malformed"));
 
-        mockMvc.perform(post("/api/v1/auth/refresh")
-                        .cookie(new Cookie(AuthCookieService.REFRESH_COOKIE, "bad-token")))
+        mockMvc.perform(post("/api/v1/auth/refresh").cookie(new Cookie(AuthCookieService.REFRESH_COOKIE, "bad-token")))
                 .andExpect(status().isUnauthorized())
-                .andExpect(header().stringValues("Set-Cookie",
-                        org.hamcrest.Matchers.hasItem(containsString("sfm_refresh=;"))));
+                .andExpect(header().stringValues(
+                                "Set-Cookie", org.hamcrest.Matchers.hasItem(containsString("sfm_refresh=;"))));
     }
 
     @Test
@@ -212,8 +214,8 @@ class AuthControllerWebMvcTest {
         mockMvc.perform(post("/api/v1/auth/refresh")
                         .cookie(new Cookie(AuthCookieService.REFRESH_COOKIE, "refresh-token")))
                 .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.message").value(
-                        "La sesion fue revocada por seguridad. Inicia sesion de nuevo."));
+                .andExpect(
+                        jsonPath("$.message").value("La sesion fue revocada por seguridad. Inicia sesion de nuevo."));
     }
 
     @Test
@@ -225,10 +227,10 @@ class AuthControllerWebMvcTest {
                         .cookie(new Cookie(AuthCookieService.REFRESH_COOKIE, "refresh-token"))
                         .cookie(new Cookie(AuthCookieService.ACCESS_COOKIE, "access-token")))
                 .andExpect(status().isNoContent())
-                .andExpect(header().stringValues("Set-Cookie",
-                        org.hamcrest.Matchers.hasItem(containsString("sfm_access=;"))))
-                .andExpect(header().stringValues("Set-Cookie",
-                        org.hamcrest.Matchers.hasItem(containsString("sfm_refresh=;"))));
+                .andExpect(header().stringValues(
+                                "Set-Cookie", org.hamcrest.Matchers.hasItem(containsString("sfm_access=;"))))
+                .andExpect(header().stringValues(
+                                "Set-Cookie", org.hamcrest.Matchers.hasItem(containsString("sfm_refresh=;"))));
 
         verify(authSessionService).revokeSession("refresh-token");
         verify(tokenBlacklistService).blacklist("access-jti", Duration.ofMinutes(5));
@@ -239,8 +241,7 @@ class AuthControllerWebMvcTest {
         when(jwtService.extractJti("header-token")).thenReturn("header-jti");
         when(jwtService.getRemainingTtl("header-token")).thenReturn(Duration.ofMinutes(5));
 
-        mockMvc.perform(post("/api/v1/auth/logout")
-                        .header("Authorization", "Bearer header-token"))
+        mockMvc.perform(post("/api/v1/auth/logout").header("Authorization", "Bearer header-token"))
                 .andExpect(status().isNoContent());
 
         verify(authSessionService).revokeSession(null);
@@ -249,8 +250,7 @@ class AuthControllerWebMvcTest {
 
     @Test
     void me_whenNoAuthentication_returns401() throws Exception {
-        mockMvc.perform(get("/api/v1/auth/me"))
-                .andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/v1/auth/me")).andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -261,7 +261,8 @@ class AuthControllerWebMvcTest {
         org.springframework.security.core.Authentication auth =
                 new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
 
-        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(auth);
+        org.springframework.security.core.context.SecurityContextHolder.getContext()
+                .setAuthentication(auth);
 
         try {
             mockMvc.perform(get("/api/v1/auth/me"))

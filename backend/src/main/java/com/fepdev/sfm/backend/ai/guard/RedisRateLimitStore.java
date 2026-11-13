@@ -2,7 +2,6 @@ package com.fepdev.sfm.backend.ai.guard;
 
 import java.time.Duration;
 import java.util.List;
-
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 
@@ -18,8 +17,7 @@ public class RedisRateLimitStore implements RateLimitStore {
             return value
             """;
 
-    private static final DefaultRedisScript<Long> SCRIPT =
-            new DefaultRedisScript<>(INCREMENT_SCRIPT, Long.class);
+    private static final DefaultRedisScript<Long> SCRIPT = new DefaultRedisScript<>(INCREMENT_SCRIPT, Long.class);
 
     private final StringRedisTemplate redisTemplate;
 

@@ -1,8 +1,12 @@
 package com.fepdev.sfm.backend.domain.catalog;
 
+import com.fepdev.sfm.backend.domain.catalog.dto.MedicationCreateRequest;
+import com.fepdev.sfm.backend.domain.catalog.dto.MedicationResponse;
+import com.fepdev.sfm.backend.domain.catalog.dto.MedicationSummaryResponse;
+import com.fepdev.sfm.backend.domain.catalog.dto.MedicationUpdateRequest;
+import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.UUID;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -19,13 +23,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.fepdev.sfm.backend.domain.catalog.dto.MedicationCreateRequest;
-import com.fepdev.sfm.backend.domain.catalog.dto.MedicationResponse;
-import com.fepdev.sfm.backend.domain.catalog.dto.MedicationSummaryResponse;
-import com.fepdev.sfm.backend.domain.catalog.dto.MedicationUpdateRequest;
-
-import jakarta.validation.Valid;
-
 @RestController
 @RequestMapping("/api/v1/catalog/medications")
 public class MedicationsCatalogController {
@@ -38,19 +35,19 @@ public class MedicationsCatalogController {
 
     @PostMapping
     public ResponseEntity<MedicationResponse> create(
-            @Valid @RequestBody MedicationCreateRequest request,
-            UriComponentsBuilder uriBuilder) {
+            @Valid @RequestBody MedicationCreateRequest request, UriComponentsBuilder uriBuilder) {
 
         MedicationResponse response = medicationsCatalogService.createMedication(request);
-        URI location = uriBuilder.path("/api/v1/catalog/medications/{id}")
-                .buildAndExpand(response.id()).toUri();
+        URI location = uriBuilder
+                .path("/api/v1/catalog/medications/{id}")
+                .buildAndExpand(response.id())
+                .toUri();
         return ResponseEntity.created(location).body(response);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<MedicationResponse> update(
-            @PathVariable UUID id,
-            @Valid @RequestBody MedicationUpdateRequest request) {
+            @PathVariable UUID id, @Valid @RequestBody MedicationUpdateRequest request) {
 
         return ResponseEntity.ok(medicationsCatalogService.updateMedication(id, request));
     }

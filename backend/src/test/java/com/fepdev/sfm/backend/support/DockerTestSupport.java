@@ -29,8 +29,7 @@ public final class DockerTestSupport {
         configure();
     }
 
-    private DockerTestSupport() {
-    }
+    private DockerTestSupport() {}
 
     public static void configure() {
         if (System.getProperty("docker.host") == null && System.getenv("DOCKER_HOST") == null) {
@@ -63,8 +62,7 @@ public final class DockerTestSupport {
     private static String detectServerApiVersion() {
         Process process = null;
         try {
-            process = new ProcessBuilder(
-                            "docker", "version", "--format", "{{.Server.APIVersion}}")
+            process = new ProcessBuilder("docker", "version", "--format", "{{.Server.APIVersion}}")
                     .redirectErrorStream(true)
                     .start();
 
@@ -75,8 +73,7 @@ public final class DockerTestSupport {
                 return null;
             }
 
-            String output = new String(
-                    process.getInputStream().readAllBytes(), StandardCharsets.UTF_8).trim();
+            String output = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8).trim();
             return output.matches("\\d+\\.\\d+") ? output : null;
         } catch (IOException e) {
             return null;

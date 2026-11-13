@@ -10,7 +10,6 @@ import static org.mockito.Mockito.verify;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.List;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockFilterChain;
@@ -30,8 +29,8 @@ class AiRateLimitFilterTest {
     void returns429WithRetryAfterWhenLimitExceeded() throws Exception {
         AiRateLimiter limiter = mock(AiRateLimiter.class);
         doThrow(new AiRateLimitExceededException("limite", 17)).when(limiter).check("doctor1");
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken("doctor1", null, List.of()));
+        SecurityContextHolder.getContext()
+                .setAuthentication(new UsernamePasswordAuthenticationToken("doctor1", null, List.of()));
 
         var filter = new AiRateLimitFilter(limiter);
         var request = new MockHttpServletRequest("POST", "/api/v1/ai/icd10/suggest");
@@ -85,21 +84,22 @@ class AiRateLimitFilterTest {
                 return true;
             }
         };
-        assertThat(new AiRateLimiter(3, Clock.systemUTC(), distributedStore).isDistributed()).isTrue();
+        assertThat(new AiRateLimiter(3, Clock.systemUTC(), distributedStore).isDistributed())
+                .isTrue();
     }
 
     @Test
     void exceptionDefaultsToSixtySecondRetry() {
         var ex = new AiRateLimitExceededException("x");
         assertThat(ex.getRetryAfterSeconds()).isEqualTo(60);
-        assertThat(new AiRateLimitExceededException("x", 0).getRetryAfterSeconds()).isEqualTo(1);
+        assertThat(new AiRateLimitExceededException("x", 0).getRetryAfterSeconds())
+                .isEqualTo(1);
     }
 
     @Test
     void fallbackStoreTracksWindowsAcrossCalls() {
         var clock = Clock.systemUTC();
-        var store = new FallbackRateLimitStore(
-                new InMemoryRateLimitStore(clock), new InMemoryRateLimitStore(clock));
+        var store = new FallbackRateLimitStore(new InMemoryRateLimitStore(clock), new InMemoryRateLimitStore(clock));
 
         assertThat(store.incrementAndGet("k", Duration.ofMinutes(1))).isEqualTo(1);
         assertThat(store.current("k")).isEqualTo(1);

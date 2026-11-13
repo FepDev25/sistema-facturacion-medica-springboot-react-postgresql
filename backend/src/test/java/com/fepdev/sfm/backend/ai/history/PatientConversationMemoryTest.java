@@ -4,14 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.fepdev.sfm.backend.ai.history.PatientConversationMemory.ConversationTurn;
 import java.util.UUID;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.data.redis.core.ListOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
-
-import com.fepdev.sfm.backend.ai.history.PatientConversationMemory.ConversationTurn;
-
 import tools.jackson.databind.ObjectMapper;
 
 class PatientConversationMemoryTest {
@@ -114,8 +111,6 @@ class PatientConversationMemoryTest {
     void serializesAndDeserializesTurns() {
         var turn = new ConversationTurn("pregunta", "respuesta", 123L);
 
-        assertThat(mapper.writeValueAsString(turn))
-                .contains("pregunta")
-                .contains("respuesta");
+        assertThat(mapper.writeValueAsString(turn)).contains("pregunta").contains("respuesta");
     }
 }

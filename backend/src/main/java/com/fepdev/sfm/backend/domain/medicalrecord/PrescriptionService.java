@@ -1,12 +1,5 @@
 package com.fepdev.sfm.backend.domain.medicalrecord;
 
-import java.util.UUID;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.fepdev.sfm.backend.ai.history.PatientHistoryIndexer;
 import com.fepdev.sfm.backend.domain.appointment.Appointment;
 import com.fepdev.sfm.backend.domain.appointment.Status;
@@ -15,8 +8,12 @@ import com.fepdev.sfm.backend.domain.catalog.MedicationsCatalogRepository;
 import com.fepdev.sfm.backend.domain.medicalrecord.dto.PrescriptionCreateRequest;
 import com.fepdev.sfm.backend.domain.medicalrecord.dto.PrescriptionResponse;
 import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
-
 import jakarta.persistence.EntityNotFoundException;
+import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PrescriptionService {
@@ -27,8 +24,11 @@ public class PrescriptionService {
     private final MedicationsCatalogRepository medicationRepository;
     private final PatientHistoryIndexer historyIndexer;
 
-    public PrescriptionService(PrescriptionRepository prescriptionRepository, PrescriptionMapper prescriptionMapper,
-            MedicalRecordRepository medicalRecordRepository, MedicationsCatalogRepository medicationRepository,
+    public PrescriptionService(
+            PrescriptionRepository prescriptionRepository,
+            PrescriptionMapper prescriptionMapper,
+            MedicalRecordRepository medicalRecordRepository,
+            MedicationsCatalogRepository medicationRepository,
             PatientHistoryIndexer historyIndexer) {
         this.prescriptionRepository = prescriptionRepository;
         this.prescriptionMapper = prescriptionMapper;
@@ -41,8 +41,10 @@ public class PrescriptionService {
     @Transactional
     public PrescriptionResponse createPrescription(PrescriptionCreateRequest request) {
 
-        MedicalRecord medicalRecord = medicalRecordRepository.findById(request.medicalRecordId())
-                .orElseThrow(() -> new EntityNotFoundException("Expediente con ID: " + request.medicalRecordId() + " no encontrado"));
+        MedicalRecord medicalRecord = medicalRecordRepository
+                .findById(request.medicalRecordId())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Expediente con ID: " + request.medicalRecordId() + " no encontrado"));
 
         // validar que appointmentId y medicalRecordId pertenecen a la misma consulta
         if (!medicalRecord.getAppointment().getId().equals(request.appointmentId())) {
@@ -59,8 +61,10 @@ public class PrescriptionService {
                             + appointment.getStatus());
         }
 
-        MedicationsCatalog medication = medicationRepository.findById(request.medicationId())
-                .orElseThrow(() -> new EntityNotFoundException("Medicamento con ID: " + request.medicationId() + " no encontrado"));
+        MedicationsCatalog medication = medicationRepository
+                .findById(request.medicationId())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Medicamento con ID: " + request.medicationId() + " no encontrado"));
 
         Prescription prescription = prescriptionMapper.toEntity(request);
         prescription.setMedicalRecord(medicalRecord);
@@ -78,7 +82,8 @@ public class PrescriptionService {
         if (!medicalRecordRepository.existsById(medicalRecordId)) {
             throw new EntityNotFoundException("Expediente con ID: " + medicalRecordId + " no encontrado");
         }
-        return prescriptionRepository.findByMedicalRecordId(medicalRecordId, pageable)
+        return prescriptionRepository
+                .findByMedicalRecordId(medicalRecordId, pageable)
                 .map(prescriptionMapper::toResponse);
     }
 

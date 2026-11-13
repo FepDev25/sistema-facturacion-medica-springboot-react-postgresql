@@ -8,11 +8,17 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fepdev.sfm.backend.domain.insurance.InsurancePolicyController;
+import com.fepdev.sfm.backend.domain.insurance.InsuranceService;
+import com.fepdev.sfm.backend.domain.insurance.dto.InsurancePolicyResponse;
+import com.fepdev.sfm.backend.security.JwtAuthenticationFilter;
+import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
+import com.fepdev.sfm.backend.shared.exception.HandlerException;
+import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -22,15 +28,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
-import com.fepdev.sfm.backend.domain.insurance.InsurancePolicyController;
-import com.fepdev.sfm.backend.domain.insurance.InsuranceService;
-import com.fepdev.sfm.backend.domain.insurance.dto.InsurancePolicyResponse;
-import com.fepdev.sfm.backend.security.JwtAuthenticationFilter;
-import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
-import com.fepdev.sfm.backend.shared.exception.HandlerException;
-
-import jakarta.persistence.EntityNotFoundException;
 
 @WebMvcTest(InsurancePolicyController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -52,8 +49,20 @@ class InsurancePolicyControllerWebMvcTest {
         UUID patientId = UUID.randomUUID();
         UUID providerId = UUID.randomUUID();
         InsurancePolicyResponse response = new InsurancePolicyResponse(
-                id, patientId, "Ana", "Lopez", providerId, "Seguro", "POL-1",
-                new BigDecimal("80.00"), BigDecimal.ZERO, LocalDate.now(), LocalDate.now().plusYears(1), true, null, null);
+                id,
+                patientId,
+                "Ana",
+                "Lopez",
+                providerId,
+                "Seguro",
+                "POL-1",
+                new BigDecimal("80.00"),
+                BigDecimal.ZERO,
+                LocalDate.now(),
+                LocalDate.now().plusYears(1),
+                true,
+                null,
+                null);
         when(insuranceService.createPolicy(any())).thenReturn(response);
 
         String body = """
@@ -66,16 +75,21 @@ class InsurancePolicyControllerWebMvcTest {
                   "startDate": "%s",
                   "endDate": "%s"
                 }
-                """.formatted(patientId, providerId, LocalDate.now(), LocalDate.now().plusYears(1));
+                """.formatted(
+                        patientId, providerId, LocalDate.now(), LocalDate.now().plusYears(1));
 
-        mockMvc.perform(post("/api/v1/insurance/policies").contentType(MediaType.APPLICATION_JSON).content(body))
+        mockMvc.perform(post("/api/v1/insurance/policies")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(id.toString()));
     }
 
     @Test
     void create_whenInvalidRequest_returns400() throws Exception {
-        mockMvc.perform(post("/api/v1/insurance/policies").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        mockMvc.perform(post("/api/v1/insurance/policies")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400));
     }
@@ -104,9 +118,15 @@ class InsurancePolicyControllerWebMvcTest {
                   "startDate": "%s",
                   "endDate": "%s"
                 }
-                """.formatted(UUID.randomUUID(), UUID.randomUUID(), LocalDate.now(), LocalDate.now().plusYears(1));
+                """.formatted(
+                        UUID.randomUUID(),
+                        UUID.randomUUID(),
+                        LocalDate.now(),
+                        LocalDate.now().plusYears(1));
 
-        mockMvc.perform(post("/api/v1/insurance/policies").contentType(MediaType.APPLICATION_JSON).content(body))
+        mockMvc.perform(post("/api/v1/insurance/policies")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isUnprocessableContent())
                 .andExpect(jsonPath("$.status").value(422));
     }
@@ -116,8 +136,20 @@ class InsurancePolicyControllerWebMvcTest {
         UUID id = UUID.randomUUID();
         UUID patientId = UUID.randomUUID();
         InsurancePolicyResponse response = new InsurancePolicyResponse(
-                id, patientId, "Ana", "Lopez", UUID.randomUUID(), "Seguro", "POL-2",
-                new BigDecimal("50.00"), BigDecimal.ZERO, LocalDate.now(), LocalDate.now().plusYears(1), true, null, null);
+                id,
+                patientId,
+                "Ana",
+                "Lopez",
+                UUID.randomUUID(),
+                "Seguro",
+                "POL-2",
+                new BigDecimal("50.00"),
+                BigDecimal.ZERO,
+                LocalDate.now(),
+                LocalDate.now().plusYears(1),
+                true,
+                null,
+                null);
 
         when(insuranceService.getPolicyByNumber("POL-2")).thenReturn(response);
         when(insuranceService.updatePolicy(any(), any())).thenReturn(response);

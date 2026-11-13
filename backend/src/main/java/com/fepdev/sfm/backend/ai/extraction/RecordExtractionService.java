@@ -1,19 +1,17 @@
 package com.fepdev.sfm.backend.ai.extraction;
 
+import com.fepdev.sfm.backend.ai.extraction.dto.ExtractedPrescription;
+import com.fepdev.sfm.backend.ai.extraction.dto.ExtractionResult;
+import com.fepdev.sfm.backend.ai.extraction.dto.RecordExtractionRequest;
+import com.fepdev.sfm.backend.ai.guard.AiCallExecutor;
+import com.fepdev.sfm.backend.domain.catalog.MedicationsCatalogRepository;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
-
-import com.fepdev.sfm.backend.ai.guard.AiCallExecutor;
-import com.fepdev.sfm.backend.ai.extraction.dto.ExtractedPrescription;
-import com.fepdev.sfm.backend.ai.extraction.dto.ExtractionResult;
-import com.fepdev.sfm.backend.ai.extraction.dto.RecordExtractionRequest;
-import com.fepdev.sfm.backend.domain.catalog.MedicationsCatalogRepository;
 
 @Service
 public class RecordExtractionService {
@@ -22,8 +20,8 @@ public class RecordExtractionService {
     private final AiCallExecutor aiCallExecutor;
     private final MedicationsCatalogRepository medicationsRepo;
 
-    public RecordExtractionService(ChatClient chatClient, AiCallExecutor aiCallExecutor,
-            MedicationsCatalogRepository medicationsRepo) {
+    public RecordExtractionService(
+            ChatClient chatClient, AiCallExecutor aiCallExecutor, MedicationsCatalogRepository medicationsRepo) {
         this.chatClient = chatClient;
         this.aiCallExecutor = aiCallExecutor;
         this.medicationsRepo = medicationsRepo;
@@ -48,23 +46,23 @@ public class RecordExtractionService {
                 - Llama cada herramienta una vez por entidad encontrada
                 """.formatted(catalogText);
 
-        String userPrompt = """
+        String userPrompt =
+                """
                 Motivo de consulta: %s
                 Notas clínicas: %s
                 Examen físico: %s
-                """.formatted(
-                nvl(request.chiefComplaint()),
-                nvl(request.clinicalNotes()),
-                nvl(request.physicalExam())
-        );
+                """.formatted(nvl(request.chiefComplaint()), nvl(request.clinicalNotes()), nvl(request.physicalExam()));
 
         var tools = new ExtractionTools();
-        aiCallExecutor.callChat("records-extract", () -> chatClient.prompt()
-                .system(systemPrompt)
-                .user(userPrompt)
-                .tools(tools)
-                .call()
-                .chatResponse());
+        aiCallExecutor.callChat(
+                "records-extract",
+                () -> chatClient
+                        .prompt()
+                        .system(systemPrompt)
+                        .user(userPrompt)
+                        .tools(tools)
+                        .call()
+                        .chatResponse());
 
         List<ExtractedPrescription> prescriptions = tools.getRawPrescriptions().stream()
                 .map(rp -> new ExtractedPrescription(
@@ -73,8 +71,7 @@ public class RecordExtractionService {
                         rp.dosage(),
                         rp.frequency(),
                         rp.durationDays(),
-                        rp.instructions()
-                ))
+                        rp.instructions()))
                 .toList();
 
         return new ExtractionResult(tools.getDiagnoses(), prescriptions, tools.getProcedures());
@@ -83,18 +80,11 @@ public class RecordExtractionService {
     private Map<String, UUID> loadMedicationMap() {
         return medicationsRepo.findAll().stream()
                 .filter(m -> m.isActive())
-                .collect(Collectors.toMap(
-                        m -> m.getName(),
-                        m -> m.getId(),
-                        (a, b) -> a
-                ));
+                .collect(Collectors.toMap(m -> m.getName(), m -> m.getId(), (a, b) -> a));
     }
 
     private String formatCatalog(Set<String> names) {
-        return names.stream()
-                .sorted()
-                .map(n -> "- " + n)
-                .collect(Collectors.joining("\n"));
+        return names.stream().sorted().map(n -> "- " + n).collect(Collectors.joining("\n"));
     }
 
     private UUID resolveId(String name, Map<String, UUID> map) {

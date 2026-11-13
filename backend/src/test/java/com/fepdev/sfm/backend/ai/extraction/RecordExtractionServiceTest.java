@@ -5,14 +5,20 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fepdev.sfm.backend.ai.extraction.dto.ExtractionResult;
+import com.fepdev.sfm.backend.ai.extraction.dto.RecordExtractionRequest;
+import com.fepdev.sfm.backend.ai.guard.AiCallExecutor;
+import com.fepdev.sfm.backend.ai.guard.AiUnavailableException;
+import com.fepdev.sfm.backend.ai.support.AiTestFixtures;
+import com.fepdev.sfm.backend.domain.catalog.MedicationsCatalog;
+import com.fepdev.sfm.backend.domain.catalog.MedicationsCatalogRepository;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,24 +30,21 @@ import org.mockito.quality.Strictness;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import com.fepdev.sfm.backend.ai.extraction.dto.ExtractionResult;
-import com.fepdev.sfm.backend.ai.extraction.dto.RecordExtractionRequest;
-import com.fepdev.sfm.backend.ai.guard.AiCallExecutor;
-import com.fepdev.sfm.backend.ai.guard.AiUnavailableException;
-import com.fepdev.sfm.backend.ai.support.AiTestFixtures;
-import com.fepdev.sfm.backend.domain.catalog.MedicationsCatalog;
-import com.fepdev.sfm.backend.domain.catalog.MedicationsCatalogRepository;
-
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class RecordExtractionServiceTest {
 
-    @Mock ChatClient chatClient;
-    @Mock ChatClient.ChatClientRequestSpec requestSpec;
-    @Mock ChatClient.CallResponseSpec callSpec;
-    @Mock MedicationsCatalogRepository medicationsRepo;
+    @Mock
+    ChatClient chatClient;
+
+    @Mock
+    ChatClient.ChatClientRequestSpec requestSpec;
+
+    @Mock
+    ChatClient.CallResponseSpec callSpec;
+
+    @Mock
+    MedicationsCatalogRepository medicationsRepo;
 
     private RecordExtractionService service;
     private UUID amoxicilinaId;
@@ -49,15 +52,16 @@ class RecordExtractionServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new RecordExtractionService(chatClient,
-                new AiCallExecutor(new SimpleMeterRegistry(), 5, 0), medicationsRepo);
+        service = new RecordExtractionService(
+                chatClient, new AiCallExecutor(new SimpleMeterRegistry(), 5, 0), medicationsRepo);
 
         amoxicilinaId = UUID.randomUUID();
         ibuprofenoId = UUID.randomUUID();
-        when(medicationsRepo.findAll()).thenReturn(List.of(
-                medication("Amoxicilina 500 mg", amoxicilinaId, true),
-                medication("Ibuprofeno 400 mg", ibuprofenoId, true),
-                medication("Inactivo", UUID.randomUUID(), false)));
+        when(medicationsRepo.findAll())
+                .thenReturn(List.of(
+                        medication("Amoxicilina 500 mg", amoxicilinaId, true),
+                        medication("Ibuprofeno 400 mg", ibuprofenoId, true),
+                        medication("Inactivo", UUID.randomUUID(), false)));
 
         lenient().when(chatClient.prompt()).thenReturn(requestSpec);
         lenient().when(requestSpec.system(anyString())).thenReturn(requestSpec);
@@ -77,17 +81,17 @@ class RecordExtractionServiceTest {
 
         ExtractionResult result = service.extract(request("Dolor de garganta", null, null));
 
-        assertThat(result.diagnoses()).singleElement()
-                .satisfies(d -> {
-                    assertThat(d.icd10Code()).isEqualTo("J02.9");
-                    assertThat(d.severity()).isEqualTo("mild");
-                });
+        assertThat(result.diagnoses()).singleElement().satisfies(d -> {
+            assertThat(d.icd10Code()).isEqualTo("J02.9");
+            assertThat(d.severity()).isEqualTo("mild");
+        });
         assertThat(result.prescriptions()).singleElement().satisfies(p -> {
             assertThat(p.medicationName()).isEqualTo("amoxicilina 500 MG");
             assertThat(p.matchedMedicationId()).isEqualTo(amoxicilinaId);
             assertThat(p.durationDays()).isEqualTo(7);
         });
-        assertThat(result.procedures()).singleElement()
+        assertThat(result.procedures())
+                .singleElement()
                 .satisfies(p -> assertThat(p.procedureCode()).isEqualTo("87880"));
     }
 
@@ -97,7 +101,8 @@ class RecordExtractionServiceTest {
 
         ExtractionResult result = service.extract(request("Notas", "", ""));
 
-        assertThat(result.prescriptions()).singleElement()
+        assertThat(result.prescriptions())
+                .singleElement()
                 .satisfies(p -> assertThat(p.matchedMedicationId()).isNull());
     }
 

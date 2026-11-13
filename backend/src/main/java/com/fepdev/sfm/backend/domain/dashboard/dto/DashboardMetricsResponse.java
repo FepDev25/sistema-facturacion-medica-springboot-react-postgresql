@@ -10,5 +10,4 @@ public record DashboardMetricsResponse(
         long pendingInvoices,
         long overdueInvoices,
         BigDecimal totalCollected,
-        BigDecimal pendingCollection
-) {}
+        BigDecimal pendingCollection) {}

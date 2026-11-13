@@ -1,18 +1,16 @@
 package com.fepdev.sfm.backend.domain.invoice;
 
+import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceListViewResponse;
 import java.time.LocalDate;
 import java.util.Optional;
 import java.util.UUID;
-
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-
-import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceListViewResponse;
 
 @Repository
 public interface InvoiceRepository extends JpaRepository<Invoice, UUID> {
@@ -37,12 +35,7 @@ public interface InvoiceRepository extends JpaRepository<Invoice, UUID> {
 
     Optional<Invoice> findTopByAppointmentIdOrderByCreatedAtDesc(UUID appointmentId);
 
-    @EntityGraph(attributePaths = {
-            "patient",
-            "appointment",
-            "insurancePolicy",
-            "insurancePolicy.provider"
-    })
+    @EntityGraph(attributePaths = {"patient", "appointment", "insurancePolicy", "insurancePolicy.provider"})
     @Query("SELECT i FROM Invoice i WHERE i.id = :id")
     Optional<Invoice> findViewById(@Param("id") UUID id);
 

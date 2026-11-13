@@ -1,5 +1,8 @@
 package com.fepdev.sfm.backend.ai.guard;
 
+import com.fepdev.sfm.backend.ai.metrics.AiUsageRecorder;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import java.time.Duration;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -8,7 +11,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.client.ResponseEntity;
@@ -18,11 +20,6 @@ import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import com.fepdev.sfm.backend.ai.metrics.AiUsageRecorder;
-
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Timer;
 import reactor.core.publisher.Flux;
 
 // Envuelve cada llamada a un LLM con timeout, reintento y metricas.
@@ -40,7 +37,8 @@ public class AiCallExecutor {
     private final int maxRetries;
 
     @Autowired
-    public AiCallExecutor(MeterRegistry meterRegistry,
+    public AiCallExecutor(
+            MeterRegistry meterRegistry,
             @Value("${app.ai.timeout-seconds:30}") long timeoutSeconds,
             @Value("${app.ai.max-retries:1}") int maxRetries,
             AiUsageRecorder usageRecorder) {
@@ -66,14 +64,20 @@ public class AiCallExecutor {
 
         try {
             T result = executeWithRetry(feature, action);
-            meterRegistry.counter("ai.requests", "feature", feature, "outcome", "success").increment();
-            log.info("AI feature={} outcome=success latencyMs={}", feature,
-                    elapsedMillis(startedAt));
+            meterRegistry
+                    .counter("ai.requests", "feature", feature, "outcome", "success")
+                    .increment();
+            log.info("AI feature={} outcome=success latencyMs={}", feature, elapsedMillis(startedAt));
             return result;
         } catch (RuntimeException ex) {
-            meterRegistry.counter("ai.requests", "feature", feature, "outcome", "error").increment();
-            log.warn("AI feature={} outcome=error latencyMs={} error={}", feature,
-                    elapsedMillis(startedAt), ex.getMessage());
+            meterRegistry
+                    .counter("ai.requests", "feature", feature, "outcome", "error")
+                    .increment();
+            log.warn(
+                    "AI feature={} outcome=error latencyMs={} error={}",
+                    feature,
+                    elapsedMillis(startedAt),
+                    ex.getMessage());
             throw ex;
         } finally {
             sample.stop(meterRegistry.timer("ai.latency", "feature", feature));
@@ -108,21 +112,33 @@ public class AiCallExecutor {
 
         return Flux.defer(action)
                 .timeout(Duration.ofSeconds(timeoutSeconds))
-                .onErrorMap(TimeoutException.class, ex -> new AiUnavailableException(
-                        "El asistente de IA excedio el tiempo de espera de " + timeoutSeconds + " segundos."))
-                .onErrorMap(ex -> !(ex instanceof AiUnavailableException), ex -> new AiUnavailableException(
-                        "El asistente de IA no esta disponible en este momento.", ex))
+                .onErrorMap(
+                        TimeoutException.class,
+                        ex -> new AiUnavailableException(
+                                "El asistente de IA excedio el tiempo de espera de " + timeoutSeconds + " segundos."))
+                .onErrorMap(
+                        ex -> !(ex instanceof AiUnavailableException),
+                        ex -> new AiUnavailableException("El asistente de IA no esta disponible en este momento.", ex))
                 .doOnNext(usage::accept)
                 .doOnComplete(() -> {
                     usage.record(usageRecorder, feature);
-                    meterRegistry.counter("ai.requests", "feature", feature, "outcome", "success").increment();
-                    log.info("AI feature={} outcome=success stream=true latencyMs={}", feature,
+                    meterRegistry
+                            .counter("ai.requests", "feature", feature, "outcome", "success")
+                            .increment();
+                    log.info(
+                            "AI feature={} outcome=success stream=true latencyMs={}",
+                            feature,
                             elapsedMillis(startedAt));
                 })
                 .doOnError(ex -> {
-                    meterRegistry.counter("ai.requests", "feature", feature, "outcome", "error").increment();
-                    log.warn("AI feature={} outcome=error stream=true latencyMs={} error={}", feature,
-                            elapsedMillis(startedAt), ex.getMessage());
+                    meterRegistry
+                            .counter("ai.requests", "feature", feature, "outcome", "error")
+                            .increment();
+                    log.warn(
+                            "AI feature={} outcome=error stream=true latencyMs={} error={}",
+                            feature,
+                            elapsedMillis(startedAt),
+                            ex.getMessage());
                 })
                 .doFinally(signal -> sample.stop(meterRegistry.timer("ai.latency", "feature", feature)));
     }
@@ -192,7 +208,9 @@ public class AiCallExecutor {
                 recorder.record(feature, (ChatResponse) null);
                 return;
             }
-            recorder.record(feature, model,
+            recorder.record(
+                    feature,
+                    model,
                     promptTokens != null ? promptTokens : 0,
                     completionTokens != null ? completionTokens : 0);
         }

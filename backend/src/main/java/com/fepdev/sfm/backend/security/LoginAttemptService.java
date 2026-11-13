@@ -1,17 +1,14 @@
 package com.fepdev.sfm.backend.security;
 
+import com.fepdev.sfm.backend.ai.guard.InMemoryRateLimitStore;
+import com.fepdev.sfm.backend.ai.guard.RateLimitStore;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.Locale;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import com.fepdev.sfm.backend.ai.guard.InMemoryRateLimitStore;
-import com.fepdev.sfm.backend.ai.guard.RateLimitStore;
-
-import io.micrometer.core.instrument.MeterRegistry;
 
 /**
  * Limita intentos fallidos de login por identidad (IP + usuario) y por IP.
@@ -49,10 +46,9 @@ public class LoginAttemptService {
     }
 
     // Constructor de conveniencia para tests unitarios y usos embebidos.
-    public LoginAttemptService(Clock clock, MeterRegistry meterRegistry,
-            int maxAttempts, int maxAttemptsPerIp, long windowSeconds) {
-        this(clock, meterRegistry, new InMemoryRateLimitStore(clock),
-                maxAttempts, maxAttemptsPerIp, windowSeconds);
+    public LoginAttemptService(
+            Clock clock, MeterRegistry meterRegistry, int maxAttempts, int maxAttemptsPerIp, long windowSeconds) {
+        this(clock, meterRegistry, new InMemoryRateLimitStore(clock), maxAttempts, maxAttemptsPerIp, windowSeconds);
     }
 
     public void checkAllowed(String ip, String username) {

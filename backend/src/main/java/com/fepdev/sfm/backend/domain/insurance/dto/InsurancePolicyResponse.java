@@ -6,18 +6,17 @@ import java.time.OffsetDateTime;
 import java.util.UUID;
 
 public record InsurancePolicyResponse(
-    UUID id,
-    UUID patientId,
-    String patientFirstName,
-    String patientLastName,
-    UUID providerId,
-    String providerName,
-    String policyNumber,
-    BigDecimal coveragePercentage,
-    BigDecimal deductible,
-    LocalDate startDate,
-    LocalDate endDate,
-    boolean isActive,
-    OffsetDateTime createdAt,
-    OffsetDateTime updatedAt
-) {}
+        UUID id,
+        UUID patientId,
+        String patientFirstName,
+        String patientLastName,
+        UUID providerId,
+        String providerName,
+        String policyNumber,
+        BigDecimal coveragePercentage,
+        BigDecimal deductible,
+        LocalDate startDate,
+        LocalDate endDate,
+        boolean isActive,
+        OffsetDateTime createdAt,
+        OffsetDateTime updatedAt) {}

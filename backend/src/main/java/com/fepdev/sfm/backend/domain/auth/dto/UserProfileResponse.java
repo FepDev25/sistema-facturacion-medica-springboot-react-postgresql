@@ -1,8 +1,7 @@
 package com.fepdev.sfm.backend.domain.auth.dto;
 
-import java.util.UUID;
-
 import com.fepdev.sfm.backend.security.SystemUser;
+import java.util.UUID;
 
 public record UserProfileResponse(
         UUID id,
@@ -12,8 +11,7 @@ public record UserProfileResponse(
         boolean active,
         UUID doctorId,
         String doctorFirstName,
-        String doctorLastName
-) {
+        String doctorLastName) {
     public static UserProfileResponse from(SystemUser user) {
         UUID doctorId = null;
         String doctorFirstName = null;
@@ -31,7 +29,6 @@ public record UserProfileResponse(
                 user.isActive(),
                 doctorId,
                 doctorFirstName,
-                doctorLastName
-        );
+                doctorLastName);
     }
 }

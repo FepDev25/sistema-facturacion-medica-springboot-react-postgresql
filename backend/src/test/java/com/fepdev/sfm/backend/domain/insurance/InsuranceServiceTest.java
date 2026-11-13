@@ -7,18 +7,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.Optional;
-import java.util.UUID;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-
 import com.fepdev.sfm.backend.domain.insurance.dto.InsurancePolicyCreateRequest;
 import com.fepdev.sfm.backend.domain.insurance.dto.InsurancePolicyUpdateRequest;
 import com.fepdev.sfm.backend.domain.insurance.dto.InsuranceProviderCreateRequest;
@@ -26,19 +14,38 @@ import com.fepdev.sfm.backend.domain.insurance.dto.InsuranceProviderResponse;
 import com.fepdev.sfm.backend.domain.patient.Patient;
 import com.fepdev.sfm.backend.domain.patient.PatientRepository;
 import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
-
 import jakarta.persistence.EntityNotFoundException;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.Optional;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class InsuranceServiceTest {
 
-    @Mock InsuranceProviderRepository providerRepo;
-    @Mock InsurancePolicyRepository policyRepo;
-    @Mock InsurancePolicyMapper policyMapper;
-    @Mock InsuranceProviderMapper providerMapper;
-    @Mock PatientRepository patientRepo;
+    @Mock
+    InsuranceProviderRepository providerRepo;
 
-    @InjectMocks InsuranceService insuranceService;
+    @Mock
+    InsurancePolicyRepository policyRepo;
+
+    @Mock
+    InsurancePolicyMapper policyMapper;
+
+    @Mock
+    InsuranceProviderMapper providerMapper;
+
+    @Mock
+    PatientRepository patientRepo;
+
+    @InjectMocks
+    InsuranceService insuranceService;
 
     // name, code, phone, email, address
     private InsuranceProviderCreateRequest providerRequest(String code) {
@@ -46,9 +53,10 @@ class InsuranceServiceTest {
     }
 
     // patientId, providerId, policyNumber, coveragePercentage, deductible, startDate, endDate
-    private InsurancePolicyCreateRequest policyRequest(UUID providerId, UUID patientId, LocalDate start, LocalDate end) {
+    private InsurancePolicyCreateRequest policyRequest(
+            UUID providerId, UUID patientId, LocalDate start, LocalDate end) {
         return new InsurancePolicyCreateRequest(
-            patientId, providerId, "POL-001", new BigDecimal("80.00"), BigDecimal.ZERO, start, end);
+                patientId, providerId, "POL-001", new BigDecimal("80.00"), BigDecimal.ZERO, start, end);
     }
 
     // --- Provider tests ---
@@ -58,8 +66,8 @@ class InsuranceServiceTest {
         when(providerRepo.existsByCode("PROV-01")).thenReturn(true);
 
         assertThatThrownBy(() -> insuranceService.createProvider(providerRequest("PROV-01")))
-            .isInstanceOf(BusinessRuleException.class)
-            .hasMessageContaining("PROV-01");
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("PROV-01");
 
         verify(providerRepo, never()).save(any());
     }
@@ -69,7 +77,7 @@ class InsuranceServiceTest {
         InsuranceProviderCreateRequest req = providerRequest("PROV-02");
         InsuranceProvider provider = new InsuranceProvider();
         InsuranceProviderResponse expected = new InsuranceProviderResponse(
-            UUID.randomUUID(), "Seguro Nacional", "PROV-02", "555-9000", null, null, true, null, null);
+                UUID.randomUUID(), "Seguro Nacional", "PROV-02", "555-9000", null, null, true, null, null);
 
         when(providerRepo.existsByCode("PROV-02")).thenReturn(false);
         when(providerMapper.toEntity(req)).thenReturn(provider);
@@ -95,8 +103,8 @@ class InsuranceServiceTest {
         when(policyRepo.existsActiveByProviderId(providerId)).thenReturn(true);
 
         assertThatThrownBy(() -> insuranceService.deactivateProvider(providerId))
-            .isInstanceOf(BusinessRuleException.class)
-            .hasMessageContaining("pólizas activas");
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("pólizas activas");
     }
 
     @Test
@@ -124,9 +132,9 @@ class InsuranceServiceTest {
 
         when(providerRepo.findById(providerId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> insuranceService.createPolicy(
-                policyRequest(providerId, patientId, LocalDate.now(), LocalDate.now().plusYears(1))))
-            .isInstanceOf(EntityNotFoundException.class);
+        assertThatThrownBy(() -> insuranceService.createPolicy(policyRequest(
+                        providerId, patientId, LocalDate.now(), LocalDate.now().plusYears(1))))
+                .isInstanceOf(EntityNotFoundException.class);
     }
 
     @Test
@@ -138,10 +146,10 @@ class InsuranceServiceTest {
 
         when(providerRepo.findById(providerId)).thenReturn(Optional.of(inactiveProvider));
 
-        assertThatThrownBy(() -> insuranceService.createPolicy(
-                policyRequest(providerId, patientId, LocalDate.now(), LocalDate.now().plusYears(1))))
-            .isInstanceOf(BusinessRuleException.class)
-            .hasMessageContaining("inactivo");
+        assertThatThrownBy(() -> insuranceService.createPolicy(policyRequest(
+                        providerId, patientId, LocalDate.now(), LocalDate.now().plusYears(1))))
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("inactivo");
     }
 
     @Test
@@ -154,9 +162,9 @@ class InsuranceServiceTest {
         when(providerRepo.findById(providerId)).thenReturn(Optional.of(activeProvider));
         when(patientRepo.findById(patientId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> insuranceService.createPolicy(
-                policyRequest(providerId, patientId, LocalDate.now(), LocalDate.now().plusYears(1))))
-            .isInstanceOf(EntityNotFoundException.class);
+        assertThatThrownBy(() -> insuranceService.createPolicy(policyRequest(
+                        providerId, patientId, LocalDate.now(), LocalDate.now().plusYears(1))))
+                .isInstanceOf(EntityNotFoundException.class);
     }
 
     @Test
@@ -171,10 +179,9 @@ class InsuranceServiceTest {
         when(providerRepo.findById(providerId)).thenReturn(Optional.of(activeProvider));
         when(patientRepo.findById(patientId)).thenReturn(Optional.of(patient));
 
-        assertThatThrownBy(() -> insuranceService.createPolicy(
-                policyRequest(providerId, patientId, today, today)))
-            .isInstanceOf(BusinessRuleException.class)
-            .hasMessageContaining("posterior");
+        assertThatThrownBy(() -> insuranceService.createPolicy(policyRequest(providerId, patientId, today, today)))
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("posterior");
     }
 
     @Test
@@ -188,9 +195,9 @@ class InsuranceServiceTest {
         when(providerRepo.findById(providerId)).thenReturn(Optional.of(activeProvider));
         when(patientRepo.findById(patientId)).thenReturn(Optional.of(patient));
 
-        assertThatThrownBy(() -> insuranceService.createPolicy(
-                policyRequest(providerId, patientId, LocalDate.now(), LocalDate.now().minusDays(1))))
-            .isInstanceOf(BusinessRuleException.class);
+        assertThatThrownBy(() -> insuranceService.createPolicy(policyRequest(
+                        providerId, patientId, LocalDate.now(), LocalDate.now().minusDays(1))))
+                .isInstanceOf(BusinessRuleException.class);
     }
 
     @Test
@@ -202,7 +209,7 @@ class InsuranceServiceTest {
         Patient patient = new Patient();
         InsurancePolicy policy = new InsurancePolicy();
         InsurancePolicyCreateRequest req = policyRequest(
-            providerId, patientId, LocalDate.now(), LocalDate.now().plusYears(1));
+                providerId, patientId, LocalDate.now(), LocalDate.now().plusYears(1));
 
         when(providerRepo.findById(providerId)).thenReturn(Optional.of(activeProvider));
         when(patientRepo.findById(patientId)).thenReturn(Optional.of(patient));
@@ -227,14 +234,14 @@ class InsuranceServiceTest {
         existing.setEndDate(today.plusYears(1));
 
         // request sets new endDate = startDate → invalid
-        InsurancePolicyUpdateRequest req = new InsurancePolicyUpdateRequest(
-            new BigDecimal("50.00"), null, null, today, null);
+        InsurancePolicyUpdateRequest req =
+                new InsurancePolicyUpdateRequest(new BigDecimal("50.00"), null, null, today, null);
 
         when(policyRepo.findById(policyId)).thenReturn(Optional.of(existing));
 
         assertThatThrownBy(() -> insuranceService.updatePolicy(policyId, req))
-            .isInstanceOf(BusinessRuleException.class)
-            .hasMessageContaining("posterior");
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("posterior");
     }
 
     @Test
@@ -245,12 +252,12 @@ class InsuranceServiceTest {
         existing.setStartDate(today);
         existing.setEndDate(today.plusYears(1));
 
-        InsurancePolicyUpdateRequest req = new InsurancePolicyUpdateRequest(
-            new BigDecimal("50.00"), null, null, today.minusDays(1), null);
+        InsurancePolicyUpdateRequest req =
+                new InsurancePolicyUpdateRequest(new BigDecimal("50.00"), null, null, today.minusDays(1), null);
 
         when(policyRepo.findById(policyId)).thenReturn(Optional.of(existing));
 
         assertThatThrownBy(() -> insuranceService.updatePolicy(policyId, req))
-            .isInstanceOf(BusinessRuleException.class);
+                .isInstanceOf(BusinessRuleException.class);
     }
 }

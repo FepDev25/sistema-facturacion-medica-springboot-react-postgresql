@@ -215,7 +215,28 @@ usuarios sin poder iniciar sesión.
    operativo.
 3. Bajar `app.ai.rate-limit.requests-per-minute` si hay abuso.
 
-## 5. Rotación de secretos
+## 5. Staging
+
+Staging es un ambiente aislado para validar migraciones y flujos antes de
+producción. El diseño completo está en [`docs/staging.md`](staging.md); el
+workflow [`staging.yml`](../.github/workflows/staging.yml) está deshabilitado por
+defecto (`vars.STAGING_ENABLED == 'true'`).
+
+Reglas operativas:
+
+- Staging tiene su propio `JWT_SECRET`, su branch de Neon `staging` y su Redis.
+  Nunca comparte secretos, base ni dyno con producción.
+- El uptime de `uptime.yml` solo vigila producción. Staging se valida a mano con
+  `curl -fsS "$STAGING_HEALTH_URL"`; no debe abrir issues de incidente.
+- Las migraciones Flyway se aplican al arrancar el backend de staging. Antes de
+  fusionar a `main`, revisar `flyway_schema_history` y probar el flujo crítico.
+- Rollback de staging:
+  `heroku releases:rollback -a sfm-backend-staging`, promover un deployment
+  anterior en Vercel y, si hace falta, recrear la branch Neon `staging`.
+- Un rollback de staging no toca producción. Si el problema ya llegó a `main`,
+  aplicar el runbook de producción de la sección 4.
+
+## 6. Rotación de secretos
 
 | Secreto | Dónde | Procedimiento |
 |---|---|---|

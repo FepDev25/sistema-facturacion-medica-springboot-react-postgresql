@@ -2,15 +2,13 @@ package com.fepdev.sfm.backend.domain.medicalrecord;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fepdev.sfm.backend.domain.appointment.Appointment;
+import com.fepdev.sfm.backend.domain.medicalrecord.dto.ProcedureCreateRequest;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import com.fepdev.sfm.backend.domain.appointment.Appointment;
-import com.fepdev.sfm.backend.domain.medicalrecord.dto.ProcedureCreateRequest;
 
 class ProcedureMapperImplTest {
 
@@ -20,12 +18,7 @@ class ProcedureMapperImplTest {
     void toEntity_mapsCreateRequest() {
         OffsetDateTime performedAt = OffsetDateTime.now();
         ProcedureCreateRequest request = new ProcedureCreateRequest(
-                UUID.randomUUID(),
-                UUID.randomUUID(),
-                "PROC-001",
-                "Sutura",
-                "sin complicaciones",
-                performedAt);
+                UUID.randomUUID(), UUID.randomUUID(), "PROC-001", "Sutura", "sin complicaciones", performedAt);
 
         Procedure entity = mapper.toEntity(request);
 

@@ -6,11 +6,20 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fepdev.sfm.backend.domain.medicalrecord.Diagnosis;
+import com.fepdev.sfm.backend.domain.medicalrecord.DiagnosisRepository;
+import com.fepdev.sfm.backend.domain.medicalrecord.MedicalRecord;
+import com.fepdev.sfm.backend.domain.medicalrecord.MedicalRecordRepository;
+import com.fepdev.sfm.backend.domain.medicalrecord.Prescription;
+import com.fepdev.sfm.backend.domain.medicalrecord.PrescriptionRepository;
+import com.fepdev.sfm.backend.domain.medicalrecord.Procedure;
+import com.fepdev.sfm.backend.domain.medicalrecord.ProcedureRepository;
+import com.fepdev.sfm.backend.domain.medicalrecord.Severity;
+import com.fepdev.sfm.backend.domain.patient.Patient;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -22,26 +31,26 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import com.fepdev.sfm.backend.domain.medicalrecord.Diagnosis;
-import com.fepdev.sfm.backend.domain.medicalrecord.DiagnosisRepository;
-import com.fepdev.sfm.backend.domain.medicalrecord.MedicalRecord;
-import com.fepdev.sfm.backend.domain.medicalrecord.MedicalRecordRepository;
-import com.fepdev.sfm.backend.domain.medicalrecord.Prescription;
-import com.fepdev.sfm.backend.domain.medicalrecord.PrescriptionRepository;
-import com.fepdev.sfm.backend.domain.medicalrecord.Procedure;
-import com.fepdev.sfm.backend.domain.medicalrecord.ProcedureRepository;
-import com.fepdev.sfm.backend.domain.medicalrecord.Severity;
-import com.fepdev.sfm.backend.domain.patient.Patient;
-
 @ExtendWith(MockitoExtension.class)
 class PatientHistoryIndexerTest {
 
-    @Mock VectorStore vectorStore;
-    @Mock JdbcTemplate jdbc;
-    @Mock MedicalRecordRepository medicalRecordRepository;
-    @Mock DiagnosisRepository diagnosisRepository;
-    @Mock PrescriptionRepository prescriptionRepository;
-    @Mock ProcedureRepository procedureRepository;
+    @Mock
+    VectorStore vectorStore;
+
+    @Mock
+    JdbcTemplate jdbc;
+
+    @Mock
+    MedicalRecordRepository medicalRecordRepository;
+
+    @Mock
+    DiagnosisRepository diagnosisRepository;
+
+    @Mock
+    PrescriptionRepository prescriptionRepository;
+
+    @Mock
+    ProcedureRepository procedureRepository;
 
     @InjectMocks
     PatientHistoryIndexer indexer;
@@ -49,8 +58,7 @@ class PatientHistoryIndexerTest {
     @Test
     void isPatientIndexed_returnsTrue_whenCountGreaterThanZero() {
         UUID patientId = UUID.randomUUID();
-        when(jdbc.queryForObject(anyString(), eq(Integer.class), anyString()))
-                .thenReturn(5);
+        when(jdbc.queryForObject(anyString(), eq(Integer.class), anyString())).thenReturn(5);
 
         assertThat(indexer.isPatientIndexed(patientId)).isTrue();
     }
@@ -58,8 +66,7 @@ class PatientHistoryIndexerTest {
     @Test
     void isPatientIndexed_returnsFalse_whenCountIsZero() {
         UUID patientId = UUID.randomUUID();
-        when(jdbc.queryForObject(anyString(), eq(Integer.class), anyString()))
-                .thenReturn(0);
+        when(jdbc.queryForObject(anyString(), eq(Integer.class), anyString())).thenReturn(0);
 
         assertThat(indexer.isPatientIndexed(patientId)).isFalse();
     }
@@ -67,8 +74,7 @@ class PatientHistoryIndexerTest {
     @Test
     void isPatientIndexed_returnsFalse_whenNull() {
         UUID patientId = UUID.randomUUID();
-        when(jdbc.queryForObject(anyString(), eq(Integer.class), anyString()))
-                .thenReturn(null);
+        when(jdbc.queryForObject(anyString(), eq(Integer.class), anyString())).thenReturn(null);
 
         assertThat(indexer.isPatientIndexed(patientId)).isFalse();
     }
@@ -76,8 +82,7 @@ class PatientHistoryIndexerTest {
     @Test
     void resolveTopK_returns6_whenIndexed8orLess() {
         UUID patientId = UUID.randomUUID();
-        when(jdbc.queryForObject(anyString(), eq(Integer.class), anyString()))
-                .thenReturn(8);
+        when(jdbc.queryForObject(anyString(), eq(Integer.class), anyString())).thenReturn(8);
 
         assertThat(indexer.resolveTopK(patientId)).isEqualTo(6);
     }
@@ -85,8 +90,7 @@ class PatientHistoryIndexerTest {
     @Test
     void resolveTopK_returns6_whenIndexed5() {
         UUID patientId = UUID.randomUUID();
-        when(jdbc.queryForObject(anyString(), eq(Integer.class), anyString()))
-                .thenReturn(5);
+        when(jdbc.queryForObject(anyString(), eq(Integer.class), anyString())).thenReturn(5);
 
         assertThat(indexer.resolveTopK(patientId)).isEqualTo(6);
     }
@@ -94,8 +98,7 @@ class PatientHistoryIndexerTest {
     @Test
     void resolveTopK_returns10_whenIndexed9to15() {
         UUID patientId = UUID.randomUUID();
-        when(jdbc.queryForObject(anyString(), eq(Integer.class), anyString()))
-                .thenReturn(12);
+        when(jdbc.queryForObject(anyString(), eq(Integer.class), anyString())).thenReturn(12);
 
         assertThat(indexer.resolveTopK(patientId)).isEqualTo(10);
     }
@@ -103,8 +106,7 @@ class PatientHistoryIndexerTest {
     @Test
     void resolveTopK_returns15_whenIndexedMoreThan15() {
         UUID patientId = UUID.randomUUID();
-        when(jdbc.queryForObject(anyString(), eq(Integer.class), anyString()))
-                .thenReturn(25);
+        when(jdbc.queryForObject(anyString(), eq(Integer.class), anyString())).thenReturn(25);
 
         assertThat(indexer.resolveTopK(patientId)).isEqualTo(15);
     }
@@ -112,8 +114,7 @@ class PatientHistoryIndexerTest {
     @Test
     void resolveTopK_returns6_whenNull() {
         UUID patientId = UUID.randomUUID();
-        when(jdbc.queryForObject(anyString(), eq(Integer.class), anyString()))
-                .thenReturn(null);
+        when(jdbc.queryForObject(anyString(), eq(Integer.class), anyString())).thenReturn(null);
 
         assertThat(indexer.resolveTopK(patientId)).isEqualTo(6);
     }
@@ -142,7 +143,8 @@ class PatientHistoryIndexerTest {
 
         when(medicalRecordRepository.findByPatientIdEager(patientId)).thenReturn(List.of(record));
         when(diagnosisRepository.findByMedicalRecordId(record.getId())).thenReturn(List.of());
-        when(prescriptionRepository.findAllByMedicalRecordIdEager(record.getId())).thenReturn(List.of());
+        when(prescriptionRepository.findAllByMedicalRecordIdEager(record.getId()))
+                .thenReturn(List.of());
         when(procedureRepository.findAllByMedicalRecordId(record.getId())).thenReturn(List.of());
 
         indexer.indexPatient(patientId);
@@ -275,12 +277,10 @@ class PatientHistoryIndexerTest {
 
         Prescription losartan = prescription("Losartan");
         Prescription losartanAgain = prescription("Losartan");
-        when(prescriptionRepository.findAllByPatientIdEager(patientId))
-                .thenReturn(List.of(losartan, losartanAgain));
+        when(prescriptionRepository.findAllByPatientIdEager(patientId)).thenReturn(List.of(losartan, losartanAgain));
 
         Procedure procedure = procedure("Sutura simple");
-        when(procedureRepository.findAllByPatientId(patientId))
-                .thenReturn(List.of(procedure, procedure));
+        when(procedureRepository.findAllByPatientId(patientId)).thenReturn(List.of(procedure, procedure));
 
         String context = indexer.buildSummaryContext(patientId);
 
@@ -300,7 +300,8 @@ class PatientHistoryIndexerTest {
         MedicalRecord current = record(patientId, OffsetDateTime.now());
         when(medicalRecordRepository.findByPatientIdEager(patientId)).thenReturn(List.of(current));
         when(diagnosisRepository.findByMedicalRecordId(current.getId())).thenReturn(List.of());
-        when(prescriptionRepository.findAllByMedicalRecordIdEager(current.getId())).thenReturn(List.of());
+        when(prescriptionRepository.findAllByMedicalRecordIdEager(current.getId()))
+                .thenReturn(List.of());
         when(procedureRepository.findAllByMedicalRecordId(current.getId())).thenReturn(List.of());
         when(jdbc.queryForList(anyString(), eq(String.class), anyString()))
                 .thenReturn(List.of(current.getId().toString(), "stale-id"));
@@ -352,18 +353,19 @@ class PatientHistoryIndexerTest {
         MedicalRecord record = record(patientId, OffsetDateTime.now());
         when(medicalRecordRepository.findByIdWithPatient(record.getId())).thenReturn(Optional.of(record));
         when(diagnosisRepository.findByMedicalRecordId(record.getId())).thenReturn(List.of());
-        when(prescriptionRepository.findAllByMedicalRecordIdEager(record.getId())).thenReturn(List.of());
+        when(prescriptionRepository.findAllByMedicalRecordIdEager(record.getId()))
+                .thenReturn(List.of());
         when(procedureRepository.findAllByMedicalRecordId(record.getId())).thenReturn(List.of());
         when(jdbc.update(anyString(), anyString(), anyString())).thenReturn(1);
         org.mockito.Mockito.doThrow(new IllegalStateException("embedding down"))
                 .doThrow(new IllegalStateException("embedding down"))
                 .doNothing()
-                .when(vectorStore).add(org.mockito.ArgumentMatchers.anyList());
+                .when(vectorStore)
+                .add(org.mockito.ArgumentMatchers.anyList());
 
         indexer.scheduleReindex(record.getId());
 
-        verify(vectorStore, org.mockito.Mockito.times(3))
-                .add(org.mockito.ArgumentMatchers.anyList());
+        verify(vectorStore, org.mockito.Mockito.times(3)).add(org.mockito.ArgumentMatchers.anyList());
     }
 
     @Test

@@ -1,19 +1,16 @@
 package com.fepdev.sfm.backend.domain.medicalrecord;
 
-import java.util.UUID;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.fepdev.sfm.backend.ai.history.PatientHistoryIndexer;
 import com.fepdev.sfm.backend.domain.appointment.Appointment;
 import com.fepdev.sfm.backend.domain.medicalrecord.dto.ProcedureCreateRequest;
 import com.fepdev.sfm.backend.domain.medicalrecord.dto.ProcedureResponse;
 import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
-
 import jakarta.persistence.EntityNotFoundException;
+import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ProcedureService {
@@ -23,8 +20,11 @@ public class ProcedureService {
     private final MedicalRecordRepository medicalRecordRepository;
     private final PatientHistoryIndexer historyIndexer;
 
-    public ProcedureService(ProcedureRepository procedureRepository, ProcedureMapper procedureMapper,
-            MedicalRecordRepository medicalRecordRepository, PatientHistoryIndexer historyIndexer) {
+    public ProcedureService(
+            ProcedureRepository procedureRepository,
+            ProcedureMapper procedureMapper,
+            MedicalRecordRepository medicalRecordRepository,
+            PatientHistoryIndexer historyIndexer) {
         this.procedureRepository = procedureRepository;
         this.procedureMapper = procedureMapper;
         this.medicalRecordRepository = medicalRecordRepository;
@@ -35,8 +35,10 @@ public class ProcedureService {
     @Transactional
     public ProcedureResponse createProcedure(ProcedureCreateRequest request) {
         // validar que medicalRecordId existe
-        MedicalRecord medicalRecord = medicalRecordRepository.findById(request.medicalRecordId())
-                .orElseThrow(() -> new EntityNotFoundException("Expediente con ID: " + request.medicalRecordId() + " no encontrado"));
+        MedicalRecord medicalRecord = medicalRecordRepository
+                .findById(request.medicalRecordId())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Expediente con ID: " + request.medicalRecordId() + " no encontrado"));
 
         // validar que appointmentId y medicalRecordId pertenecen a la misma consulta
         if (!medicalRecord.getAppointment().getId().equals(request.appointmentId())) {
@@ -64,5 +66,4 @@ public class ProcedureService {
         Page<Procedure> proceduresPage = procedureRepository.findByMedicalRecordId(medicalRecordId, pageable);
         return proceduresPage.map(procedureMapper::toResponse);
     }
-
 }

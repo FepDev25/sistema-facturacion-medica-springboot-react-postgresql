@@ -1,35 +1,32 @@
 package com.fepdev.sfm.backend.domain.medicalrecord.dto;
 
-import java.time.OffsetDateTime;
-import java.util.UUID;
-
 import com.fepdev.sfm.backend.domain.medicalrecord.Severity;
-
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import java.time.OffsetDateTime;
+import java.util.UUID;
 
 public record DiagnosisCreateRequest(
+        @NotNull(message = "El ID de la cita es obligatorio")
+        UUID appointmentId,
 
-    @NotNull(message = "El ID de la cita es obligatorio")
-    UUID appointmentId,
+        @NotNull(message = "El ID del registro médico es obligatorio")
+        UUID medicalRecordId,
 
-    @NotNull(message = "El ID del registro médico es obligatorio")
-    UUID medicalRecordId,
+        @NotBlank(message = "El código ICD-10 es obligatorio")
+        @Size(max = 10, message = "El código ICD-10 no puede exceder los 10 caracteres")
+        @Pattern(
+                regexp = "^[A-Z][0-9]{2}(\\.[0-9A-Z]{1,4})?$",
+                message =
+                        "Formato ICD-10 inválido. Debe ser una letra mayúscula seguida de 2 dígitos y opcionalmente un punto con hasta 4 caracteres (ej: J02.9)")
+        String icd10Code,
 
-    @NotBlank(message = "El código ICD-10 es obligatorio")
-    @Size(max = 10, message = "El código ICD-10 no puede exceder los 10 caracteres")
-    @Pattern(regexp = "^[A-Z][0-9]{2}(\\.[0-9A-Z]{1,4})?$",
-             message = "Formato ICD-10 inválido. Debe ser una letra mayúscula seguida de 2 dígitos y opcionalmente un punto con hasta 4 caracteres (ej: J02.9)")
-    String icd10Code,
+        @NotBlank(message = "La descripción es obligatoria") String description,
 
-    @NotBlank(message = "La descripción es obligatoria")
-    String description,
+        // los valores válidos son los del enum Severity
+        Severity severity,
 
-    // los valores válidos son los del enum Severity
-    Severity severity,
-
-    @NotNull(message = "La fecha de diagnóstico es obligatoria")
-    OffsetDateTime diagnosedAt
-) {}
+        @NotNull(message = "La fecha de diagnóstico es obligatoria")
+        OffsetDateTime diagnosedAt) {}

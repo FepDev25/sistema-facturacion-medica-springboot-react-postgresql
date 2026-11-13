@@ -3,7 +3,6 @@ package com.fepdev.sfm.backend.domain.appointment;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -20,16 +19,16 @@ public interface AppointmentRepository extends JpaRepository<Appointment, UUID> 
         WHERE a.status IN :statuses
         AND a.scheduledAt >= :start
         AND a.scheduledAt < :end""")
-    long countByStatusInAndScheduledAtBetween(@Param("statuses") List<Status> statuses,
-                                              @Param("start") OffsetDateTime start,
-                                              @Param("end") OffsetDateTime end);
+    long countByStatusInAndScheduledAtBetween(
+            @Param("statuses") List<Status> statuses,
+            @Param("start") OffsetDateTime start,
+            @Param("end") OffsetDateTime end);
 
     @Query("""
         SELECT COUNT(a) FROM Appointment a
         WHERE a.status IN :statuses
         AND a.scheduledAt > :now""")
-    long countUpcomingByStatusIn(@Param("statuses") List<Status> statuses,
-                                 @Param("now") OffsetDateTime now);
+    long countUpcomingByStatusIn(@Param("statuses") List<Status> statuses, @Param("now") OffsetDateTime now);
 
     // historial de citas de un paciente ordenado por fecha descendente, con paginacion
     @Query("""
@@ -47,12 +46,13 @@ public interface AppointmentRepository extends JpaRepository<Appointment, UUID> 
         AND (cast(:startDate as timestamp) IS NULL OR a.scheduledAt >= :startDate)
         AND (cast(:endDate as timestamp) IS NULL OR a.scheduledAt <= :endDate)
         ORDER BY a.scheduledAt DESC""")
-    Page<Appointment> findWithFilters(@Param("doctorId") UUID doctorId,
-                                      @Param("patientId") UUID patientId,
-                                      @Param("status") Status status,
-                                      @Param("startDate") OffsetDateTime startDate,
-                                      @Param("endDate") OffsetDateTime endDate,
-                                      Pageable pageable);
+    Page<Appointment> findWithFilters(
+            @Param("doctorId") UUID doctorId,
+            @Param("patientId") UUID patientId,
+            @Param("status") Status status,
+            @Param("startDate") OffsetDateTime startDate,
+            @Param("endDate") OffsetDateTime endDate,
+            Pageable pageable);
 
     // citas ocupadas de un médico en un rango, excluye canceladas y no_show para disponibilidad
     @Query("""
@@ -62,10 +62,11 @@ public interface AppointmentRepository extends JpaRepository<Appointment, UUID> 
         AND a.scheduledAt >= :startDate
         AND a.scheduledAt <= :endDate
         ORDER BY a.scheduledAt ASC""")
-    List<Appointment> findActiveByDoctorIdBetween(@Param("doctorId") UUID doctorId,
-                                                  @Param("startDate") OffsetDateTime startDate,
-                                                  @Param("endDate") OffsetDateTime endDate,
-                                                  @Param("excludedStatuses") List<Status> excludedStatuses);
+    List<Appointment> findActiveByDoctorIdBetween(
+            @Param("doctorId") UUID doctorId,
+            @Param("startDate") OffsetDateTime startDate,
+            @Param("endDate") OffsetDateTime endDate,
+            @Param("excludedStatuses") List<Status> excludedStatuses);
 
     // overlap real entre intervalos: [newStart, newEnd) ∩ [a.scheduledAt, a.scheduledEndAt) ≠ ∅
     // condición: newStart < a.scheduledEndAt AND newEnd > a.scheduledAt
@@ -77,8 +78,9 @@ public interface AppointmentRepository extends JpaRepository<Appointment, UUID> 
         AND a.status NOT IN :excludedStatuses
         AND a.scheduledAt < :endTime
         AND a.scheduledEndAt > :startTime""")
-    boolean hasScheduleConflict(@Param("doctorId") UUID doctorId,
-                                @Param("startTime") OffsetDateTime startTime,
-                                @Param("endTime") OffsetDateTime endTime,
-                                @Param("excludedStatuses") List<Status> excludedStatuses);
+    boolean hasScheduleConflict(
+            @Param("doctorId") UUID doctorId,
+            @Param("startTime") OffsetDateTime startTime,
+            @Param("endTime") OffsetDateTime endTime,
+            @Param("excludedStatuses") List<Status> excludedStatuses);
 }

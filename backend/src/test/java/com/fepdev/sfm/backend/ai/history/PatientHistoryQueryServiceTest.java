@@ -11,6 +11,15 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fepdev.sfm.backend.ai.guard.AiCallExecutor;
+import com.fepdev.sfm.backend.ai.history.dto.PatientHistoryAnswer;
+import com.fepdev.sfm.backend.ai.history.dto.ReindexResponse;
+import com.fepdev.sfm.backend.ai.support.AiTestFixtures;
+import com.fepdev.sfm.backend.domain.medicalrecord.MedicalRecord;
+import com.fepdev.sfm.backend.domain.medicalrecord.MedicalRecordRepository;
+import com.fepdev.sfm.backend.domain.patient.PatientRepository;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import jakarta.persistence.EntityNotFoundException;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +28,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,41 +44,52 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import com.fepdev.sfm.backend.ai.guard.AiCallExecutor;
-import com.fepdev.sfm.backend.ai.history.dto.PatientHistoryAnswer;
-import com.fepdev.sfm.backend.ai.history.dto.ReindexResponse;
-import com.fepdev.sfm.backend.ai.support.AiTestFixtures;
-import com.fepdev.sfm.backend.domain.medicalrecord.MedicalRecord;
-import com.fepdev.sfm.backend.domain.medicalrecord.MedicalRecordRepository;
-import com.fepdev.sfm.backend.domain.patient.PatientRepository;
-
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
-import jakarta.persistence.EntityNotFoundException;
 import reactor.core.publisher.Flux;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class PatientHistoryQueryServiceTest {
 
-    @Mock VectorStore vectorStore;
-    @Mock ChatClient chatClient;
-    @Mock ChatClient.ChatClientRequestSpec requestSpec;
-    @Mock ChatClient.CallResponseSpec callSpec;
-    @Mock ChatClient.StreamResponseSpec streamSpec;
-    @Mock PatientHistoryIndexer indexer;
-    @Mock PatientRepository patientRepository;
-    @Mock MedicalRecordRepository medicalRecordRepository;
-    @Mock PatientConversationMemory conversationMemory;
+    @Mock
+    VectorStore vectorStore;
+
+    @Mock
+    ChatClient chatClient;
+
+    @Mock
+    ChatClient.ChatClientRequestSpec requestSpec;
+
+    @Mock
+    ChatClient.CallResponseSpec callSpec;
+
+    @Mock
+    ChatClient.StreamResponseSpec streamSpec;
+
+    @Mock
+    PatientHistoryIndexer indexer;
+
+    @Mock
+    PatientRepository patientRepository;
+
+    @Mock
+    MedicalRecordRepository medicalRecordRepository;
+
+    @Mock
+    PatientConversationMemory conversationMemory;
 
     private PatientHistoryQueryService service;
     private UUID patientId;
 
     @BeforeEach
     void setUp() {
-        service = new PatientHistoryQueryService(vectorStore, chatClient,
-                new AiCallExecutor(new SimpleMeterRegistry(), 5, 0), indexer,
-                patientRepository, medicalRecordRepository, conversationMemory);
+        service = new PatientHistoryQueryService(
+                vectorStore,
+                chatClient,
+                new AiCallExecutor(new SimpleMeterRegistry(), 5, 0),
+                indexer,
+                patientRepository,
+                medicalRecordRepository,
+                conversationMemory);
         patientId = UUID.randomUUID();
 
         lenient().when(chatClient.prompt()).thenReturn(requestSpec);
@@ -108,9 +127,11 @@ class PatientHistoryQueryServiceTest {
 
     @Test
     void isSummaryQuery_nonSummaryQuery_returnsFalse() {
-        assertThat(invokeIsSummaryQuery("que medicamento tome en la cita de enero?")).isFalse();
+        assertThat(invokeIsSummaryQuery("que medicamento tome en la cita de enero?"))
+                .isFalse();
         assertThat(invokeIsSummaryQuery("tuvo fiebre alta?")).isFalse();
-        assertThat(invokeIsSummaryQuery("cual fue el resultado del laboratorio?")).isFalse();
+        assertThat(invokeIsSummaryQuery("cual fue el resultado del laboratorio?"))
+                .isFalse();
         assertThat(invokeIsSummaryQuery("dolor abdominal agudo")).isFalse();
     }
 
@@ -127,8 +148,8 @@ class PatientHistoryQueryServiceTest {
     void query_usesVectorSearchAndReturnsSources() {
         stubPatientReady();
         UUID recordId = UUID.randomUUID();
-        when(vectorStore.similaritySearch(any(SearchRequest.class))).thenReturn(List.of(
-                document(recordId, "2024-01-15", "Hipertension en tratamiento")));
+        when(vectorStore.similaritySearch(any(SearchRequest.class)))
+                .thenReturn(List.of(document(recordId, "2024-01-15", "Hipertension en tratamiento")));
         when(indexer.resolveTopK(patientId)).thenReturn(6);
         when(callSpec.chatResponse()).thenReturn(AiTestFixtures.response("Tiene hipertension.", 100, 20));
 
@@ -137,8 +158,7 @@ class PatientHistoryQueryServiceTest {
         assertThat(answer.answer()).isEqualTo("Tiene hipertension.");
         assertThat(answer.sources()).hasSize(1);
         assertThat(answer.sources().getFirst().medicalRecordId()).isEqualTo(recordId);
-        verify(conversationMemory).append("doctor1", patientId, "que diagnostico tiene?",
-                "Tiene hipertension.");
+        verify(conversationMemory).append("doctor1", patientId, "que diagnostico tiene?", "Tiene hipertension.");
     }
 
     @Test
@@ -157,11 +177,11 @@ class PatientHistoryQueryServiceTest {
     @Test
     void followUp_includesPreviousTurnAndUsesItForRetrieval() {
         stubPatientReady();
-        when(conversationMemory.recent("doctor1", patientId)).thenReturn(List.of(
-                new PatientConversationMemory.ConversationTurn(
+        when(conversationMemory.recent("doctor1", patientId))
+                .thenReturn(List.of(new PatientConversationMemory.ConversationTurn(
                         "que medicamentos toma?", "Toma losartan 50 mg.", 1L)));
-        when(vectorStore.similaritySearch(any(SearchRequest.class))).thenReturn(List.of(
-                document(UUID.randomUUID(), "2024-02-01", "Losartan 50 mg cada 24 horas")));
+        when(vectorStore.similaritySearch(any(SearchRequest.class)))
+                .thenReturn(List.of(document(UUID.randomUUID(), "2024-02-01", "Losartan 50 mg cada 24 horas")));
         when(callSpec.chatResponse()).thenReturn(AiTestFixtures.response("Desde enero de 2024.", 80, 10));
 
         service.query(patientId, "¿y desde cuándo?", "doctor1");
@@ -185,8 +205,8 @@ class PatientHistoryQueryServiceTest {
     void followUp_doesNotLeakTurnsFromAnotherUser() {
         stubPatientReady();
         when(conversationMemory.recent("doctor2", patientId)).thenReturn(List.of());
-        when(vectorStore.similaritySearch(any(SearchRequest.class))).thenReturn(List.of(
-                document(UUID.randomUUID(), "2024-02-01", "Nota clinica")));
+        when(vectorStore.similaritySearch(any(SearchRequest.class)))
+                .thenReturn(List.of(document(UUID.randomUUID(), "2024-02-01", "Nota clinica")));
         when(callSpec.chatResponse()).thenReturn(AiTestFixtures.response("Respuesta", 10, 5));
 
         service.query(patientId, "¿y la dosis?", "doctor2");
@@ -227,8 +247,8 @@ class PatientHistoryQueryServiceTest {
     @Test
     void query_whenModelReturnsNoContent_returnsEmptyAndDoesNotStore() {
         stubPatientReady();
-        when(vectorStore.similaritySearch(any(SearchRequest.class))).thenReturn(List.of(
-                document(UUID.randomUUID(), "2024-01-01", "Nota")));
+        when(vectorStore.similaritySearch(any(SearchRequest.class)))
+                .thenReturn(List.of(document(UUID.randomUUID(), "2024-01-01", "Nota")));
         when(callSpec.chatResponse()).thenReturn(new ChatResponse(List.of()));
 
         PatientHistoryAnswer answer = service.query(patientId, "dolor", "doctor1");
@@ -240,21 +260,26 @@ class PatientHistoryQueryServiceTest {
     @Test
     void streamQuery_emitsTokensAndStoresCompletedAnswer() throws Exception {
         stubPatientReady();
-        when(vectorStore.similaritySearch(any(SearchRequest.class))).thenReturn(List.of(
-                document(UUID.randomUUID(), "2024-01-01", "Nota")));
-        when(streamSpec.chatResponse()).thenReturn(Flux.just(
-                AiTestFixtures.response("Hola ", 50, 1),
-                AiTestFixtures.response("mundo", 50, 4)));
+        when(vectorStore.similaritySearch(any(SearchRequest.class)))
+                .thenReturn(List.of(document(UUID.randomUUID(), "2024-01-01", "Nota")));
+        when(streamSpec.chatResponse())
+                .thenReturn(
+                        Flux.just(AiTestFixtures.response("Hola ", 50, 1), AiTestFixtures.response("mundo", 50, 4)));
 
         List<String> tokens = new CopyOnWriteArrayList<>();
         AtomicReference<PatientHistoryAnswer> completed = new AtomicReference<>();
         CountDownLatch latch = new CountDownLatch(1);
 
-        service.streamQuery(patientId, "resumen del dolor", "doctor1",
-                tokens::add, answer -> {
+        service.streamQuery(
+                patientId,
+                "resumen del dolor",
+                "doctor1",
+                tokens::add,
+                answer -> {
                     completed.set(answer);
                     latch.countDown();
-                }, error -> latch.countDown());
+                },
+                error -> latch.countDown());
 
         assertThat(latch.await(3, TimeUnit.SECONDS)).isTrue();
         assertThat(String.join("", tokens)).isEqualTo("Hola mundo");
@@ -268,8 +293,7 @@ class PatientHistoryQueryServiceTest {
         when(vectorStore.similaritySearch(any(SearchRequest.class))).thenReturn(List.of());
 
         AtomicReference<PatientHistoryAnswer> completed = new AtomicReference<>();
-        service.streamQuery(patientId, "dolor", "doctor1", token -> { },
-                completed::set, error -> { });
+        service.streamQuery(patientId, "dolor", "doctor1", token -> {}, completed::set, error -> {});
 
         assertThat(completed.get().answer()).contains("No se encontraron expedientes");
         verify(streamSpec, never()).chatResponse();
@@ -278,18 +302,16 @@ class PatientHistoryQueryServiceTest {
     @Test
     void streamQuery_providerErrorIsForwarded() throws Exception {
         stubPatientReady();
-        when(vectorStore.similaritySearch(any(SearchRequest.class))).thenReturn(List.of(
-                document(UUID.randomUUID(), "2024-01-01", "Nota")));
-        when(streamSpec.chatResponse()).thenReturn(
-                Flux.error(new IllegalStateException("provider down")));
+        when(vectorStore.similaritySearch(any(SearchRequest.class)))
+                .thenReturn(List.of(document(UUID.randomUUID(), "2024-01-01", "Nota")));
+        when(streamSpec.chatResponse()).thenReturn(Flux.error(new IllegalStateException("provider down")));
 
         AtomicReference<Throwable> error = new AtomicReference<>();
         CountDownLatch latch = new CountDownLatch(1);
-        service.streamQuery(patientId, "dolor", "doctor1", token -> { },
-                answer -> latch.countDown(), throwable -> {
-                    error.set(throwable);
-                    latch.countDown();
-                });
+        service.streamQuery(patientId, "dolor", "doctor1", token -> {}, answer -> latch.countDown(), throwable -> {
+            error.set(throwable);
+            latch.countDown();
+        });
 
         assertThat(latch.await(3, TimeUnit.SECONDS)).isTrue();
         assertThat(error.get()).hasMessageContaining("no esta disponible");
@@ -331,10 +353,12 @@ class PatientHistoryQueryServiceTest {
     }
 
     private Document document(UUID recordId, String date, String text) {
-        return new Document(text, Map.of(
-                "medicalRecordId", recordId.toString(),
-                "recordDate", date,
-                "patientId", patientId.toString()));
+        return new Document(
+                text,
+                Map.of(
+                        "medicalRecordId", recordId.toString(),
+                        "recordDate", date,
+                        "patientId", patientId.toString()));
     }
 
     private boolean invokeIsSummaryQuery(String question) {

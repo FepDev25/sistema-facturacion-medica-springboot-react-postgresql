@@ -2,30 +2,11 @@ package com.fepdev.sfm.backend.ai.suggestion;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.client.ResponseEntity;
-import org.springframework.ai.chat.model.ChatResponse;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import com.fepdev.sfm.backend.ai.guard.AiCallExecutor;
 import com.fepdev.sfm.backend.ai.guard.AiUnavailableException;
@@ -41,29 +22,61 @@ import com.fepdev.sfm.backend.domain.medicalrecord.Diagnosis;
 import com.fepdev.sfm.backend.domain.medicalrecord.DiagnosisRepository;
 import com.fepdev.sfm.backend.domain.medicalrecord.MedicalRecord;
 import com.fepdev.sfm.backend.domain.medicalrecord.MedicalRecordRepository;
-import com.fepdev.sfm.backend.domain.medicalrecord.Prescription;
 import com.fepdev.sfm.backend.domain.medicalrecord.PrescriptionRepository;
-import com.fepdev.sfm.backend.domain.medicalrecord.Procedure;
 import com.fepdev.sfm.backend.domain.medicalrecord.ProcedureRepository;
 import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
-
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import jakarta.persistence.EntityNotFoundException;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.ResponseEntity;
+import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class ItemSuggestionServiceTest {
 
-    @Mock ChatClient chatClient;
-    @Mock ChatClient.ChatClientRequestSpec requestSpec;
-    @Mock ChatClient.CallResponseSpec callSpec;
-    @Mock InvoiceRepository invoiceRepo;
-    @Mock MedicalRecordRepository medicalRecordRepo;
-    @Mock DiagnosisRepository diagnosisRepo;
-    @Mock PrescriptionRepository prescriptionRepo;
-    @Mock ProcedureRepository procedureRepo;
-    @Mock ServicesCatalogRepository servicesRepo;
-    @Mock MedicationsCatalogRepository medicationsRepo;
+    @Mock
+    ChatClient chatClient;
+
+    @Mock
+    ChatClient.ChatClientRequestSpec requestSpec;
+
+    @Mock
+    ChatClient.CallResponseSpec callSpec;
+
+    @Mock
+    InvoiceRepository invoiceRepo;
+
+    @Mock
+    MedicalRecordRepository medicalRecordRepo;
+
+    @Mock
+    DiagnosisRepository diagnosisRepo;
+
+    @Mock
+    PrescriptionRepository prescriptionRepo;
+
+    @Mock
+    ProcedureRepository procedureRepo;
+
+    @Mock
+    ServicesCatalogRepository servicesRepo;
+
+    @Mock
+    MedicationsCatalogRepository medicationsRepo;
 
     private ItemSuggestionService service;
     private UUID invoiceId;
@@ -72,10 +85,16 @@ class ItemSuggestionServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new ItemSuggestionService(chatClient,
+        service = new ItemSuggestionService(
+                chatClient,
                 new AiCallExecutor(new SimpleMeterRegistry(), 5, 0),
-                invoiceRepo, medicalRecordRepo, diagnosisRepo, prescriptionRepo,
-                procedureRepo, servicesRepo, medicationsRepo);
+                invoiceRepo,
+                medicalRecordRepo,
+                diagnosisRepo,
+                prescriptionRepo,
+                procedureRepo,
+                servicesRepo,
+                medicationsRepo);
 
         invoiceId = UUID.randomUUID();
         appointmentId = UUID.randomUUID();
@@ -122,12 +141,9 @@ class ItemSuggestionServiceTest {
         stubClinicalContext();
         UUID serviceId = UUID.randomUUID();
         UUID medicationId = UUID.randomUUID();
-        ServicesCatalog consulta = service("Consulta de seguimiento", serviceId,
-                new BigDecimal("500.00"), true);
-        ServicesCatalog inactivo = service("Servicio inactivo", UUID.randomUUID(),
-                BigDecimal.TEN, false);
-        MedicationsCatalog losartan = medication("Losartan 50 mg", medicationId,
-                new BigDecimal("120.00"), true);
+        ServicesCatalog consulta = service("Consulta de seguimiento", serviceId, new BigDecimal("500.00"), true);
+        ServicesCatalog inactivo = service("Servicio inactivo", UUID.randomUUID(), BigDecimal.TEN, false);
+        MedicationsCatalog losartan = medication("Losartan 50 mg", medicationId, new BigDecimal("120.00"), true);
         when(servicesRepo.findAll()).thenReturn(List.of(consulta, inactivo));
         when(medicationsRepo.findAll()).thenReturn(List.of(losartan));
 
@@ -157,8 +173,7 @@ class ItemSuggestionServiceTest {
         when(diagnosisRepo.findByMedicalRecordId(medicalRecordId)).thenReturn(List.of(diagnosis));
         when(prescriptionRepo.findAllByMedicalRecordId(medicalRecordId)).thenReturn(List.of());
         when(procedureRepo.findAllByMedicalRecordId(medicalRecordId)).thenReturn(List.of());
-        when(servicesRepo.findAll()).thenReturn(List.of(
-                service("Consulta", UUID.randomUUID(), BigDecimal.TEN, true)));
+        when(servicesRepo.findAll()).thenReturn(List.of(service("Consulta", UUID.randomUUID(), BigDecimal.TEN, true)));
         when(medicationsRepo.findAll()).thenReturn(List.of());
         stubEntity(new ItemSuggestionService.LlmResult(List.of()));
 
@@ -213,15 +228,15 @@ class ItemSuggestionServiceTest {
     @Test
     void suggestItems_queriesInactiveCatalogsButFiltersThem() {
         stubClinicalContext();
-        when(servicesRepo.findAll()).thenReturn(List.of(
-                service("Inactivo", UUID.randomUUID(), BigDecimal.ONE, false)));
+        when(servicesRepo.findAll()).thenReturn(List.of(service("Inactivo", UUID.randomUUID(), BigDecimal.ONE, false)));
         when(medicationsRepo.findAll()).thenReturn(List.of());
-        stubEntity(new ItemSuggestionService.LlmResult(List.of(
-                new ItemSuggestionService.LlmItem("service", "Inactivo", "x"))));
+        stubEntity(new ItemSuggestionService.LlmResult(
+                List.of(new ItemSuggestionService.LlmItem("service", "Inactivo", "x"))));
 
         var result = service.suggestItems(invoiceId);
 
-        assertThat(result.suggestedItems()).singleElement()
+        assertThat(result.suggestedItems())
+                .singleElement()
                 .satisfies(item -> assertThat(item.matchedCatalogId()).isNull());
         verify(servicesRepo).findAll();
     }
