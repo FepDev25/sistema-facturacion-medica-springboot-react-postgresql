@@ -41,19 +41,21 @@ beforeEach(() => {
 
 const apiInvoiceView = {
   id: 'inv-1',
-  patientId: 'p-1',
-  patientFirstName: 'Juan',
-  patientLastName: 'Perez',
-  patientDni: '12345678',
-  patientAllergies: 'Penicilina',
-  appointmentId: 'apt-1',
-  appointmentScheduledAt: '2025-06-20T10:00:00Z',
-  appointmentStatus: 'completed',
-  appointmentChiefComplaint: 'Dolor',
-  insurancePolicyId: null,
-  insurancePolicyPolicyNumber: null,
-  insurancePolicyProviderName: null,
-  insurancePolicyCoveragePercentage: null,
+  invoiceNumber: 'INV-001',
+  patient: {
+    id: 'p-1',
+    dni: '12345678',
+    firstName: 'Juan',
+    lastName: 'Perez',
+    allergies: 'Penicilina',
+  },
+  appointment: {
+    id: 'apt-1',
+    scheduledAt: '2025-06-20T10:00:00Z',
+    status: 'completed',
+    chiefComplaint: 'Dolor',
+  },
+  insurancePolicy: null,
   subtotal: 900,
   tax: 100,
   total: 1000,
@@ -66,14 +68,45 @@ const apiInvoiceView = {
   items: [
     {
       id: 'item-1',
+      service: { id: 'svc-1', code: 'C-001', name: 'Consulta', price: 500 },
+      medication: null,
+      itemType: 'service' as const,
+      description: 'Consulta general',
+      quantity: 1,
+      unitPrice: 500,
+      subtotal: 500,
+      createdAt: '2025-06-20T10:00:00Z',
+    },
+  ],
+  createdAt: '2025-06-20T10:00:00Z',
+  updatedAt: '2025-06-20T10:00:00Z',
+}
+
+const apiInvoiceResponse = {
+  id: 'inv-1',
+  patientId: 'p-1',
+  patientFirstName: 'Juan',
+  patientLastName: 'Perez',
+  appointmentId: 'apt-1',
+  insurancePolicyId: null,
+  invoiceNumber: 'INV-001',
+  subtotal: 900,
+  tax: 100,
+  total: 1000,
+  insuranceCoverage: 0,
+  patientResponsibility: 1000,
+  status: 'pending' as const,
+  issueDate: '2025-06-20',
+  dueDate: '2025-07-20',
+  notes: null,
+  items: [
+    {
+      id: 'item-1',
+      invoiceId: 'inv-1',
       serviceId: 'svc-1',
-      serviceCode: 'C-001',
       serviceName: 'Consulta',
-      servicePrice: 500,
       medicationId: null,
-      medicationCode: null,
       medicationName: null,
-      medicationRequiresPrescription: null,
       itemType: 'service' as const,
       description: 'Consulta general',
       quantity: 1,
@@ -164,10 +197,11 @@ describe('invoices API', () => {
 
   describe('getInvoiceByAppointment', () => {
     it('returns mapped invoice when found', async () => {
-      mockGet.mockResolvedValue({ data: apiInvoiceView })
+      mockGet.mockResolvedValue({ data: apiInvoiceResponse })
       const result = await getInvoiceByAppointment('apt-1')
       expect(mockGet).toHaveBeenCalledWith('/invoices/appointment/apt-1')
       expect(result?.id).toBe('inv-1')
+      expect(result?.items[0].serviceName).toBe('Consulta')
     })
 
     it('returns null on error', async () => {
@@ -304,7 +338,15 @@ describe('invoices API', () => {
 
   describe('assignInvoiceInsurancePolicy', () => {
     it('patches insurance policy and refetches', async () => {
-      const updatedView = { ...apiInvoiceView, insurancePolicyId: 'pol-1' }
+      const updatedView = {
+        ...apiInvoiceView,
+        insurancePolicy: {
+          id: 'pol-1',
+          policyNumber: 'POL-1',
+          providerName: 'Seguros',
+          coveragePercentage: 80,
+        },
+      }
       mockPatch.mockResolvedValue({ data: undefined })
       mockGet.mockResolvedValue({ data: updatedView })
       const result = await assignInvoiceInsurancePolicy('inv-1', { insurancePolicyId: 'pol-1' })

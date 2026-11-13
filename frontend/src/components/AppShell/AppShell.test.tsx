@@ -194,6 +194,23 @@ describe('AppShell', () => {
       expect(within(nav).queryByText('Citas')).not.toBeInTheDocument()
     })
 
+    it('expone etiquetas accesibles para la navegación principal y móvil', async () => {
+      const user = userEvent.setup()
+      setSession({ role: 'ADMIN' })
+      render(
+        <AppShell>
+          <p>content</p>
+        </AppShell>,
+      )
+
+      expect(screen.getByRole('navigation', { name: 'Navegación principal' })).toBeInTheDocument()
+
+      await user.click(screen.getByRole('button', { name: 'Abrir menú' }))
+      expect(
+        screen.getByRole('navigation', { name: 'Navegación principal móvil' }),
+      ).toBeInTheDocument()
+    })
+
     it('mobile nav mirrors desktop nav for ADMIN', async () => {
       const user = userEvent.setup()
       setSession({ role: 'ADMIN' })

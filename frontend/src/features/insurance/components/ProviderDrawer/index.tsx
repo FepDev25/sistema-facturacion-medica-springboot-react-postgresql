@@ -101,7 +101,7 @@ export function ProviderDrawer({ open, onOpenChange, item }: ProviderDrawerProps
                 name="code"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Codigo</FormLabel>
+                    <FormLabel>Código</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
@@ -111,7 +111,7 @@ export function ProviderDrawer({ open, onOpenChange, item }: ProviderDrawerProps
                       />
                     </FormControl>
                     {isEditing && (
-                      <p className="text-xs text-muted-foreground/70">El codigo no es editable</p>
+                      <p className="text-xs text-muted-foreground/70">El código no es editable</p>
                     )}
                     <FormMessage />
                   </FormItem>
@@ -137,7 +137,7 @@ export function ProviderDrawer({ open, onOpenChange, item }: ProviderDrawerProps
                 name="phone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Telefono</FormLabel>
+                    <FormLabel>Teléfono</FormLabel>
                     <FormControl>
                       <Input {...field} placeholder="+52-800-000-0000" />
                     </FormControl>
@@ -168,7 +168,7 @@ export function ProviderDrawer({ open, onOpenChange, item }: ProviderDrawerProps
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
-                      Direccion{' '}
+                      Dirección{' '}
                       <span className="text-muted-foreground/70 font-normal">(opcional)</span>
                     </FormLabel>
                     <FormControl>

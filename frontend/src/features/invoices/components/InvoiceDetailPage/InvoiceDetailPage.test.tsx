@@ -190,7 +190,7 @@ describe('InvoiceDetailPage', () => {
   it('shows not found state when invoice is null', () => {
     m.invoiceData = null
     render(<InvoiceDetailPage />)
-    expect(screen.getByText('No se encontro la factura.')).toBeInTheDocument()
+    expect(screen.getByText('No se encontró la factura.')).toBeInTheDocument()
     expect(screen.getByText('Volver a facturas')).toBeInTheDocument()
   })
 
@@ -198,7 +198,7 @@ describe('InvoiceDetailPage', () => {
     render(<InvoiceDetailPage />)
     expect(screen.getByText('Resumen financiero')).toBeInTheDocument()
     expect(screen.getByText('Estado')).toBeInTheDocument()
-    expect(screen.getByText('Emision')).toBeInTheDocument()
+    expect(screen.getByText('Emisión')).toBeInTheDocument()
     expect(screen.getByText('Vencimiento')).toBeInTheDocument()
     expect(screen.getByText('Subtotal')).toBeInTheDocument()
     expect(screen.getByText('Impuestos')).toBeInTheDocument()
@@ -279,17 +279,17 @@ describe('InvoiceDetailPage', () => {
       expect(screen.queryByText(/Poliza para esta factura/)).not.toBeInTheDocument()
     })
 
-    it('shows Aplicar poliza and Quitar poliza buttons when draft', () => {
+    it('shows Aplicar póliza and Quitar póliza buttons when draft', () => {
       render(<InvoiceDetailPage />)
-      expect(screen.getByText('Aplicar poliza')).toBeInTheDocument()
-      expect(screen.getByText('Quitar poliza')).toBeInTheDocument()
+      expect(screen.getByText('Aplicar póliza')).toBeInTheDocument()
+      expect(screen.getByText('Quitar póliza')).toBeInTheDocument()
     })
 
-    it('hides Aplicar poliza and Quitar poliza buttons when not draft', () => {
+    it('hides Aplicar póliza and Quitar póliza buttons when not draft', () => {
       m.invoiceData = { ...baseInvoice, status: 'confirmed' }
       render(<InvoiceDetailPage />)
-      expect(screen.queryByText('Aplicar poliza')).not.toBeInTheDocument()
-      expect(screen.queryByText('Quitar poliza')).not.toBeInTheDocument()
+      expect(screen.queryByText('Aplicar póliza')).not.toBeInTheDocument()
+      expect(screen.queryByText('Quitar póliza')).not.toBeInTheDocument()
     })
 
     it('disables Confirmar factura when total is 0', () => {

@@ -6,7 +6,7 @@ import { useProfile } from '../../hooks/useProfile'
 const ROLE_LABELS: Record<string, string> = {
   ADMIN: 'Administrador',
   DOCTOR: 'Doctor',
-  RECEPTIONIST: 'Recepcion',
+  RECEPTIONIST: 'Recepción',
 }
 
 export function ProfilePage() {
@@ -27,7 +27,7 @@ export function ProfilePage() {
 
   return (
     <div className="flex flex-col h-full">
-      <PageHeader title="Mi perfil" subtitle="Informacion de la cuenta" />
+      <PageHeader title="Mi perfil" subtitle="Información de la cuenta" />
 
       <div className="flex-1 px-6 py-5 overflow-auto">
         <div className="max-w-lg space-y-6">
@@ -64,7 +64,7 @@ export function ProfilePage() {
           {profile.doctorId && (
             <section className="rounded-xl border border-border bg-card p-5 shadow-card">
               <h2 className="text-sm font-semibold text-foreground mb-4">
-                Perfil de medico vinculado
+                Perfil de médico vinculado
               </h2>
               <div className="grid gap-4">
                 <div>

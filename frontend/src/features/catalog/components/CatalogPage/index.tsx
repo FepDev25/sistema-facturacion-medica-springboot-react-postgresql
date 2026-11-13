@@ -36,7 +36,12 @@ export function CatalogPage() {
   const [medicationDrawerOpen, setMedicationDrawerOpen] = useState(false)
   const [selectedMedication, setSelectedMedication] = useState<MedicationResponse | null>(null)
 
-  const { data: servicesPage, isLoading: servicesLoading } = useFilteredServicesPage({
+  const {
+    data: servicesPage,
+    isLoading: servicesLoading,
+    isError: servicesError,
+    refetch: refetchServices,
+  } = useFilteredServicesPage({
     includeInactive: true,
     q: activeTab === 'services' ? search : undefined,
     page: activeTab === 'services' ? page : 0,
@@ -44,7 +49,12 @@ export function CatalogPage() {
   })
   const services = servicesPage?.content ?? []
 
-  const { data: medicationsPage, isLoading: medicationsLoading } = useFilteredMedicationsPage({
+  const {
+    data: medicationsPage,
+    isLoading: medicationsLoading,
+    isError: medicationsError,
+    refetch: refetchMedications,
+  } = useFilteredMedicationsPage({
     includeInactive: true,
     q: activeTab === 'medications' ? search : undefined,
     page: activeTab === 'medications' ? page : 0,
@@ -218,15 +228,17 @@ export function CatalogPage() {
               columns={serviceColumns}
               data={filteredServices}
               isLoading={servicesLoading}
+              isError={servicesError}
+              onRetry={() => void refetchServices()}
               pageSize={20}
               emptyMessage={
                 search ? 'Sin resultados para la búsqueda.' : 'No hay servicios registrados.'
               }
             />
-            {!servicesLoading && servicesPage && servicesPage.totalPages > 1 ? (
+            {!servicesLoading && !servicesError && servicesPage && servicesPage.totalPages > 1 ? (
               <div className="mt-3 flex items-center justify-between px-1">
                 <p className="text-xs text-muted-foreground">
-                  Pagina {servicesPage.number + 1} de {servicesPage.totalPages} -{' '}
+                  Página {servicesPage.number + 1} de {servicesPage.totalPages} -{' '}
                   {servicesPage.totalElements} servicios
                 </p>
                 <div className="flex items-center gap-1">
@@ -234,7 +246,7 @@ export function CatalogPage() {
                     variant="outline"
                     size="icon"
                     className="h-7 w-7"
-                    aria-label="Pagina anterior"
+                    aria-label="Página anterior"
                     onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
                     disabled={servicesPage.number <= 0}
                   >
@@ -244,7 +256,7 @@ export function CatalogPage() {
                     variant="outline"
                     size="icon"
                     className="h-7 w-7"
-                    aria-label="Pagina siguiente"
+                    aria-label="Página siguiente"
                     onClick={() =>
                       setPage((prev) =>
                         servicesPage.number + 1 >= servicesPage.totalPages ? prev : prev + 1,
@@ -264,15 +276,20 @@ export function CatalogPage() {
               columns={medicationColumns}
               data={filteredMedications}
               isLoading={medicationsLoading}
+              isError={medicationsError}
+              onRetry={() => void refetchMedications()}
               pageSize={20}
               emptyMessage={
                 search ? 'Sin resultados para la búsqueda.' : 'No hay medicamentos registrados.'
               }
             />
-            {!medicationsLoading && medicationsPage && medicationsPage.totalPages > 1 ? (
+            {!medicationsLoading &&
+            !medicationsError &&
+            medicationsPage &&
+            medicationsPage.totalPages > 1 ? (
               <div className="mt-3 flex items-center justify-between px-1">
                 <p className="text-xs text-muted-foreground">
-                  Pagina {medicationsPage.number + 1} de {medicationsPage.totalPages} -{' '}
+                  Página {medicationsPage.number + 1} de {medicationsPage.totalPages} -{' '}
                   {medicationsPage.totalElements} medicamentos
                 </p>
                 <div className="flex items-center gap-1">
@@ -280,7 +297,7 @@ export function CatalogPage() {
                     variant="outline"
                     size="icon"
                     className="h-7 w-7"
-                    aria-label="Pagina anterior"
+                    aria-label="Página anterior"
                     onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
                     disabled={medicationsPage.number <= 0}
                   >
@@ -290,7 +307,7 @@ export function CatalogPage() {
                     variant="outline"
                     size="icon"
                     className="h-7 w-7"
-                    aria-label="Pagina siguiente"
+                    aria-label="Página siguiente"
                     onClick={() =>
                       setPage((prev) =>
                         medicationsPage.number + 1 >= medicationsPage.totalPages ? prev : prev + 1,

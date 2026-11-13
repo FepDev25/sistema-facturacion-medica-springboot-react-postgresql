@@ -22,9 +22,9 @@ describe('getProviderColumns', () => {
 
   it('defines correct headers', () => {
     const cols = getProviderColumns(opts)
-    expect(cols[0].header).toBe('Codigo')
+    expect(cols[0].header).toBe('Código')
     expect(cols[1].header).toBe('Aseguradora')
-    expect(cols[2].header).toBe('Telefono')
+    expect(cols[2].header).toBe('Teléfono')
     expect(cols[3].header).toBe('Estado')
   })
 

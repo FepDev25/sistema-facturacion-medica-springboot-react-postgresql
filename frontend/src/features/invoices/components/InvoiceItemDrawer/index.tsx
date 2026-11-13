@@ -207,7 +207,7 @@ export function InvoiceItemDrawer({ invoiceId, open, onOpenChange }: InvoiceItem
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Descripcion</FormLabel>
+                    <FormLabel>Descripción</FormLabel>
                     <FormControl>
                       <Input
                         {...field}

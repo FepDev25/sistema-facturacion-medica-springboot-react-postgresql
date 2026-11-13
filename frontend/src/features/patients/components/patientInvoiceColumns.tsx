@@ -32,7 +32,7 @@ export function getPatientInvoiceColumns(): ColumnDef<InvoiceListViewResponse, u
     },
     {
       accessorKey: 'issueDate',
-      header: 'Emision',
+      header: 'Emisión',
       size: 120,
       cell: ({ row }) => (
         <span className="text-sm text-foreground">{formatDate(row.original.issueDate)}</span>

@@ -112,7 +112,9 @@ export function AppShell({ children }: AppShellProps) {
               </button>
             </div>
 
-            <nav className="p-3 space-y-1">{navLinks}</nav>
+            <nav className="p-3 space-y-1" aria-label="Navegación principal">
+              {navLinks}
+            </nav>
 
             <div className="mt-auto p-3 border-t border-border space-y-1">
               <Link
@@ -190,7 +192,9 @@ export function AppShell({ children }: AppShellProps) {
             <SheetDescription className="text-xs">{roleLabel}</SheetDescription>
           </SheetHeader>
 
-          <nav className="flex-1 space-y-1 p-3">{navLinks}</nav>
+          <nav className="flex-1 space-y-1 p-3" aria-label="Navegación principal móvil">
+            {navLinks}
+          </nav>
 
           <div className="border-t border-border p-3 space-y-1">
             <Link

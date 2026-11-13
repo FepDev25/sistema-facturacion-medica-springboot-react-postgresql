@@ -259,7 +259,7 @@ export function DoctorDrawer({ open, onOpenChange, doctorId }: DoctorDrawerProps
                         <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                       </FormControl>
                       <div>
-                        <FormLabel className="cursor-pointer">Medico activo</FormLabel>
+                        <FormLabel className="cursor-pointer">Médico activo</FormLabel>
                       </div>
                     </FormItem>
                   )}

@@ -38,7 +38,12 @@ export function AppointmentsPage() {
 
   const isDoctorView = role === 'DOCTOR' && !!loggedInDoctorId
 
-  const { data: appointmentsPage, isLoading } = useAppointments({
+  const {
+    data: appointmentsPage,
+    isLoading,
+    isError,
+    refetch,
+  } = useAppointments({
     status: statusFilter === 'all' ? undefined : statusFilter,
     doctorId: isDoctorView ? loggedInDoctorId : undefined,
     page,
@@ -142,14 +147,16 @@ export function AppointmentsPage() {
           columns={columns}
           data={appointments}
           isLoading={isLoading}
+          isError={isError}
+          onRetry={() => void refetch()}
           pageSize={pageSize}
           emptyMessage="No hay citas para el filtro seleccionado."
         />
 
-        {!isLoading && appointmentsPage && appointmentsPage.totalPages > 1 ? (
+        {!isLoading && !isError && appointmentsPage && appointmentsPage.totalPages > 1 ? (
           <div className="mt-3 flex items-center justify-between px-1">
             <p className="text-xs text-muted-foreground">
-              Pagina {appointmentsPage.number + 1} de {appointmentsPage.totalPages} -{' '}
+              Página {appointmentsPage.number + 1} de {appointmentsPage.totalPages} -{' '}
               {appointmentsPage.totalElements} citas
             </p>
             <div className="flex items-center gap-1">
@@ -157,7 +164,7 @@ export function AppointmentsPage() {
                 variant="outline"
                 size="icon"
                 className="h-7 w-7"
-                aria-label="Pagina anterior"
+                aria-label="Página anterior"
                 onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
                 disabled={appointmentsPage.number <= 0}
               >
@@ -167,7 +174,7 @@ export function AppointmentsPage() {
                 variant="outline"
                 size="icon"
                 className="h-7 w-7"
-                aria-label="Pagina siguiente"
+                aria-label="Página siguiente"
                 onClick={() =>
                   setPage((prev) =>
                     appointmentsPage.number + 1 >= appointmentsPage.totalPages ? prev : prev + 1,

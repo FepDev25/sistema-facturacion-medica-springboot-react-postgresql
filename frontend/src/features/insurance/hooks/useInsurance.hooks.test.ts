@@ -211,7 +211,7 @@ describe('useCreatePolicy', () => {
       endDate: '2025-12-31',
     })
     await waitFor(() => expect(result.current.isError).toBe(true))
-    expect(toast.error).toHaveBeenCalledWith('Error al crear la poliza')
+    expect(toast.error).toHaveBeenCalledWith('Error al crear la póliza')
   })
 })
 
@@ -233,6 +233,6 @@ describe('useUpdatePolicy', () => {
     const { result } = renderHook(() => useUpdatePolicy(), { wrapper: createAllProviders() })
     result.current.mutate({ id: 'pol-1', data: { coveragePercentage: 90, deductible: 300 } })
     await waitFor(() => expect(result.current.isError).toBe(true))
-    expect(toast.error).toHaveBeenCalledWith('Error al actualizar la poliza')
+    expect(toast.error).toHaveBeenCalledWith('Error al actualizar la póliza')
   })
 })

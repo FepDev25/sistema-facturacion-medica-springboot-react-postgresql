@@ -90,11 +90,19 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     } else if (event.key === 'ArrowUp') {
       event.preventDefault()
       setActiveIndex((index) => Math.max(index - 1, 0))
+    } else if (event.key === 'Home') {
+      event.preventDefault()
+      setActiveIndex(0)
+    } else if (event.key === 'End') {
+      event.preventDefault()
+      setActiveIndex(Math.max(items.length - 1, 0))
     } else if (event.key === 'Enter') {
       event.preventDefault()
       items[activeIndex]?.onSelect()
     }
   }
+
+  const activeItem = items[activeIndex]
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -108,6 +116,11 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
           <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
           <Input
             autoFocus
+            role="combobox"
+            aria-expanded={items.length > 0}
+            aria-controls="command-palette-listbox"
+            aria-activedescendant={activeItem ? `command-palette-option-${activeIndex}` : undefined}
+            aria-autocomplete="list"
             value={query}
             onChange={(event) => {
               setQuery(event.target.value)
@@ -132,11 +145,16 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                 : 'Escribe al menos dos letras para buscar pacientes.'}
             </p>
           ) : (
-            <ul role="listbox" aria-label="Resultados">
+            <ul id="command-palette-listbox" role="listbox" aria-label="Resultados">
               {items.map((item, index) => {
                 const Icon = item.icon
                 return (
-                  <li key={item.key} role="option" aria-selected={index === activeIndex}>
+                  <li
+                    key={item.key}
+                    id={`command-palette-option-${index}`}
+                    role="option"
+                    aria-selected={index === activeIndex}
+                  >
                     <button
                       type="button"
                       onClick={item.onSelect}

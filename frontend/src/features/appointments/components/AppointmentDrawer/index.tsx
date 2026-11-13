@@ -310,14 +310,14 @@ export function AppointmentDrawer({ open, onOpenChange }: AppointmentDrawerProps
 
               {availabilityQuery.isFetching ? (
                 <p className="text-xs text-muted-foreground">
-                  Validando disponibilidad del medico...
+                  Validando disponibilidad del médico...
                 </p>
               ) : null}
 
               {hasScheduleConflict ? (
                 <div className="rounded-md border border-destructive/25 bg-destructive/10 px-3 py-2">
                   <p className="text-xs text-destructive">
-                    El medico ya tiene una cita en ese horario. Selecciona otra fecha u hora.
+                    El médico ya tiene una cita en ese horario. Selecciona otra fecha u hora.
                   </p>
                 </div>
               ) : null}

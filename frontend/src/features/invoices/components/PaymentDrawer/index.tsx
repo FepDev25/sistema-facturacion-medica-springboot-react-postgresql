@@ -156,11 +156,11 @@ export function PaymentDrawer({ invoiceId, open, onOpenChange }: PaymentDrawerPr
                 name="paymentMethod"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Metodo de pago</FormLabel>
+                    <FormLabel>Método de pago</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Seleccionar metodo" />
+                          <SelectValue placeholder="Seleccionar método" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>

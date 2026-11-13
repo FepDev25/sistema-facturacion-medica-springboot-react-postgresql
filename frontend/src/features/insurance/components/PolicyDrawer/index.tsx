@@ -178,7 +178,7 @@ export function PolicyDrawer({ open, onOpenChange, item }: PolicyDrawerProps) {
                 name="policyNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Numero de poliza</FormLabel>
+                    <FormLabel>Número de póliza</FormLabel>
                     <FormControl>
                       <Input {...field} className="font-mono" placeholder="POL-2026-001" />
                     </FormControl>
@@ -293,7 +293,7 @@ export function PolicyDrawer({ open, onOpenChange, item }: PolicyDrawerProps) {
                 Cancelar
               </Button>
               <Button type="submit" disabled={isPending}>
-                {isPending ? 'Guardando...' : isEditing ? 'Guardar cambios' : 'Crear poliza'}
+                {isPending ? 'Guardando...' : isEditing ? 'Guardar cambios' : 'Crear póliza'}
               </Button>
             </SheetFooter>
           </form>

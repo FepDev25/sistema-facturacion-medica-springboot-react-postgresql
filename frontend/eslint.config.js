@@ -6,7 +6,14 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist', 'coverage', 'playwright-report', 'test-results']),
+  globalIgnores([
+    'dist',
+    'coverage',
+    'playwright-report',
+    'test-results',
+    // Generado por TanStack Router / openapi-typescript.
+    'src/routeTree.gen.tsx',
+  ]),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [

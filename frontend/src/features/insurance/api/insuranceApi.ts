@@ -11,15 +11,15 @@ import type {
 } from '@/types/insurance'
 
 const OptionalEmailSchema = z
-  .union([z.literal(''), z.string().email('Email invalido').max(100, 'Maximo 100 caracteres')])
+  .union([z.literal(''), z.string().email('Email inválido').max(100, 'Máximo 100 caracteres')])
   .optional()
 
-const OptionalAddressSchema = z.string().max(200, 'Maximo 200 caracteres').optional()
+const OptionalAddressSchema = z.string().max(200, 'Máximo 200 caracteres').optional()
 
 export const ProviderFormSchema = z.object({
-  name: z.string().min(1, 'Requerido').max(100, 'Maximo 100 caracteres'),
-  code: z.string().min(1, 'Requerido').max(50, 'Maximo 50 caracteres'),
-  phone: z.string().min(1, 'Requerido').max(20, 'Maximo 20 caracteres'),
+  name: z.string().min(1, 'Requerido').max(100, 'Máximo 100 caracteres'),
+  code: z.string().min(1, 'Requerido').max(50, 'Máximo 50 caracteres'),
+  phone: z.string().min(1, 'Requerido').max(20, 'Máximo 20 caracteres'),
   email: OptionalEmailSchema,
   address: OptionalAddressSchema,
   isActive: z.boolean(),
@@ -31,20 +31,20 @@ export const PolicyFormSchema = z
   .object({
     patientId: z.string().min(1, 'Requerido'),
     providerId: z.string().min(1, 'Requerido'),
-    policyNumber: z.string().min(1, 'Requerido').max(100, 'Maximo 100 caracteres'),
+    policyNumber: z.string().min(1, 'Requerido').max(100, 'Máximo 100 caracteres'),
     coveragePercentage: z
-      .number({ message: 'Debe ser un numero' })
-      .min(0, 'Minimo 0%')
-      .max(100, 'Maximo 100%'),
-    deductible: z.number({ message: 'Debe ser un numero' }).min(0, 'No puede ser negativo'),
+      .number({ message: 'Debe ser un número' })
+      .min(0, 'Mínimo 0%')
+      .max(100, 'Máximo 100%'),
+    deductible: z.number({ message: 'Debe ser un número' }).min(0, 'No puede ser negativo'),
     startDate: z
       .string()
       .min(1, 'Requerido')
-      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato invalido (YYYY-MM-DD)'),
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato inválido (YYYY-MM-DD)'),
     endDate: z
       .string()
       .min(1, 'Requerido')
-      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato invalido (YYYY-MM-DD)'),
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato inválido (YYYY-MM-DD)'),
     isActive: z.boolean(),
   })
   .refine(

@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { render, screen, cleanup } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { DataTable } from '@/components/DataTable'
@@ -67,6 +67,32 @@ describe('DataTable', () => {
       render(<DataTable columns={columns} data={[]} isLoading pageSize={1} />)
       expect(screen.queryByText(/Mostrando/)).not.toBeInTheDocument()
       expect(screen.queryByLabelText('Página anterior')).not.toBeInTheDocument()
+      expect(screen.queryByLabelText('Página siguiente')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('error state', () => {
+    it('renders an alert with a retry action', async () => {
+      const user = userEvent.setup()
+      const onRetry = vi.fn()
+      render(
+        <DataTable
+          columns={columns}
+          data={[]}
+          isError
+          onRetry={onRetry}
+          errorMessage="No se pudieron cargar las facturas."
+        />,
+      )
+
+      expect(screen.getByRole('alert')).toBeInTheDocument()
+      expect(screen.getByText('No se pudieron cargar las facturas.')).toBeInTheDocument()
+      await user.click(screen.getByRole('button', { name: 'Reintentar' }))
+      expect(onRetry).toHaveBeenCalledTimes(1)
+    })
+
+    it('hides pagination controls when the request failed', () => {
+      render(<DataTable columns={columns} data={sampleData} isError pageSize={1} />)
       expect(screen.queryByLabelText('Página siguiente')).not.toBeInTheDocument()
     })
   })

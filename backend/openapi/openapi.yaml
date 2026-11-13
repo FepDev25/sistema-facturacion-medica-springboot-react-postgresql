@@ -3330,6 +3330,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
+    ServiceUnavailableError:
+      description: Servicio de IA no disponible temporalmente
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
 
 security:
   - bearerAuth: []

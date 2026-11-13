@@ -1,33 +1,5 @@
 import { expect, test } from '@playwright/test'
-
-const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'admin'
-const ADMIN_PASS = process.env.E2E_ADMIN_PASS ?? 'admin123'
-
-async function loginAsAdmin(page: import('@playwright/test').Page) {
-  await page.goto('/login')
-  await page.getByLabel('Usuario').fill(ADMIN_USER)
-  await page.getByLabel('Contraseña').fill(ADMIN_PASS)
-  await page.getByRole('button', { name: 'Ingresar' }).click()
-  await expect(page).toHaveURL(/\/(dashboard)?$/)
-}
-
-async function clickFirstEnabled(locator: import('@playwright/test').Locator): Promise<boolean> {
-  const total = await locator.count()
-  for (let i = 0; i < total; i += 1) {
-    const candidate = locator.nth(i)
-    if ((await candidate.isVisible()) && (await candidate.isEnabled())) {
-      await candidate.click()
-      return true
-    }
-  }
-
-  return false
-}
-
-async function openAppointments(page: import('@playwright/test').Page) {
-  await page.getByRole('link', { name: 'Citas', exact: true }).first().click()
-  await expect(page).toHaveURL(/\/appointments/)
-}
+import { E2E, loginAsAdmin, loginAsDoctor, openAppointmentById, openAppointments } from './fixtures'
 
 async function openFirstAppointmentDetail(page: import('@playwright/test').Page) {
   const detailLinks = page.getByRole('link', { name: 'Ver detalle de la cita' })
@@ -38,30 +10,14 @@ async function openFirstAppointmentDetail(page: import('@playwright/test').Page)
 }
 
 test.describe('Appointments UI critical flow', () => {
-  test('can confirm or start/cancel without frontend blocking errors', async ({ page }) => {
+  test('confirma una cita programada determinista', async ({ page }) => {
     await loginAsAdmin(page)
-    await openAppointments(page)
+    await openAppointmentById(page, E2E.scheduledAppointmentId)
 
-    const confirmButtons = page.getByRole('button', { name: 'Confirmar cita' })
-    const startButtons = page.getByRole('button', { name: 'Iniciar cita' })
-    const cancelButtons = page.getByRole('button', { name: 'Cancelar cita' })
-
-    if (await clickFirstEnabled(confirmButtons)) {
-      await expect(page.getByText('Cita confirmada')).toBeVisible()
-      return
-    }
-
-    if (await clickFirstEnabled(startButtons)) {
-      await expect(page.getByText('Cita iniciada')).toBeVisible()
-      return
-    }
-
-    if (await clickFirstEnabled(cancelButtons)) {
-      await expect(page.getByText(/Cita cancelada|Error al cancelar la cita/)).toBeVisible()
-      return
-    }
-
-    test.skip(true, 'No hay citas accionables en el dataset actual')
+    const confirm = page.getByRole('button', { name: 'Confirmar', exact: true })
+    await expect(confirm).toBeEnabled()
+    await confirm.click()
+    await expect(page.getByText('Cita confirmada')).toBeVisible()
   })
 
   test('detail page shows state flow and no UI crash', async ({ page }) => {
@@ -163,17 +119,14 @@ test.describe('Appointments list page', () => {
     await openAppointments(page)
 
     const newButton = page.getByRole('button', { name: /Nueva cita/ })
-    if ((await newButton.isVisible()) && (await newButton.isEnabled())) {
-      await newButton.click()
-      await expect(page.getByRole('heading', { name: 'Nueva Cita' })).toBeVisible()
-      await expect(page.getByLabel('Buscar paciente por DNI')).toBeVisible()
-      await expect(page.getByLabel('Buscar médico')).toBeVisible()
-      await expect(page.getByLabel('Fecha y hora')).toBeVisible()
-      await expect(page.getByLabel('Duración (min)')).toBeVisible()
-      await expect(page.getByLabel('Motivo de consulta')).toBeVisible()
-    } else {
-      test.skip(true, 'Botón Nueva cita no disponible (sin permisos o vista de doctor)')
-    }
+    await expect(newButton).toBeEnabled()
+    await newButton.click()
+    await expect(page.getByRole('heading', { name: 'Nueva Cita' })).toBeVisible()
+    await expect(page.getByLabel('Buscar paciente por DNI')).toBeVisible()
+    await expect(page.getByLabel('Buscar médico')).toBeVisible()
+    await expect(page.getByLabel('Fecha y hora')).toBeVisible()
+    await expect(page.getByLabel('Duración (min)')).toBeVisible()
+    await expect(page.getByLabel('Motivo de consulta')).toBeVisible()
   })
 
   test('navigates to appointment detail page', async ({ page }) => {
@@ -233,89 +186,36 @@ test.describe('Appointment detail page', () => {
 
   test('clinical notes shows fallback when empty', async ({ page }) => {
     await loginAsAdmin(page)
-    await openAppointments(page)
+    await openAppointmentById(page, E2E.noNotesAppointmentId)
 
-    const detailLinks = page.getByRole('link', { name: 'Ver detalle de la cita' })
-    const count = await detailLinks.count()
-
-    for (let i = 0; i < count; i++) {
-      await detailLinks.first().click()
-      const noMotive = page.getByText('Sin motivo registrado')
-      const noNotes = page.getByText('Sin notas adicionales')
-
-      if ((await noMotive.isVisible()) && (await noNotes.isVisible())) {
-        await expect(noMotive).toBeVisible()
-        await expect(noNotes).toBeVisible()
-        return
-      }
-
-      await page.goBack()
-      await expect(page).toHaveURL(/\/appointments/)
-    }
-
-    test.skip(true, 'No se encontró cita sin notas en el dataset')
+    await expect(page.getByText('Sin motivo registrado.')).toBeVisible()
+    await expect(page.getByText('Sin notas adicionales.')).toBeVisible()
   })
 
   test('medical record link is visible when present', async ({ page }) => {
     await loginAsAdmin(page)
-    await openAppointments(page)
+    await openAppointmentById(page, E2E.completedAppointmentId)
 
-    const detailLinks = page.getByRole('link', { name: 'Ver detalle de la cita' })
-    const count = await detailLinks.count()
-
-    for (let i = 0; i < count; i++) {
-      await detailLinks.first().click()
-      const recordLink = page.getByText('Ver expediente')
-
-      if (await recordLink.isVisible()) {
-        await expect(recordLink).toBeVisible()
-        await expect(page.getByText('Expediente generado')).toBeVisible()
-        return
-      }
-
-      await page.goBack()
-      await expect(page).toHaveURL(/\/appointments/)
-    }
-
-    test.skip(true, 'No se encontró cita con expediente en el dataset')
+    await expect(page.getByText('Expediente generado')).toBeVisible()
+    await expect(page.getByText('Ver expediente')).toBeVisible()
   })
 })
 
 test.describe('Status transitions', () => {
   test('confirm button is enabled only for scheduled appointments', async ({ page }) => {
     await loginAsAdmin(page)
-    await openAppointments(page)
+    await openAppointmentById(page, E2E.noNotesAppointmentId)
 
-    const confirmButtons = page.getByRole('button', { name: 'Confirmar cita' })
-    const count = await confirmButtons.count()
-
-    for (let i = 0; i < count; i++) {
-      const btn = confirmButtons.nth(i)
-      if (await btn.isEnabled()) {
-        expect(true).toBeTruthy()
-        return
-      }
-    }
-
-    test.skip(true, 'No hay citas programadas para confirmar')
+    await expect(page.getByRole('button', { name: 'Confirmar', exact: true })).toBeEnabled()
+    await expect(page.getByRole('button', { name: 'Iniciar', exact: true })).toBeDisabled()
   })
 
   test('start button is enabled only for confirmed appointments', async ({ page }) => {
     await loginAsAdmin(page)
-    await openAppointments(page)
+    await openAppointmentById(page, E2E.confirmedAppointmentId)
 
-    const startButtons = page.getByRole('button', { name: 'Iniciar cita' })
-    const count = await startButtons.count()
-
-    for (let i = 0; i < count; i++) {
-      const btn = startButtons.nth(i)
-      if (await btn.isEnabled()) {
-        expect(true).toBeTruthy()
-        return
-      }
-    }
-
-    test.skip(true, 'No hay citas confirmadas para iniciar')
+    await expect(page.getByRole('button', { name: 'Iniciar', exact: true })).toBeEnabled()
+    await expect(page.getByRole('button', { name: 'Confirmar', exact: true })).toBeDisabled()
   })
 
   test('status badges display correct labels', async ({ page }) => {
@@ -341,30 +241,17 @@ test.describe('Status transitions', () => {
 
 test.describe('Complete appointment drawer', () => {
   test('opens from detail page when status is in_progress', async ({ page }) => {
-    await loginAsAdmin(page)
-    await openAppointments(page)
+    await loginAsDoctor(page)
+    await openAppointmentById(page, E2E.inProgressAppointmentId)
 
-    const detailLinks = page.getByRole('link', { name: 'Ver detalle de la cita' })
-    const count = await detailLinks.count()
+    const completeBtn = page.getByRole('button', { name: 'Completar cita' }).first()
+    await expect(completeBtn).toBeEnabled()
+    await completeBtn.click()
 
-    for (let i = 0; i < count; i++) {
-      await detailLinks.first().click()
-      const completeBtn = page.getByRole('button', { name: 'Completar cita' }).first()
-
-      if ((await completeBtn.isVisible()) && (await completeBtn.isEnabled())) {
-        await completeBtn.click()
-        await expect(page.getByText('Completar cita')).toBeVisible()
-        await expect(page.getByLabel('Notas clinicas')).toBeVisible()
-        await expect(page.getByLabel('Examen fisico (opcional)')).toBeVisible()
-        await expect(page.getByLabel('Presion arterial')).toBeVisible()
-        return
-      }
-
-      await page.goBack()
-      await expect(page).toHaveURL(/\/appointments/)
-    }
-
-    test.skip(true, 'No se encontró cita en curso para completar')
+    await expect(page.getByRole('heading', { name: 'Completar cita' })).toBeVisible()
+    await expect(page.getByLabel('Notas clínicas')).toBeVisible()
+    await expect(page.getByLabel('Examen fisico (opcional)')).toBeVisible()
+    await expect(page.getByLabel('Presion arterial')).toBeVisible()
   })
 })
 

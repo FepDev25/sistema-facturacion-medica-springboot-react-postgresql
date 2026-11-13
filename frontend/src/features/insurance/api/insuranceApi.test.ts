@@ -107,7 +107,7 @@ describe('PolicyFormSchema', () => {
     expect(result.success).toBe(false)
     if (!result.success) {
       const dateError = result.error.issues.find((i) => i.path[0] === 'startDate')
-      expect(dateError?.message).toContain('Formato invalido')
+      expect(dateError?.message).toContain('Formato inválido')
     }
   })
 

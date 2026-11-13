@@ -60,9 +60,7 @@ export function AiLabPage() {
                   <Cpu className="h-4 w-4" /> Modelo
                 </div>
                 <p className="mt-2 text-sm font-semibold text-foreground break-all">{data.model}</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Prompt {data.promptVersion}
-                </p>
+                <p className="mt-1 text-xs text-muted-foreground">Prompt {data.promptVersion}</p>
               </Card>
 
               <Card className="p-4">
@@ -197,7 +195,10 @@ export function AiLabPage() {
                       <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
                         {Object.entries(limits).map(([name, value]) => (
                           <span key={name}>
-                            {name}: <span className="tabular-nums text-foreground">{(value * 100).toFixed(0)}%</span>
+                            {name}:{' '}
+                            <span className="tabular-nums text-foreground">
+                              {(value * 100).toFixed(0)}%
+                            </span>
                           </span>
                         ))}
                       </div>

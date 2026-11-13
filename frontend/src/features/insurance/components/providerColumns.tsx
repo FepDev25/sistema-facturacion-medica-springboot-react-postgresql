@@ -18,7 +18,7 @@ export function getProviderColumns({
   return [
     {
       accessorKey: 'code',
-      header: 'Codigo',
+      header: 'Código',
       size: 120,
       cell: ({ row }) => (
         <span className="font-mono text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
@@ -33,7 +33,7 @@ export function getProviderColumns({
     },
     {
       accessorKey: 'phone',
-      header: 'Telefono',
+      header: 'Teléfono',
       size: 160,
       cell: ({ row }) => <span className="text-sm text-foreground">{row.original.phone}</span>,
     },

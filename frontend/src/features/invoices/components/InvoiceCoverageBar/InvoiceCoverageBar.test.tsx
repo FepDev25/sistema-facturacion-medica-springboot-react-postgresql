@@ -103,13 +103,13 @@ describe('InvoiceCoverageBar', () => {
   describe('empty state', () => {
     it('shows empty state message when normalizedTotal is 0', () => {
       render(<InvoiceCoverageBar total={0} insuranceCoverage={0} patientResponsibility={0} />)
-      expect(screen.getByText('Aun no hay montos para calcular cobertura.')).toBeInTheDocument()
+      expect(screen.getByText('Aún no hay montos para calcular cobertura.')).toBeInTheDocument()
     })
 
     it('hides empty state message when there are amounts', () => {
       render(<InvoiceCoverageBar total={100} insuranceCoverage={80} patientResponsibility={20} />)
       expect(
-        screen.queryByText('Aun no hay montos para calcular cobertura.'),
+        screen.queryByText('Aún no hay montos para calcular cobertura.'),
       ).not.toBeInTheDocument()
     })
   })

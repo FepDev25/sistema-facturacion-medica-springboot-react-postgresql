@@ -100,6 +100,9 @@ jobs:
       - name: Instalar dependencias
         run: npm ci
 
+      - name: Verificar tipos generados desde OpenAPI
+        run: npm run generate:types:check
+
       - name: Lint
         run: npm run lint
 

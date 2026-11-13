@@ -1,20 +1,5 @@
 import { expect, test } from '@playwright/test'
-
-const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'admin'
-const ADMIN_PASS = process.env.E2E_ADMIN_PASS ?? 'admin123'
-
-async function loginAsAdmin(page: import('@playwright/test').Page) {
-  await page.goto('/login')
-  await page.getByLabel('Usuario').fill(ADMIN_USER)
-  await page.getByLabel('Contraseña').fill(ADMIN_PASS)
-  await page.getByRole('button', { name: 'Ingresar' }).click()
-  await expect(page).toHaveURL(/\/(dashboard)?$/)
-}
-
-async function openInvoices(page: import('@playwright/test').Page) {
-  await page.getByRole('link', { name: 'Facturas', exact: true }).first().click()
-  await expect(page).toHaveURL('/invoices')
-}
+import { E2E, loginAsAdmin, openInvoiceByNumber, openInvoices } from './fixtures'
 
 async function openFirstInvoiceDetail(page: import('@playwright/test').Page) {
   const detailLinks = page.getByRole('link', { name: 'Ver detalle de la factura' })
@@ -116,45 +101,27 @@ test.describe('Invoices list page', () => {
     await loginAsAdmin(page)
     await openInvoices(page)
 
-    const confirmButtons = page.getByRole('button', { name: 'Confirmar factura' })
-    const count = await confirmButtons.count()
+    const row = page.getByRole('row').filter({ hasText: E2E.draftInvoice })
+    const btn = row.getByRole('button', { name: 'Confirmar factura' })
+    await expect(btn).toBeEnabled()
+    await btn.click()
 
-    for (let i = 0; i < count; i++) {
-      const btn = confirmButtons.nth(i)
-      if (await btn.isEnabled()) {
-        await btn.click()
-        await expect(page.getByText('Confirmar factura')).toBeVisible()
-        await expect(page.getByRole('button', { name: 'Cancelar' })).toBeVisible()
-        await expect(page.getByRole('button', { name: 'Confirmar' })).toBeVisible()
-
-        await page.getByRole('button', { name: 'Cancelar' }).click()
-        return
-      }
-    }
-
-    test.skip(true, 'No hay facturas en borrador para confirmar')
+    await expect(page.getByText(/Se confirmará la factura/)).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Cancelar', exact: true })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Confirmar', exact: true })).toBeVisible()
   })
 
   test('cancel action opens AlertDialog', async ({ page }) => {
     await loginAsAdmin(page)
     await openInvoices(page)
 
-    const cancelButtons = page.getByRole('button', { name: 'Cancelar factura' })
-    const count = await cancelButtons.count()
+    const row = page.getByRole('row').filter({ hasText: E2E.cancellableInvoice })
+    const btn = row.getByRole('button', { name: 'Cancelar factura' })
+    await expect(btn).toBeEnabled()
+    await btn.click()
 
-    for (let i = 0; i < count; i++) {
-      const btn = cancelButtons.nth(i)
-      if (await btn.isEnabled()) {
-        await btn.click()
-        await expect(page.getByText('Cancelar factura')).toBeVisible()
-        await expect(page.getByText(/Se cancelara la factura/)).toBeVisible()
-
-        await page.getByRole('button', { name: 'Cancelar' }).click()
-        return
-      }
-    }
-
-    test.skip(true, 'No hay facturas cancelables')
+    await expect(page.getByText(/Se cancelará la factura/)).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Cancelar', exact: true })).toBeVisible()
   })
 })
 
@@ -185,7 +152,7 @@ test.describe('Invoice detail page', () => {
 
     await expect(page.getByText('Resumen financiero')).toBeVisible()
     await expect(page.getByText('Estado').first()).toBeVisible()
-    await expect(page.getByText('Emision')).toBeVisible()
+    await expect(page.getByText('Emisión')).toBeVisible()
     await expect(page.getByText('Vencimiento').first()).toBeVisible()
     await expect(page.getByText('Subtotal')).toBeVisible()
     await expect(page.getByText('Impuestos')).toBeVisible()
@@ -240,100 +207,40 @@ test.describe('Invoice detail page', () => {
 
   test('shows empty message when no payments', async ({ page }) => {
     await loginAsAdmin(page)
-    await openInvoices(page)
+    await openInvoiceByNumber(page, E2E.emptyPaymentsInvoice)
 
-    const detailLinks = page.getByRole('link', { name: 'Ver detalle de la factura' })
-    const count = await detailLinks.count()
-
-    for (let i = 0; i < count; i++) {
-      await detailLinks.first().click()
-      const noPayments = page.getByText('No hay pagos registrados para esta factura.')
-
-      if (await noPayments.isVisible()) {
-        await expect(noPayments).toBeVisible()
-        return
-      }
-
-      await page.goBack()
-      await expect(page).toHaveURL(/\/invoices/)
-    }
-
-    test.skip(true, 'No se encontró factura sin pagos')
+    await expect(page.getByText('No hay pagos registrados para esta factura.')).toBeVisible()
   })
 
   test('Registrar pago button opens payment drawer', async ({ page }) => {
     await loginAsAdmin(page)
-    await openInvoices(page)
+    await openInvoiceByNumber(page, E2E.payableInvoice)
 
-    const detailLinks = page.getByRole('link', { name: 'Ver detalle de la factura' })
-    const count = await detailLinks.count()
+    const payButton = page.getByRole('button', { name: 'Registrar pago' })
+    await expect(payButton).toBeEnabled()
+    await payButton.click()
 
-    for (let i = 0; i < count; i++) {
-      await detailLinks.nth(i).click()
-      const payButton = page.getByRole('button', { name: 'Registrar pago' })
-
-      if ((await payButton.isVisible()) && (await payButton.isEnabled())) {
-        await payButton.click()
-        await expect(page.getByRole('heading', { name: 'Registrar pago' })).toBeVisible()
-        await expect(page.getByLabel('Monto')).toBeVisible()
-        await expect(page.getByLabel('Metodo de pago')).toBeVisible()
-        return
-      }
-
-      await page.goBack()
-      await expect(page).toHaveURL(/\/invoices/)
-    }
-
-    test.skip(true, 'No se encontró factura que acepte pagos')
+    await expect(page.getByRole('heading', { name: 'Registrar pago' })).toBeVisible()
+    await expect(page.getByLabel('Monto')).toBeVisible()
+    await expect(page.getByLabel('Método de pago')).toBeVisible()
   })
 
   test('Confirmar factura button is visible for draft invoices', async ({ page }) => {
     await loginAsAdmin(page)
-    await openInvoices(page)
+    await openInvoiceByNumber(page, E2E.addItemInvoice)
 
-    const detailLinks = page.getByRole('link', { name: 'Ver detalle de la factura' })
-    const count = await detailLinks.count()
-
-    for (let i = 0; i < count; i++) {
-      await detailLinks.first().click()
-      const confirmBtn = page.getByRole('button', { name: 'Confirmar factura' })
-
-      if (await confirmBtn.isVisible()) {
-        await expect(confirmBtn).toBeVisible()
-        return
-      }
-
-      await page.goBack()
-      await expect(page).toHaveURL(/\/invoices/)
-    }
-
-    test.skip(true, 'No se encontró factura en borrador')
+    await expect(page.getByRole('button', { name: 'Confirmar factura' })).toBeVisible()
   })
 
   test('Agregar item button is visible for draft invoices', async ({ page }) => {
     await loginAsAdmin(page)
-    await openInvoices(page)
+    await openInvoiceByNumber(page, E2E.addItemInvoice)
 
-    const detailLinks = page.getByRole('link', { name: 'Ver detalle de la factura' })
-    const count = await detailLinks.count()
-
-    for (let i = 0; i < count; i++) {
-      await detailLinks.first().click()
-      const addItemBtn = page.getByRole('button', { name: 'Agregar item' })
-
-      if (await addItemBtn.isVisible()) {
-        await expect(addItemBtn).toBeVisible()
-        await addItemBtn.click()
-        await expect(page.getByRole('heading', { name: 'Agregar item' })).toBeVisible()
-        await expect(page.getByLabel('Tipo de item')).toBeVisible()
-        return
-      }
-
-      await page.goBack()
-      await expect(page).toHaveURL(/\/invoices/)
-    }
-
-    test.skip(true, 'No se encontró factura en borrador')
+    const addItemBtn = page.getByRole('button', { name: 'Agregar item' })
+    await expect(addItemBtn).toBeVisible()
+    await addItemBtn.click()
+    await expect(page.getByRole('heading', { name: 'Agregar item' })).toBeVisible()
+    await expect(page.getByLabel('Tipo de item')).toBeVisible()
   })
 
   test('BackToListButton returns to invoices list', async ({ page }) => {
@@ -345,6 +252,31 @@ test.describe('Invoice detail page', () => {
     await expect(backBtn).toBeVisible()
     await backBtn.click()
     await expect(page).toHaveURL(/\/invoices$/)
+  })
+})
+
+test.describe('Insurance coverage and payment', () => {
+  test('póliza 80 %: pagar la responsabilidad del paciente deja la factura PAID', async ({
+    page,
+  }) => {
+    await loginAsAdmin(page)
+    await openInvoiceByNumber(page, E2E.policyInvoice)
+
+    await expect(page.getByText(E2E.policyNumber)).toBeVisible()
+    await expect(page.getByText(/Seguro \(80\.0%\)/)).toBeVisible()
+    await expect(page.getByText(/Paciente \(20\.0%\)/)).toBeVisible()
+    await expect(page.getByText(/232\.00/).first()).toBeVisible()
+
+    await page.getByRole('button', { name: 'Registrar pago' }).click()
+    await expect(page.getByRole('heading', { name: 'Registrar pago' })).toBeVisible()
+
+    const payTotal = page.getByRole('button', { name: /Pagar total/ })
+    await expect(payTotal).toBeVisible()
+    await payTotal.click()
+    await page.getByRole('button', { name: 'Registrar pago' }).last().click()
+
+    await expect(page.getByText('Pago registrado')).toBeVisible()
+    await expect(page.getByText('Pagada').first()).toBeVisible()
   })
 })
 
