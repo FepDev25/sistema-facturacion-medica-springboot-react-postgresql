@@ -47,7 +47,7 @@ local reproducible:
 | Redis Docker + volumen | Hecho |
 | Túnel con PostgreSQL + Redis | Hecho |
 | Perfil `dev-homelab` | Hecho |
-| Flyway V1–V11 + seeds | Hecho |
+| Flyway V1–V13 + seeds | Hecho |
 | Vectores CIE-10 (14.208) | Hecho |
 | Arranque normal + health/login/P1 | Validado |
 | Limpieza de Docker local | Hecho |
@@ -182,7 +182,7 @@ requeridos por el sistema.
 La solución aplicada fue:
 
 1. Dar a `sfm_dev` el rol `SUPERUSER` temporalmente.
-2. Correr Flyway (V1–V11).
+2. Correr Flyway (V1–V13).
 3. Quitar el `SUPERUSER` inmediatamente después.
 
 ```sql
@@ -448,7 +448,7 @@ psql -h 127.0.0.1 -p 15432 -U sfm_dev -d fac_med_db \
   -c "SELECT version, description FROM flyway_schema_history ORDER BY installed_rank;"
 ```
 
-Debe mostrar V1–V11 aplicadas.
+Debe mostrar V1–V13 aplicadas.
 
 ### 8.3 Importar solo los vectores CIE-10 desde Neon
 
@@ -622,7 +622,7 @@ desarrollo, no bloquea la infraestructura.
 | `psql` como `sfm_dev` a `fac_med_db` | OK |
 | `\dx` | `uuid-ossp`, `pgcrypto`, `btree_gist`, `vector` |
 | Redis `PING` | `PONG` |
-| Flyway | V1–V11, sin errores |
+| Flyway | V1–V13, sin errores |
 | `vector_store` códigos | 14.208 |
 | Arranque normal | “CIE-10 ya indexado… omitiendo carga” |
 | Login `admin/admin123` | OK |

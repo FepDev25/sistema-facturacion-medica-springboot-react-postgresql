@@ -9,7 +9,7 @@ Backend RESTful para la gestion integral de una clinica medica: agendamiento de 
 | Capa | Tecnologia |
 |---|---|
 | Runtime | Java 21, Spring Boot 4.0.3 |
-| Persistencia | Spring Data JPA, Hibernate, PostgreSQL 15 |
+| Persistencia | Spring Data JPA, Hibernate, PostgreSQL 16 (Neon) |
 | Migraciones | Flyway |
 | Cache / Revocacion | Redis 7 |
 | Seguridad | Spring Security, JWT (jjwt 0.12.5), BCrypt |
@@ -296,7 +296,7 @@ sequenceDiagram
 
 ## Base de Datos
 
-PostgreSQL 15 con extensiones `uuid-ossp`, `pgcrypto`, `btree_gist`.
+PostgreSQL 16 con extensiones `uuid-ossp`, `pgcrypto`, `btree_gist`.
 
 ### Migraciones (Flyway)
 
@@ -313,6 +313,8 @@ PostgreSQL 15 con extensiones `uuid-ossp`, `pgcrypto`, `btree_gist`.
 | V9 | `link_doctors_system_users.sql` | Vinculacion de system_users con doctors |
 | V10 | `pgvector_extension.sql` | Habilita la extension `vector` en PostgreSQL (requiere imagen `pgvector/pgvector:pg15`) |
 | V11 | `vector_store_table.sql` | Tabla `vector_store` con columna `embedding vector(768)` e indice HNSW cosine para RAG |
+| V12 | `refresh_token_families.sql` | Familias de refresh tokens con hash SHA-256, rotacion y deteccion de reuso |
+| V13 | `reconcile_legacy_invoice_status.sql` | Reconciliacion idempotente de facturas legacy ya cubiertas |
 
 ### Auditoria Dual
 
@@ -549,7 +551,7 @@ backend/
     application.yml
     application-dev-homelab.yml     # Desarrollo local contra PostgreSQL/Redis del homelab
     application-test.yml
-    db/migration/                   # Flyway migrations (V1-V11)
+    db/migration/                   # Flyway migrations (V1-V13)
     db/seeds/                       # Datos de desarrollo (V7)
     data/cie-10.csv                 # Catalogo CIE-10 en espanol (14,208 codigos nivel 2-5)
   src/test/java/com/fepdev/sfm/backend/
