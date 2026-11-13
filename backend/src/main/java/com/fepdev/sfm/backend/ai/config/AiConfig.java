@@ -2,10 +2,14 @@ package com.fepdev.sfm.backend.ai.config;
 
 import org.springframework.ai.anthropic.AnthropicChatModel;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.fepdev.sfm.backend.ai.metrics.AiPricingProperties;
+
 @Configuration
+@EnableConfigurationProperties(AiPricingProperties.class)
 public class AiConfig {
 
     @Bean

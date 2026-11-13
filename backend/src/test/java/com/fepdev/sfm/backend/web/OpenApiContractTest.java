@@ -49,7 +49,10 @@ class OpenApiContractTest {
                 "/api/v1/ai/invoices/{id}/suggest-items",
                 "/api/v1/ai/icd10/suggest",
                 "/api/v1/ai/patients/{patientId}/query",
-                "/api/v1/ai/patients/{patientId}/reindex");
+                "/api/v1/ai/patients/{patientId}/query/stream",
+                "/api/v1/ai/patients/{patientId}/conversation",
+                "/api/v1/ai/patients/{patientId}/reindex",
+                "/api/v1/ai/lab");
 
         operation("/api/v1/dashboard/metrics", "get");
         operation("/api/v1/invoices/{id}/items", "post");
@@ -57,7 +60,10 @@ class OpenApiContractTest {
         operation("/api/v1/ai/invoices/{id}/suggest-items", "post");
         operation("/api/v1/ai/icd10/suggest", "post");
         operation("/api/v1/ai/patients/{patientId}/query", "post");
+        operation("/api/v1/ai/patients/{patientId}/query/stream", "post");
+        operation("/api/v1/ai/patients/{patientId}/conversation", "delete");
         operation("/api/v1/ai/patients/{patientId}/reindex", "post");
+        operation("/api/v1/ai/lab", "get");
     }
 
     @Test
@@ -95,6 +101,26 @@ class OpenApiContractTest {
                 .doesNotContainKeys("accessToken", "refreshToken", "tokenType");
         assertThat(schemas).doesNotContainKeys(
                 "TokenResponse", "RefreshTokenRequest", "LogoutRequest");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void aiLabSchemaMatchesTheReadOnlySnapshot() {
+        Map<String, Object> schemas =
+                (Map<String, Object>) ((Map<String, Object>) document.get("components")).get("schemas");
+        Map<String, Object> lab = (Map<String, Object>) schemas.get("AiLabResponse");
+        Map<String, Object> properties = (Map<String, Object>) lab.get("properties");
+
+        assertThat(properties).containsKeys(
+                "model", "promptVersion", "distributedRateLimit", "rateLimitPerMinute",
+                "memoryTtlSeconds", "memoryMaxTurns", "features", "pricing", "usage", "evals");
+        assertThat(schemas).containsKeys("AiLabFeature", "AiLabPricing", "AiLabUsage", "AiLabEvals");
+
+        Map<String, Object> stream = operation("/api/v1/ai/patients/{patientId}/query/stream", "post");
+        Map<String, Object> responses = (Map<String, Object>) stream.get("responses");
+        Map<String, Object> ok = (Map<String, Object>) responses.get("200");
+        Map<String, Object> content = (Map<String, Object>) ok.get("content");
+        assertThat(content).containsKey("text/event-stream");
     }
 
     @Test

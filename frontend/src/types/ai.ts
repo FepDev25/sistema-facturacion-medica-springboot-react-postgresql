@@ -63,3 +63,43 @@ export interface SuggestedItem {
 export interface ItemSuggestionResult {
   suggestedItems: SuggestedItem[]
 }
+
+// AI Lab — snapshot de solo lectura
+export interface AiLabFeature {
+  id: string
+  name: string
+  endpoint: string
+  promptVersion: string
+  description: string
+}
+export interface AiLabPricing {
+  model: string
+  inputPerMillionUsd: number
+  outputPerMillionUsd: number
+}
+export interface AiLabUsage {
+  feature: string
+  requests: number
+  errors: number
+  promptTokens: number
+  completionTokens: number
+  costUsd: number
+  latencyMaxMs: number
+}
+export interface AiLabEvals {
+  mode: string
+  thresholdsVersion: number
+  thresholds: Record<string, Record<string, number>>
+}
+export interface AiLabResponse {
+  model: string
+  promptVersion: string
+  distributedRateLimit: boolean
+  rateLimitPerMinute: number
+  memoryTtlSeconds: number
+  memoryMaxTurns: number
+  features: AiLabFeature[]
+  pricing: AiLabPricing[]
+  usage: AiLabUsage[]
+  evals: AiLabEvals
+}

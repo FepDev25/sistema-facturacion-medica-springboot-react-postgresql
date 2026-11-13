@@ -1,0 +1,7 @@
+code,code_0,code_1,code_2,code_3,code_4,description,level,source
+A09,,,,,,Diarrea infecciosa,2,test
+E119,,,,,,Diabetes tipo 2 sin complicaciones,4,test
+I10,,,,,,Hipertension esencial,3,test
+X99,,,,,,Codigo generico de nivel 1,1,test
+A00-B99,,,,,,Rango de codigos,0,test
+Z99,,,,,,,3,test

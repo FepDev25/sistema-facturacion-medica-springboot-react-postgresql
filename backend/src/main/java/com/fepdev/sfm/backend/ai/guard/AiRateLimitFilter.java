@@ -39,6 +39,7 @@ public class AiRateLimitFilter extends OncePerRequestFilter {
             rateLimiter.check(user);
         } catch (AiRateLimitExceededException ex) {
             response.setStatus(429);
+            response.setHeader("Retry-After", String.valueOf(ex.getRetryAfterSeconds()));
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
             response.getWriter().write("""

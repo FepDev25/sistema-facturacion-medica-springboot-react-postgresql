@@ -23,6 +23,7 @@ import { InsurancePage } from '@/features/insurance/components/InsurancePage'
 import { MedicalRecordDetailPage } from '@/features/medical-records/components/MedicalRecordDetailPage'
 import { PatientsPage } from '@/features/patients/components/PatientsPage'
 import { PatientDetailPage } from '@/features/patients/components/PatientDetailPage'
+import { AiLabPage } from '@/features/ai/components/AiLabPage'
 
 const rootRoute = createRootRoute({
   component: () => (
@@ -148,6 +149,13 @@ const profileRoute = createRoute({
   component: ProfilePage,
 })
 
+const aiLabRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/ai-lab',
+  beforeLoad: () => requireRole(['ADMIN'], '/ai-lab'),
+  component: AiLabPage,
+})
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
   indexRoute,
@@ -163,6 +171,7 @@ const routeTree = rootRoute.addChildren([
   invoiceDetailRoute,
   medicalRecordDetailRoute,
   profileRoute,
+  aiLabRoute,
   forbiddenRoute,
 ])
 

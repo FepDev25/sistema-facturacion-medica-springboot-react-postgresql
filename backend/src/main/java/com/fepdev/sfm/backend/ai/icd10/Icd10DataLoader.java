@@ -78,6 +78,11 @@ public class Icd10DataLoader {
     }
 
     private int loadCsv() throws Exception {
+        return loadCsv(new ClassPathResource(CSV_PATH));
+    }
+
+    // Visible para tests: permite usar un CSV pequeno sin tocar el dataset real.
+    int loadCsv(ClassPathResource resource) throws Exception {
         Set<String> alreadyIndexed = loadIndexedCodes();
         if (!alreadyIndexed.isEmpty()) {
             log.info("CIE-10: reanudando — {} códigos ya indexados, continuando desde ahí.",
@@ -86,7 +91,6 @@ public class Icd10DataLoader {
             log.info("Iniciando indexación de CIE-10 desde cero...");
         }
 
-        ClassPathResource resource = new ClassPathResource(CSV_PATH);
         List<Document> batch = new ArrayList<>();
         int newlyIndexed = 0;
 
@@ -132,7 +136,7 @@ public class Icd10DataLoader {
         return newlyIndexed;
     }
 
-    private static String formatCode(String raw) {
+    static String formatCode(String raw) {
         if (raw.length() <= 3) return raw;
         return raw.substring(0, 3) + "." + raw.substring(3);
     }

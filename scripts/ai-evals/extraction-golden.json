@@ -1,0 +1,71 @@
+{
+  "feature": "extraction",
+  "version": "2026-11-13",
+  "description": "Casos dorados de extraccion de notas clinicas (P2). Los IDs son fijos porque el servicio solo usa el texto libre. Ejecutar con scripts/ai-eval.py --feature extraction.",
+  "cases": [
+    {
+      "id": "faringitis-aguda",
+      "request": {
+        "appointmentId": "00000000-0000-0000-0000-000000000101",
+        "medicalRecordId": "00000000-0000-0000-0000-000000000201",
+        "chiefComplaint": "Dolor de garganta y fiebre desde hace tres dias",
+        "clinicalNotes": "Paciente de 28 anos con odinofagia intensa, fiebre de 38.2 C y amigdalas eritematosas con exudado. Se indica amoxicilina 500 mg cada 8 horas durante 7 dias y paracetamol 500 mg cada 6 horas por 3 dias. Se realiza cultivo rapido de exudado faringeo.",
+        "physicalExam": "Temperatura 38.2 C, presion 118/76, amigdalas hiperemicas con exudado blanquecino, adenopatias cervicales dolorosas."
+      },
+      "expected": {
+        "diagnoses": [
+          { "icd10Code": "J02.9", "description": "Faringitis aguda" }
+        ],
+        "prescriptions": [
+          { "medicationName": "Amoxicilina 500 mg" },
+          { "medicationName": "Paracetamol 500 mg" }
+        ],
+        "procedures": [
+          { "procedureCode": "87880", "description": "Cultivo rapido de exudado faringeo" }
+        ]
+      }
+    },
+    {
+      "id": "dm2-hta-control",
+      "request": {
+        "appointmentId": "00000000-0000-0000-0000-000000000102",
+        "medicalRecordId": "00000000-0000-0000-0000-000000000202",
+        "chiefComplaint": "Control de diabetes e hipertension",
+        "clinicalNotes": "Paciente con diabetes mellitus tipo 2 e hipertension arterial en control trimestral. Refiere adherencia a metformina 850 mg cada 12 horas y losartan 50 mg cada 24 horas. Glucosa capilar 142 mg/dL. Sin edema, sin datos de insuficiencia cardiaca. Se solicita hemoglobina glucosilada.",
+        "physicalExam": "PA 132/84, peso 82 kg, IMC 29.4, sin edema de miembros inferiores."
+      },
+      "expected": {
+        "diagnoses": [
+          { "icd10Code": "E11.9", "description": "Diabetes mellitus tipo 2" },
+          { "icd10Code": "I10", "description": "Hipertension esencial" }
+        ],
+        "prescriptions": [
+          { "medicationName": "Metformina 850 mg" },
+          { "medicationName": "Losartan 50 mg" }
+        ],
+        "procedures": [
+          { "procedureCode": "83036", "description": "Hemoglobina glucosilada" }
+        ]
+      }
+    },
+    {
+      "id": "lumbalgia-mecanica",
+      "request": {
+        "appointmentId": "00000000-0000-0000-0000-000000000103",
+        "medicalRecordId": "00000000-0000-0000-0000-000000000203",
+        "chiefComplaint": "Dolor lumbar despues de cargar peso",
+        "clinicalNotes": "Dolor lumbar bajo de tres dias de evolucion tras levantar una caja. Sin deficit neurologico, sin fiebre, sin perdida de peso. Se indica ibuprofeno 400 mg cada 8 horas por 5 dias y reposo relativo. No se requieren estudios de imagen en este episodio.",
+        "physicalExam": "Dolor a la palpacion paravertebral lumbar, Lassegue negativo bilateral, fuerza 5/5."
+      },
+      "expected": {
+        "diagnoses": [
+          { "icd10Code": "M54.5", "description": "Lumbalgia" }
+        ],
+        "prescriptions": [
+          { "medicationName": "Ibuprofeno 400 mg" }
+        ],
+        "procedures": []
+      }
+    }
+  ]
+}

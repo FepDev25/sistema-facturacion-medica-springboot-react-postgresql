@@ -59,12 +59,12 @@ public class RecordExtractionService {
         );
 
         var tools = new ExtractionTools();
-        aiCallExecutor.call("records-extract", () -> chatClient.prompt()
+        aiCallExecutor.callChat("records-extract", () -> chatClient.prompt()
                 .system(systemPrompt)
                 .user(userPrompt)
                 .tools(tools)
                 .call()
-                .content());
+                .chatResponse());
 
         List<ExtractedPrescription> prescriptions = tools.getRawPrescriptions().stream()
                 .map(rp -> new ExtractedPrescription(

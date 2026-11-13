@@ -1,5 +1,6 @@
 package com.fepdev.sfm.backend.ai.guard;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -48,8 +49,10 @@ class AiRateLimiterTest {
         limiter.check("doctor1");
 
         assertThatThrownBy(() -> limiter.check("doctor1"))
-                .isInstanceOf(AiRateLimitExceededException.class)
-                .hasMessageContaining("2 solicitudes");
+                .isInstanceOfSatisfying(AiRateLimitExceededException.class, ex -> {
+                    assertThat(ex.getMessage()).contains("2 solicitudes");
+                    assertThat(ex.getRetryAfterSeconds()).isBetween(1L, 60L);
+                });
     }
 
     @Test

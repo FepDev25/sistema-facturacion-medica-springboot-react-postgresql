@@ -62,6 +62,33 @@ groups:
         annotations:
           summary: "Latencia p95 de IA por encima de 20 s"
 
+      - alert: SfmAiCostSpike
+        expr: sum(rate(ai_cost_usd_total[1h])) * 3600 > 5
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Gasto de IA superior a 5 USD/hora"
+          description: "Revisar consumo por feature en /actuator/metrics/ai.cost.usd y el AI Lab."
+
+      - alert: SfmAiTokenSpike
+        expr: sum(rate(ai_tokens_total[1h])) * 3600 > 2_000_000
+        for: 15m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Más de 2M tokens/hora en IA"
+          description: "Posible bucle de reintentos o prompts demasiado largos."
+
+      - alert: SfmAiUsageMissing
+        expr: increase(ai_usage_missing_total[30m]) > 10
+        for: 5m
+        labels:
+          severity: info
+        annotations:
+          summary: "Respuestas de IA sin metadata de usage"
+          description: "El costo no se está registrando; revisar Spring AI o el proveedor."
+
       - alert: SfmLoginFailures
         expr: increase(auth_login_failures_total[5m]) > 20
         for: 1m

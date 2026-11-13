@@ -39,6 +39,7 @@ vi.mock('lucide-react', () => ({
   CalendarDays: () => <span>icon-calendar</span>,
   ClipboardList: () => <span>icon-clipboard</span>,
   CreditCard: () => <span>icon-credit</span>,
+  FlaskConical: () => <span>icon-flask</span>,
   LogOut: () => <span>icon-logout</span>,
   LayoutDashboard: () => <span>icon-dashboard</span>,
   Menu: () => <span>icon-menu</span>,
@@ -129,7 +130,7 @@ describe('AppShell', () => {
   })
 
   describe('nav filtering by role (desktop sidebar)', () => {
-    it('ADMIN sees all 7 nav items', () => {
+    it('ADMIN sees all 8 nav items', () => {
       setSession({ role: 'ADMIN' })
       render(
         <AppShell>
@@ -144,6 +145,7 @@ describe('AppShell', () => {
       expect(within(nav).getByText('Facturas')).toBeInTheDocument()
       expect(within(nav).getByText('Seguros')).toBeInTheDocument()
       expect(within(nav).getByText('Catálogo')).toBeInTheDocument()
+      expect(within(nav).getByText('AI Lab')).toBeInTheDocument()
     })
 
     it('DOCTOR sees only Dashboard and Citas', () => {

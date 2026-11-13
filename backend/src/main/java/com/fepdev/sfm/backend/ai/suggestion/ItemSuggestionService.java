@@ -7,6 +7,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.ResponseEntity;
+import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,8 +36,8 @@ import jakarta.persistence.EntityNotFoundException;
 @Service
 public class ItemSuggestionService {
 
-    private record LlmItem(String itemType, String name, String justification) {}
-    private record LlmResult(List<LlmItem> suggestedItems) {}
+    record LlmItem(String itemType, String name, String justification) {}
+    record LlmResult(List<LlmItem> suggestedItems) {}
 
     private static final String SYSTEM_PROMPT = """
             Eres un asistente de facturación médica. Tu tarea es sugerir los servicios y medicamentos
@@ -116,11 +118,14 @@ public class ItemSuggestionService {
 
         String userPrompt = buildPrompt(diagnoses, prescriptions, procedures, services, medications);
 
-        LlmResult llmResult = aiCallExecutor.call("items-suggest", () -> chatClient.prompt()
-                .system(SYSTEM_PROMPT)
-                .user(userPrompt)
-                .call()
-                .entity(LlmResult.class));
+        LlmResult llmResult;
+        ResponseEntity<ChatResponse, LlmResult> response = aiCallExecutor.callEntity("items-suggest",
+                () -> chatClient.prompt()
+                        .system(SYSTEM_PROMPT)
+                        .user(userPrompt)
+                        .call()
+                        .responseEntity(LlmResult.class));
+        llmResult = response != null ? response.entity() : null;
 
         if (llmResult == null || llmResult.suggestedItems() == null) {
             return new ItemSuggestionResult(List.of());

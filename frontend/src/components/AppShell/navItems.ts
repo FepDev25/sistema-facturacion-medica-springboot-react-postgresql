@@ -2,6 +2,7 @@ import {
   CalendarDays,
   ClipboardList,
   CreditCard,
+  FlaskConical,
   LayoutDashboard,
   Shield,
   Stethoscope,
@@ -34,4 +35,5 @@ export const ALL_NAV_ITEMS: NavItem[] = [
   { to: '/invoices', label: 'Facturas', icon: CreditCard, roles: ['ADMIN', 'RECEPTIONIST'] },
   { to: '/insurance', label: 'Seguros', icon: Shield, roles: ['ADMIN'] },
   { to: '/catalog', label: 'Catálogo', icon: ClipboardList, roles: ['ADMIN'] },
+  { to: '/ai-lab', label: 'AI Lab', icon: FlaskConical, roles: ['ADMIN'] },
 ]
