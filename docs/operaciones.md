@@ -8,7 +8,7 @@ solo logs.
 
 | Componente | RPO | RTO | Estrategia |
 |---|---|---|---|
-| PostgreSQL (Neon) | ≤ 5 min (PITR del plan contratado) | 30–60 min | Restore a una branch temporal y promover tras validar |
+| PostgreSQL (Neon) | ≈ 0 dentro de la ventana PITR de 6 h (plan actual) | 30–60 min | Restore a una branch temporal y promover tras validar |
 | Redis (Upstash) | No crítico | 0 | Se pierden blacklist y contadores; las sesiones se revalidan contra la BD |
 | Backend (Heroku) | 0 (imagen en registry) | 10 min | `heroku container:release` de la release anterior |
 | Frontend (Vercel) | 0 (build inmutable) | 5 min | Rollback instantáneo a un deployment anterior |
@@ -17,6 +17,10 @@ El refresh token y su familia viven en PostgreSQL (`refresh_tokens`), no en Redi
 Perder Redis no cierra sesiones: solo se pierde la blacklist de access tokens y los
 contadores de rate limit.
 
+El plan actual conserva **6 h** de historial (`history_retention_seconds = 21600`),
+así que un restore por timestamp solo es posible dentro de esa ventana. El primer
+drill se ejecutó el **2026-11-13** (ver registro y evidencia).
+
 ## 2. Restore drill de Neon
 
 Se ejecuta **trimestralmente** y se registra la fecha y el resultado en este documento.
@@ -24,7 +28,8 @@ Se ejecuta **trimestralmente** y se registra la fecha y el resultado en este doc
 ### Procedimiento
 
 1. Crear una branch temporal desde el punto de recuperación elegido (dashboard de
-   Neon → **Branches → New branch** → *From current data* o *From a timestamp*).
+   Neon → **Branches → New branch** → *From current data* o *From a timestamp*, o
+   mediante la API v2 con `parent_timestamp`).
 2. Obtener la cadena de conexión de la branch temporal.
 3. Validar integridad con consultas de solo lectura:
 
@@ -56,11 +61,43 @@ Se ejecuta **trimestralmente** y se registra la fecha y el resultado en este doc
 
 | Fecha | Ejecutó | Branch origen | Resultado | Observaciones |
 |---|---|---|---|---|
-| _pendiente_ | | | | Primer drill pendiente de ejecutar |
+| 2026-11-13 | Felipe Peralta | `production` (`br-lucky-rice-atj5i1mm`) @ `2026-11-13T15:55:00Z` | **OK** | Branch `restore-drill-20261113` desde PITR de 15 min. Conteos, sumas y Flyway idénticos. Backend `prod` arrancó contra la branch: health `UP` y login `200`. Branch y endpoint eliminados; producción intacta. |
 
-> Sin un drill ejecutado y registrado, el RTO es una hipótesis, no una garantía.
+> El primer drill ya está ejecutado. Repetirlo trimestralmente y actualizar la tabla;
+> sin evidencia reciente, el RTO vuelve a ser una hipótesis.
 
-### 2.1 Reconciliación de facturas legacy (A.3)
+### 2.1 Evidencia del primer drill (2026-11-13)
+
+- Branch temporal `restore-drill-20261113` (`br-withered-cell-at71ir0m`), endpoint
+  `ep-muddy-firefly-at53feqg`, creada desde `production` con
+  `parent_timestamp=2026-11-13T15:55:00Z` (15 min antes, dentro de la ventana PITR).
+- Validación de integridad, idéntica a producción:
+
+  | Métrica | Producción | Branch restaurada |
+  |---|---:|---:|
+  | Pacientes | 1.087 | 1.087 |
+  | Citas | 6.087 | 6.087 |
+  | Historias clínicas | 4.875 | 4.875 |
+  | Facturas | 4.139 | 4.139 |
+  | Pagos | 4.203 | 4.203 |
+  | Vectores CIE-10 | 14.219 | 14.219 |
+  | Suma de pagos | 5.709.334,80 | 5.709.334,80 |
+  | Suma total facturado | 7.857.830,14 | 7.857.830,14 |
+  | Último pago | 2026-06-23 05:32:22Z | 2026-06-23 05:32:22Z |
+  | Flyway | V13 | V13 |
+
+- Aplicación real con `SPRING_PROFILES_ACTIVE=prod` contra la branch:
+  `Started BackendApplication in 12.251 seconds`, Flyway
+  `Successfully validated 13 migrations`, `/actuator/health` → `UP` y
+  `POST /api/v1/auth/login` (usuario `admin`) → `200`.
+- Aislamiento comprobado: el login escribió un refresh token en la branch (4 filas)
+  y no en producción (3 filas).
+- Limpieza: branch y endpoint eliminados (el endpoint responde `404`). Los conteos,
+  sumas y la versión de Flyway de producción quedaron idénticos antes y después.
+- Tiempo observado: la branch quedó lista en segundos y el backend respondió `UP`
+  aproximadamente 1 min después de crearla.
+
+### 2.2 Reconciliación de facturas legacy (A.3)
 
 Antes del fix de pagos, una factura podía quedar `pending`/`partial_paid` aunque su
 responsabilidad ya estuviera cubierta. El diagnóstico está en

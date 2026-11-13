@@ -18,7 +18,7 @@ Documentación del proceso de despliegue del MVP a producción. Cubre la arquite
 |---|---|---|---|
 | Frontend | **Vercel** | Free | Deploy automático desde GitHub, CDN global, SPA routing |
 | Backend | **Heroku** | Basic dyno ($7/mes) | Créditos GitHub Student, soporte para contenedores Docker |
-| Base de datos | **Neon** | Free tier | PostgreSQL 15 managed con extensión `pgvector` incluida |
+| Base de datos | **Neon** | Free tier | PostgreSQL 16 managed con extensión `pgvector` incluida |
 | Redis | **Upstash** | Free tier | Redis serverless para JWT blacklist y caché |
 
 ---
@@ -89,7 +89,7 @@ El perfil de producción configura:
 
 ### Neon (PostgreSQL + pgvector)
 
-1. Crear proyecto en [neon.tech](https://neon.tech) → PostgreSQL 15
+1. Crear proyecto en [neon.tech](https://neon.tech) → PostgreSQL 16
 2. Copiar la connection string del panel: `postgresql://usuario:pass@host/db?sslmode=require`
 3. La extensión `pgvector` ya está disponible en Neon sin configuración adicional
 

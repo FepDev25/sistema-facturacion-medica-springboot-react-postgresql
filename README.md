@@ -31,7 +31,7 @@ graph TB
     end
 
     subgraph INFRA["Infraestructura"]
-        PG[("PostgreSQL 15<br/>pgvector — HNSW")]
+        PG[("PostgreSQL 16<br/>pgvector — HNSW")]
         RD[("Redis 7<br/>JWT blacklist + Cache")]
         GG[("Google AI Studio<br/>gemini-embedding-001 768d")]
     end
@@ -158,7 +158,7 @@ A partir del expediente clínico asociado, Claude sugiere servicios y medicament
 | Routing | — | TanStack Router 1.168 |
 | Estado servidor | — | TanStack Query 5.94 |
 | Persistencia | Spring Data JPA + Hibernate | — |
-| Base de datos | PostgreSQL 15 + pgvector | — |
+| Base de datos | PostgreSQL 16 (Neon) / 17 (homelab) + pgvector | — |
 | Cache / sesiones | Redis 7 | — |
 | Migraciones | Flyway | — |
 | Seguridad | Spring Security + JWT (jjwt 0.12) | Axios interceptors |
@@ -251,7 +251,7 @@ Flujos E2E verificados con base de datos real (Testcontainers):
 │   │       │                # invoice, payment, insurance, catalog, auth
 │   │       └── ai/          # P1 icd10 (RAG) · P2 extraction · P3 history · P4 suggestion
 │   ├── src/main/resources/
-│   │   ├── db/migration/    # Flyway V1–V11 (incluye pgvector)
+│   │   ├── db/migration/    # Flyway V1–V13 (incluye pgvector)
 │   │   └── data/cie-10.csv  # 14 208 códigos CIE-10 nivel 2–5
 │   └── src/test/java/       # unit, web, persistence, integration/e2e
 │
