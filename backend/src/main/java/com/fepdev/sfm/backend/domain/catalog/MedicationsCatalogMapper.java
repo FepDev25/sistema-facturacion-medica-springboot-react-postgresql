@@ -1,17 +1,15 @@
 package com.fepdev.sfm.backend.domain.catalog;
 
+import com.fepdev.sfm.backend.domain.catalog.dto.MedicationCreateRequest;
+import com.fepdev.sfm.backend.domain.catalog.dto.MedicationResponse;
+import com.fepdev.sfm.backend.domain.catalog.dto.MedicationSummaryResponse;
+import com.fepdev.sfm.backend.domain.catalog.dto.MedicationUpdateRequest;
 import java.util.List;
-
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
-
-import com.fepdev.sfm.backend.domain.catalog.dto.MedicationCreateRequest;
-import com.fepdev.sfm.backend.domain.catalog.dto.MedicationResponse;
-import com.fepdev.sfm.backend.domain.catalog.dto.MedicationSummaryResponse;
-import com.fepdev.sfm.backend.domain.catalog.dto.MedicationUpdateRequest;
 
 @Mapper(componentModel = "spring")
 public interface MedicationsCatalogMapper {

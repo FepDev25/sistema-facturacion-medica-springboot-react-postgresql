@@ -1,18 +1,15 @@
 package com.fepdev.sfm.backend.domain.insurance;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-
 import com.fepdev.sfm.backend.domain.patient.Patient;
 import com.fepdev.sfm.backend.shared.domain.BaseEntity;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -22,7 +19,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class InsurancePolicy extends BaseEntity{
+public class InsurancePolicy extends BaseEntity {
 
     // relaciones
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -52,5 +49,4 @@ public class InsurancePolicy extends BaseEntity{
 
     @Column(name = "is_active", nullable = false)
     private boolean isActive;
-
 }

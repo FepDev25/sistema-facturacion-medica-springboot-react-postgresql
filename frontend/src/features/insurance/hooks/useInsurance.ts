@@ -116,7 +116,7 @@ export function useCreatePolicy() {
       void qc.invalidateQueries({ queryKey: policyKeys.all })
       toast.success('Poliza creada')
     },
-    onError: (error) => toast.error(extractApiErrorMessage(error) ?? 'Error al crear la poliza'),
+    onError: (error) => toast.error(extractApiErrorMessage(error) ?? 'Error al crear la póliza'),
   })
 }
 
@@ -130,6 +130,6 @@ export function useUpdatePolicy() {
       toast.success('Poliza actualizada')
     },
     onError: (error) =>
-      toast.error(extractApiErrorMessage(error) ?? 'Error al actualizar la poliza'),
+      toast.error(extractApiErrorMessage(error) ?? 'Error al actualizar la póliza'),
   })
 }

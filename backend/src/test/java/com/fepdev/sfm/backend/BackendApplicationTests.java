@@ -1,5 +1,6 @@
 package com.fepdev.sfm.backend;
 
+import com.fepdev.sfm.backend.support.DockerTestSupport;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -8,8 +9,6 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
-import com.fepdev.sfm.backend.support.DockerTestSupport;
 
 @SpringBootTest
 @Testcontainers
@@ -35,6 +34,5 @@ class BackendApplicationTests {
     }
 
     @Test
-    void contextLoads() {
-    }
+    void contextLoads() {}
 }

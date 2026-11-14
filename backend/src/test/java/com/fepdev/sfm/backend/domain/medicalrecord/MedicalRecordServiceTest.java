@@ -4,11 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
+import com.fepdev.sfm.backend.domain.medicalrecord.dto.MedicalRecordResponse;
+import com.fepdev.sfm.backend.domain.patient.PatientRepository;
+import jakarta.persistence.EntityNotFoundException;
 import java.time.OffsetDateTime;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,11 +18,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-
-import com.fepdev.sfm.backend.domain.medicalrecord.dto.MedicalRecordResponse;
-import com.fepdev.sfm.backend.domain.patient.PatientRepository;
-
-import jakarta.persistence.EntityNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
 class MedicalRecordServiceTest {
@@ -51,8 +48,17 @@ class MedicalRecordServiceTest {
         UUID id = UUID.randomUUID();
         MedicalRecord entity = new MedicalRecord();
         MedicalRecordResponse response = new MedicalRecordResponse(
-                id, UUID.randomUUID(), "Ana", "Lopez", UUID.randomUUID(), Map.of("hr", 70),
-                "normal", "ok", OffsetDateTime.now(), OffsetDateTime.now(), OffsetDateTime.now());
+                id,
+                UUID.randomUUID(),
+                "Ana",
+                "Lopez",
+                UUID.randomUUID(),
+                Map.of("hr", 70),
+                "normal",
+                "ok",
+                OffsetDateTime.now(),
+                OffsetDateTime.now(),
+                OffsetDateTime.now());
         when(medicalRecordRepository.findById(id)).thenReturn(Optional.of(entity));
         when(medicalRecordMapper.toResponse(entity)).thenReturn(response);
 
@@ -84,8 +90,17 @@ class MedicalRecordServiceTest {
         UUID patientId = UUID.randomUUID();
         MedicalRecord entity = new MedicalRecord();
         MedicalRecordResponse response = new MedicalRecordResponse(
-                UUID.randomUUID(), patientId, "Ana", "Lopez", UUID.randomUUID(), Map.of(),
-                null, "nota", OffsetDateTime.now(), OffsetDateTime.now(), OffsetDateTime.now());
+                UUID.randomUUID(),
+                patientId,
+                "Ana",
+                "Lopez",
+                UUID.randomUUID(),
+                Map.of(),
+                null,
+                "nota",
+                OffsetDateTime.now(),
+                OffsetDateTime.now(),
+                OffsetDateTime.now());
         Pageable pageable = Pageable.ofSize(10);
 
         when(patientRepository.existsById(patientId)).thenReturn(true);

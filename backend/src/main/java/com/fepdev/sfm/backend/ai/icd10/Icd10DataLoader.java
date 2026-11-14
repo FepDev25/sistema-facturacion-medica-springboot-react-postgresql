@@ -1,5 +1,6 @@
 package com.fepdev.sfm.backend.ai.icd10;
 
+import com.opencsv.CSVReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -8,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ai.document.Document;
@@ -20,14 +20,8 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
-import com.opencsv.CSVReader;
-
 @Component
-@ConditionalOnProperty(
-        name = "app.ai.icd10.index-on-startup",
-        havingValue = "true",
-        matchIfMissing = true
-)
+@ConditionalOnProperty(name = "app.ai.icd10.index-on-startup", havingValue = "true", matchIfMissing = true)
 public class Icd10DataLoader {
 
     private static final Logger log = LoggerFactory.getLogger(Icd10DataLoader.class);
@@ -60,7 +54,8 @@ public class Icd10DataLoader {
                     log.info("CIE-10: {} códigos nuevos indexados en esta sesión.", indexed);
                 }
             } catch (Exception e) {
-                log.error("Error indexando CIE-10 — se puede reiniciar para reanudar desde el punto de interrupción", e);
+                log.error(
+                        "Error indexando CIE-10 — se puede reiniciar para reanudar desde el punto de interrupción", e);
             }
         });
     }
@@ -73,33 +68,34 @@ public class Icd10DataLoader {
 
     private Set<String> loadIndexedCodes() {
         return new HashSet<>(jdbc.queryForList(
-                "SELECT metadata->>'code' FROM vector_store WHERE metadata->>'code' IS NOT NULL",
-                String.class));
+                "SELECT metadata->>'code' FROM vector_store WHERE metadata->>'code' IS NOT NULL", String.class));
     }
 
     private int loadCsv() throws Exception {
+        return loadCsv(new ClassPathResource(CSV_PATH));
+    }
+
+    // Visible para tests: permite usar un CSV pequeno sin tocar el dataset real.
+    int loadCsv(ClassPathResource resource) throws Exception {
         Set<String> alreadyIndexed = loadIndexedCodes();
         if (!alreadyIndexed.isEmpty()) {
-            log.info("CIE-10: reanudando — {} códigos ya indexados, continuando desde ahí.",
-                    alreadyIndexed.size());
+            log.info("CIE-10: reanudando — {} códigos ya indexados, continuando desde ahí.", alreadyIndexed.size());
         } else {
             log.info("Iniciando indexación de CIE-10 desde cero...");
         }
 
-        ClassPathResource resource = new ClassPathResource(CSV_PATH);
         List<Document> batch = new ArrayList<>();
         int newlyIndexed = 0;
 
-        try (CSVReader reader = new CSVReader(
-                new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8))) {
+        try (CSVReader reader =
+                new CSVReader(new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8))) {
 
             reader.readNext(); // skip header
 
             String[] row;
             while ((row = reader.readNext()) != null) {
                 String level = row[7].trim();
-                if (!level.equals("2") && !level.equals("3")
-                        && !level.equals("4") && !level.equals("5")) {
+                if (!level.equals("2") && !level.equals("3") && !level.equals("4") && !level.equals("5")) {
                     continue;
                 }
 
@@ -132,7 +128,7 @@ public class Icd10DataLoader {
         return newlyIndexed;
     }
 
-    private static String formatCode(String raw) {
+    static String formatCode(String raw) {
         if (raw.length() <= 3) return raw;
         return raw.substring(0, 3) + "." + raw.substring(3);
     }

@@ -5,11 +5,16 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fepdev.sfm.backend.domain.catalog.dto.ServiceCreateRequest;
+import com.fepdev.sfm.backend.domain.catalog.dto.ServiceResponse;
+import com.fepdev.sfm.backend.domain.catalog.dto.ServiceSummaryResponse;
+import com.fepdev.sfm.backend.domain.catalog.dto.ServiceUpdateRequest;
+import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
+import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -18,14 +23,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import com.fepdev.sfm.backend.domain.catalog.dto.ServiceCreateRequest;
-import com.fepdev.sfm.backend.domain.catalog.dto.ServiceResponse;
-import com.fepdev.sfm.backend.domain.catalog.dto.ServiceSummaryResponse;
-import com.fepdev.sfm.backend.domain.catalog.dto.ServiceUpdateRequest;
-import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
-
-import jakarta.persistence.EntityNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
 class ServiceCatalogServiceTest {
@@ -44,12 +41,19 @@ class ServiceCatalogServiceTest {
 
     @Test
     void createServicesCatalog_setsActiveAndReturnsResponse() {
-        ServiceCreateRequest request = new ServiceCreateRequest(
-                "SRV-1", "Consulta", "desc", new BigDecimal("50.00"), Category.CONSULTATION);
+        ServiceCreateRequest request =
+                new ServiceCreateRequest("SRV-1", "Consulta", "desc", new BigDecimal("50.00"), Category.CONSULTATION);
         ServicesCatalog entity = new ServicesCatalog();
         ServiceResponse response = new ServiceResponse(
-                UUID.randomUUID(), "SRV-1", "Consulta", "desc", new BigDecimal("50.00"),
-                Category.CONSULTATION, true, null, null);
+                UUID.randomUUID(),
+                "SRV-1",
+                "Consulta",
+                "desc",
+                new BigDecimal("50.00"),
+                Category.CONSULTATION,
+                true,
+                null,
+                null);
 
         when(servicesCatalogMapper.toEntity(request)).thenReturn(entity);
         when(servicesCatalogRepository.save(entity)).thenReturn(entity);
@@ -74,16 +78,15 @@ class ServiceCatalogServiceTest {
     @Test
     void updateServiceCatalog_whenPriceChanges_savesPriceHistory() {
         UUID id = UUID.randomUUID();
-        ServiceUpdateRequest request = new ServiceUpdateRequest(
-                "Consulta", "desc", new BigDecimal("80.00"), Category.CONSULTATION, true);
+        ServiceUpdateRequest request =
+                new ServiceUpdateRequest("Consulta", "desc", new BigDecimal("80.00"), Category.CONSULTATION, true);
         ServicesCatalog entity = new ServicesCatalog();
         ReflectionTestUtils.setField(entity, "id", id);
         entity.setCode("SRV-1");
         entity.setName("Consulta");
         entity.setPrice(new BigDecimal("50.00"));
         ServiceResponse response = new ServiceResponse(
-                id, "SRV-1", "Consulta", "desc", new BigDecimal("80.00"),
-                Category.CONSULTATION, true, null, null);
+                id, "SRV-1", "Consulta", "desc", new BigDecimal("80.00"), Category.CONSULTATION, true, null, null);
 
         when(servicesCatalogRepository.findById(id)).thenReturn(Optional.of(entity));
         when(servicesCatalogRepository.save(entity)).thenReturn(entity);
@@ -99,15 +102,23 @@ class ServiceCatalogServiceTest {
     @Test
     void updateServiceCatalog_whenPriceUnchanged_doesNotSavePriceHistory() {
         UUID id = UUID.randomUUID();
-        ServiceUpdateRequest request = new ServiceUpdateRequest(
-                "Consulta", "desc", new BigDecimal("50.00"), Category.CONSULTATION, true);
+        ServiceUpdateRequest request =
+                new ServiceUpdateRequest("Consulta", "desc", new BigDecimal("50.00"), Category.CONSULTATION, true);
         ServicesCatalog entity = new ServicesCatalog();
         entity.setPrice(new BigDecimal("50.00"));
         when(servicesCatalogRepository.findById(id)).thenReturn(Optional.of(entity));
         when(servicesCatalogRepository.save(entity)).thenReturn(entity);
-        when(servicesCatalogMapper.toResponse(entity)).thenReturn(new ServiceResponse(
-                id, "SRV-1", "Consulta", "desc", new BigDecimal("50.00"),
-                Category.CONSULTATION, true, null, null));
+        when(servicesCatalogMapper.toResponse(entity))
+                .thenReturn(new ServiceResponse(
+                        id,
+                        "SRV-1",
+                        "Consulta",
+                        "desc",
+                        new BigDecimal("50.00"),
+                        Category.CONSULTATION,
+                        true,
+                        null,
+                        null));
 
         serviceCatalogService.updateServiceCatalog(id, request);
 
@@ -134,8 +145,7 @@ class ServiceCatalogServiceTest {
         UUID id = UUID.randomUUID();
         ServicesCatalog entity = new ServicesCatalog();
         ServiceResponse response = new ServiceResponse(
-                id, "SRV-1", "Consulta", null, new BigDecimal("50.00"),
-                Category.CONSULTATION, true, null, null);
+                id, "SRV-1", "Consulta", null, new BigDecimal("50.00"), Category.CONSULTATION, true, null, null);
         when(servicesCatalogRepository.findById(id)).thenReturn(Optional.of(entity));
         when(servicesCatalogMapper.toResponse(entity)).thenReturn(response);
 
@@ -156,8 +166,7 @@ class ServiceCatalogServiceTest {
         ServicesCatalog entity = new ServicesCatalog();
         ServiceSummaryResponse summary = new ServiceSummaryResponse(
                 UUID.randomUUID(), "SRV-1", "Consulta", new BigDecimal("50.00"), Category.CONSULTATION, true);
-        when(servicesCatalogRepository.findByNameContainingIgnoreCase("cons"))
-                .thenReturn(List.of(entity));
+        when(servicesCatalogRepository.findByNameContainingIgnoreCase("cons")).thenReturn(List.of(entity));
         when(servicesCatalogMapper.toSummaryResponseList(List.of(entity))).thenReturn(List.of(summary));
 
         List<ServiceSummaryResponse> result = serviceCatalogService.searchServicesByName("cons");

@@ -5,10 +5,15 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fepdev.sfm.backend.domain.catalog.dto.MedicationCreateRequest;
+import com.fepdev.sfm.backend.domain.catalog.dto.MedicationResponse;
+import com.fepdev.sfm.backend.domain.catalog.dto.MedicationSummaryResponse;
+import com.fepdev.sfm.backend.domain.catalog.dto.MedicationUpdateRequest;
+import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
+import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -17,14 +22,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import com.fepdev.sfm.backend.domain.catalog.dto.MedicationCreateRequest;
-import com.fepdev.sfm.backend.domain.catalog.dto.MedicationResponse;
-import com.fepdev.sfm.backend.domain.catalog.dto.MedicationSummaryResponse;
-import com.fepdev.sfm.backend.domain.catalog.dto.MedicationUpdateRequest;
-import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
-
-import jakarta.persistence.EntityNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
 class MedicationsCatalogServiceTest {
@@ -43,12 +40,20 @@ class MedicationsCatalogServiceTest {
 
     @Test
     void createMedication_setsActiveAndReturnsResponse() {
-        MedicationCreateRequest request = new MedicationCreateRequest(
-                "MED-1", "Amoxicilina", "desc", new BigDecimal("12.50"), Unit.TABLET, true);
+        MedicationCreateRequest request =
+                new MedicationCreateRequest("MED-1", "Amoxicilina", "desc", new BigDecimal("12.50"), Unit.TABLET, true);
         MedicationsCatalog entity = new MedicationsCatalog();
         MedicationResponse response = new MedicationResponse(
-                UUID.randomUUID(), "MED-1", "Amoxicilina", "desc", new BigDecimal("12.50"),
-                Unit.TABLET, true, true, null, null);
+                UUID.randomUUID(),
+                "MED-1",
+                "Amoxicilina",
+                "desc",
+                new BigDecimal("12.50"),
+                Unit.TABLET,
+                true,
+                true,
+                null,
+                null);
 
         when(mapper.toEntity(request)).thenReturn(entity);
         when(repository.save(entity)).thenReturn(entity);
@@ -73,8 +78,8 @@ class MedicationsCatalogServiceTest {
     @Test
     void updateMedication_whenPriceChanges_savesPriceHistory() {
         UUID id = UUID.randomUUID();
-        MedicationUpdateRequest request = new MedicationUpdateRequest(
-                "Amoxicilina", "desc", new BigDecimal("15.00"), Unit.TABLET, true, true);
+        MedicationUpdateRequest request =
+                new MedicationUpdateRequest("Amoxicilina", "desc", new BigDecimal("15.00"), Unit.TABLET, true, true);
         MedicationsCatalog entity = new MedicationsCatalog();
         ReflectionTestUtils.setField(entity, "id", id);
         entity.setCode("MED-1");
@@ -83,9 +88,18 @@ class MedicationsCatalogServiceTest {
 
         when(repository.findById(id)).thenReturn(Optional.of(entity));
         when(repository.save(entity)).thenReturn(entity);
-        when(mapper.toResponse(entity)).thenReturn(new MedicationResponse(
-                id, "MED-1", "Amoxicilina", "desc", new BigDecimal("15.00"),
-                Unit.TABLET, true, true, null, null));
+        when(mapper.toResponse(entity))
+                .thenReturn(new MedicationResponse(
+                        id,
+                        "MED-1",
+                        "Amoxicilina",
+                        "desc",
+                        new BigDecimal("15.00"),
+                        Unit.TABLET,
+                        true,
+                        true,
+                        null,
+                        null));
 
         medicationsCatalogService.updateMedication(id, request);
 
@@ -111,8 +125,7 @@ class MedicationsCatalogServiceTest {
         UUID id = UUID.randomUUID();
         MedicationsCatalog entity = new MedicationsCatalog();
         MedicationResponse response = new MedicationResponse(
-                id, "MED-1", "Amoxicilina", null, new BigDecimal("12.50"),
-                Unit.TABLET, true, true, null, null);
+                id, "MED-1", "Amoxicilina", null, new BigDecimal("12.50"), Unit.TABLET, true, true, null, null);
         when(repository.findById(id)).thenReturn(Optional.of(entity));
         when(mapper.toResponse(entity)).thenReturn(response);
 
@@ -125,8 +138,16 @@ class MedicationsCatalogServiceTest {
     void getMedicationByCode_whenFound_returnsResponse() {
         MedicationsCatalog entity = new MedicationsCatalog();
         MedicationResponse response = new MedicationResponse(
-                UUID.randomUUID(), "MED-1", "Amoxicilina", null, new BigDecimal("12.50"),
-                Unit.TABLET, true, true, null, null);
+                UUID.randomUUID(),
+                "MED-1",
+                "Amoxicilina",
+                null,
+                new BigDecimal("12.50"),
+                Unit.TABLET,
+                true,
+                true,
+                null,
+                null);
         when(repository.findByCode("MED-1")).thenReturn(Optional.of(entity));
         when(mapper.toResponse(entity)).thenReturn(response);
 
@@ -137,7 +158,8 @@ class MedicationsCatalogServiceTest {
 
     @Test
     void searchMedications_whenNameTooShort_throwsBusinessRuleException() {
-        assertThatThrownBy(() -> medicationsCatalogService.searchMedications(true, Unit.TABLET, true, "a", Pageable.unpaged()))
+        assertThatThrownBy(() ->
+                        medicationsCatalogService.searchMedications(true, Unit.TABLET, true, "a", Pageable.unpaged()))
                 .isInstanceOf(BusinessRuleException.class)
                 .hasMessageContaining("al menos 2 caracteres");
     }

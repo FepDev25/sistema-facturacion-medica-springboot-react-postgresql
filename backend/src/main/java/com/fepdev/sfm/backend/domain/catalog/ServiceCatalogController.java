@@ -1,9 +1,13 @@
 package com.fepdev.sfm.backend.domain.catalog;
 
+import com.fepdev.sfm.backend.domain.catalog.dto.ServiceCreateRequest;
+import com.fepdev.sfm.backend.domain.catalog.dto.ServiceResponse;
+import com.fepdev.sfm.backend.domain.catalog.dto.ServiceSummaryResponse;
+import com.fepdev.sfm.backend.domain.catalog.dto.ServiceUpdateRequest;
+import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -20,13 +24,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.fepdev.sfm.backend.domain.catalog.dto.ServiceCreateRequest;
-import com.fepdev.sfm.backend.domain.catalog.dto.ServiceResponse;
-import com.fepdev.sfm.backend.domain.catalog.dto.ServiceSummaryResponse;
-import com.fepdev.sfm.backend.domain.catalog.dto.ServiceUpdateRequest;
-
-import jakarta.validation.Valid;
-
 @RestController
 @RequestMapping("/api/v1/catalog/services")
 public class ServiceCatalogController {
@@ -39,19 +36,19 @@ public class ServiceCatalogController {
 
     @PostMapping
     public ResponseEntity<ServiceResponse> create(
-            @Valid @RequestBody ServiceCreateRequest request,
-            UriComponentsBuilder uriBuilder) {
+            @Valid @RequestBody ServiceCreateRequest request, UriComponentsBuilder uriBuilder) {
 
         ServiceResponse response = serviceCatalogService.createServicesCatalog(request);
-        URI location = uriBuilder.path("/api/v1/catalog/services/{id}")
-                .buildAndExpand(response.id()).toUri();
+        URI location = uriBuilder
+                .path("/api/v1/catalog/services/{id}")
+                .buildAndExpand(response.id())
+                .toUri();
         return ResponseEntity.created(location).body(response);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ServiceResponse> update(
-            @PathVariable UUID id,
-            @Valid @RequestBody ServiceUpdateRequest request) {
+            @PathVariable UUID id, @Valid @RequestBody ServiceUpdateRequest request) {
 
         return ResponseEntity.ok(serviceCatalogService.updateServiceCatalog(id, request));
     }

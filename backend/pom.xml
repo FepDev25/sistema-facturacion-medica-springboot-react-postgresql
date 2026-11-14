@@ -34,6 +34,8 @@
 		<lombok.version>1.18.48</lombok.version>
 		<jacoco.version>0.8.16</jacoco.version>
 		<spring-ai.version>2.1.0-RC2</spring-ai.version>
+		<spotless.version>2.46.1</spotless.version>
+		<palantir-java-format.version>2.103.0</palantir-java-format.version>
 	</properties>
 
 	<dependencyManagement>
@@ -262,12 +264,12 @@
 										<limit>
 											<counter>LINE</counter>
 											<value>COVEREDRATIO</value>
-											<minimum>0.80</minimum>
+											<minimum>0.82</minimum>
 										</limit>
 										<limit>
 											<counter>BRANCH</counter>
 											<value>COVEREDRATIO</value>
-											<minimum>0.65</minimum>
+											<minimum>0.66</minimum>
 										</limit>
 									</limits>
 								</rule>
@@ -293,6 +295,31 @@
 								</rule>
 							</rules>
 						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>com.diffplug.spotless</groupId>
+				<artifactId>spotless-maven-plugin</artifactId>
+				<version>${spotless.version}</version>
+				<configuration>
+					<java>
+						<!-- 4 espacios y 120 columnas, alineado con el estilo existente. -->
+						<palantirJavaFormat>
+							<version>${palantir-java-format.version}</version>
+						</palantirJavaFormat>
+						<removeUnusedImports/>
+						<trimTrailingWhitespace/>
+						<endWithNewline/>
+					</java>
+				</configuration>
+				<executions>
+					<execution>
+						<id>spotless-check</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
 					</execution>
 				</executions>
 			</plugin>

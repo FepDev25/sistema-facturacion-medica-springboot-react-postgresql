@@ -1,9 +1,5 @@
 package com.fepdev.sfm.backend.domain.invoice;
 
-import java.util.List;
-
-import org.springframework.stereotype.Component;
-
 import com.fepdev.sfm.backend.domain.appointment.Appointment;
 import com.fepdev.sfm.backend.domain.catalog.MedicationsCatalog;
 import com.fepdev.sfm.backend.domain.catalog.ServicesCatalog;
@@ -11,6 +7,8 @@ import com.fepdev.sfm.backend.domain.insurance.InsurancePolicy;
 import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceListViewResponse;
 import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceViewResponse;
 import com.fepdev.sfm.backend.domain.patient.Patient;
+import java.util.List;
+import org.springframework.stereotype.Component;
 
 @Component
 public class InvoiceViewMapper {
@@ -105,10 +103,7 @@ public class InvoiceViewMapper {
         }
 
         return new InvoiceViewResponse.ServiceView(
-                service.getId(),
-                service.getCode(),
-                service.getName(),
-                service.getPrice());
+                service.getId(), service.getCode(), service.getName(), service.getPrice());
     }
 
     private InvoiceViewResponse.MedicationView mapMedication(MedicationsCatalog medication) {
@@ -117,9 +112,6 @@ public class InvoiceViewMapper {
         }
 
         return new InvoiceViewResponse.MedicationView(
-                medication.getId(),
-                medication.getCode(),
-                medication.getName(),
-                medication.isRequiresPrescription());
+                medication.getId(), medication.getCode(), medication.getName(), medication.isRequiresPrescription());
     }
 }

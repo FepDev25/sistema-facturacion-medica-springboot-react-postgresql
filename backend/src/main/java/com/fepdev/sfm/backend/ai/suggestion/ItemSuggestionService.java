@@ -1,15 +1,5 @@
 package com.fepdev.sfm.backend.ai.suggestion;
 
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.fepdev.sfm.backend.ai.guard.AiCallExecutor;
 import com.fepdev.sfm.backend.ai.suggestion.dto.ItemSuggestionResult;
 import com.fepdev.sfm.backend.ai.suggestion.dto.SuggestedItem;
@@ -28,14 +18,24 @@ import com.fepdev.sfm.backend.domain.medicalrecord.PrescriptionRepository;
 import com.fepdev.sfm.backend.domain.medicalrecord.Procedure;
 import com.fepdev.sfm.backend.domain.medicalrecord.ProcedureRepository;
 import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
-
 import jakarta.persistence.EntityNotFoundException;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.ResponseEntity;
+import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ItemSuggestionService {
 
-    private record LlmItem(String itemType, String name, String justification) {}
-    private record LlmResult(List<LlmItem> suggestedItems) {}
+    record LlmItem(String itemType, String name, String justification) {}
+
+    record LlmResult(List<LlmItem> suggestedItems) {}
 
     private static final String SYSTEM_PROMPT = """
             Eres un asistente de facturación médica. Tu tarea es sugerir los servicios y medicamentos
@@ -59,15 +59,16 @@ public class ItemSuggestionService {
     private final ServicesCatalogRepository servicesRepo;
     private final MedicationsCatalogRepository medicationsRepo;
 
-    public ItemSuggestionService(ChatClient chatClient,
-                                  AiCallExecutor aiCallExecutor,
-                                  InvoiceRepository invoiceRepo,
-                                  MedicalRecordRepository medicalRecordRepo,
-                                  DiagnosisRepository diagnosisRepo,
-                                  PrescriptionRepository prescriptionRepo,
-                                  ProcedureRepository procedureRepo,
-                                  ServicesCatalogRepository servicesRepo,
-                                  MedicationsCatalogRepository medicationsRepo) {
+    public ItemSuggestionService(
+            ChatClient chatClient,
+            AiCallExecutor aiCallExecutor,
+            InvoiceRepository invoiceRepo,
+            MedicalRecordRepository medicalRecordRepo,
+            DiagnosisRepository diagnosisRepo,
+            PrescriptionRepository prescriptionRepo,
+            ProcedureRepository procedureRepo,
+            ServicesCatalogRepository servicesRepo,
+            MedicationsCatalogRepository medicationsRepo) {
         this.chatClient = chatClient;
         this.aiCallExecutor = aiCallExecutor;
         this.invoiceRepo = invoiceRepo;
@@ -81,7 +82,8 @@ public class ItemSuggestionService {
 
     @Transactional(readOnly = true)
     public ItemSuggestionResult suggestItems(UUID invoiceId) {
-        Invoice invoice = invoiceRepo.findById(invoiceId)
+        Invoice invoice = invoiceRepo
+                .findById(invoiceId)
                 .orElseThrow(() -> new EntityNotFoundException("Factura no encontrada: " + invoiceId));
 
         if (invoice.getAppointment() == null) {
@@ -91,9 +93,10 @@ public class ItemSuggestionService {
 
         UUID appointmentId = invoice.getAppointment().getId();
 
-        MedicalRecord mr = medicalRecordRepo.findByAppointmentId(appointmentId)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "No hay expediente médico para la cita: " + appointmentId));
+        MedicalRecord mr = medicalRecordRepo
+                .findByAppointmentId(appointmentId)
+                .orElseThrow(
+                        () -> new EntityNotFoundException("No hay expediente médico para la cita: " + appointmentId));
 
         UUID mrId = mr.getId();
         List<Diagnosis> diagnoses = diagnosisRepo.findByMedicalRecordId(mrId);
@@ -101,9 +104,11 @@ public class ItemSuggestionService {
         List<Procedure> procedures = procedureRepo.findAllByMedicalRecordId(mrId);
 
         List<ServicesCatalog> services = servicesRepo.findAll().stream()
-                .filter(ServicesCatalog::getIsActive).toList();
+                .filter(ServicesCatalog::getIsActive)
+                .toList();
         List<MedicationsCatalog> medications = medicationsRepo.findAll().stream()
-                .filter(MedicationsCatalog::isActive).toList();
+                .filter(MedicationsCatalog::isActive)
+                .toList();
 
         Map<String, UUID> serviceIdMap = services.stream()
                 .collect(Collectors.toMap(ServicesCatalog::getName, ServicesCatalog::getId, (a, b) -> a));
@@ -116,11 +121,16 @@ public class ItemSuggestionService {
 
         String userPrompt = buildPrompt(diagnoses, prescriptions, procedures, services, medications);
 
-        LlmResult llmResult = aiCallExecutor.call("items-suggest", () -> chatClient.prompt()
-                .system(SYSTEM_PROMPT)
-                .user(userPrompt)
-                .call()
-                .entity(LlmResult.class));
+        LlmResult llmResult;
+        ResponseEntity<ChatResponse, LlmResult> response = aiCallExecutor.callEntity(
+                "items-suggest",
+                () -> chatClient
+                        .prompt()
+                        .system(SYSTEM_PROMPT)
+                        .user(userPrompt)
+                        .call()
+                        .responseEntity(LlmResult.class));
+        llmResult = response != null ? response.entity() : null;
 
         if (llmResult == null || llmResult.suggestedItems() == null) {
             return new ItemSuggestionResult(List.of());
@@ -133,27 +143,37 @@ public class ItemSuggestionService {
         return new ItemSuggestionResult(resolved);
     }
 
-    private SuggestedItem resolve(LlmItem item,
-                                   Map<String, UUID> serviceIdMap, Map<String, BigDecimal> servicePriceMap,
-                                   Map<String, UUID> medicationIdMap, Map<String, BigDecimal> medicationPriceMap) {
+    private SuggestedItem resolve(
+            LlmItem item,
+            Map<String, UUID> serviceIdMap,
+            Map<String, BigDecimal> servicePriceMap,
+            Map<String, UUID> medicationIdMap,
+            Map<String, BigDecimal> medicationPriceMap) {
         boolean isService = "service".equalsIgnoreCase(item.itemType());
         Map<String, UUID> idMap = isService ? serviceIdMap : medicationIdMap;
         Map<String, BigDecimal> priceMap = isService ? servicePriceMap : medicationPriceMap;
 
         UUID matchedId = idMap.entrySet().stream()
                 .filter(e -> e.getKey().equalsIgnoreCase(item.name().trim()))
-                .findFirst().map(Map.Entry::getValue).orElse(null);
+                .findFirst()
+                .map(Map.Entry::getValue)
+                .orElse(null);
 
         BigDecimal price = priceMap.entrySet().stream()
                 .filter(e -> e.getKey().equalsIgnoreCase(item.name().trim()))
-                .findFirst().map(Map.Entry::getValue).orElse(null);
+                .findFirst()
+                .map(Map.Entry::getValue)
+                .orElse(null);
 
         return new SuggestedItem(item.itemType(), item.name(), matchedId, price, item.justification());
     }
 
-    private String buildPrompt(List<Diagnosis> diagnoses, List<Prescription> prescriptions,
-                                List<Procedure> procedures,
-                                List<ServicesCatalog> services, List<MedicationsCatalog> medications) {
+    private String buildPrompt(
+            List<Diagnosis> diagnoses,
+            List<Prescription> prescriptions,
+            List<Procedure> procedures,
+            List<ServicesCatalog> services,
+            List<MedicationsCatalog> medications) {
         StringBuilder sb = new StringBuilder();
 
         sb.append("## Contexto clínico de la cita\n\n");
@@ -162,18 +182,26 @@ public class ItemSuggestionService {
         if (diagnoses.isEmpty()) {
             sb.append("- Sin diagnósticos registrados\n");
         } else {
-            diagnoses.forEach(d -> sb.append("- ").append(d.getIcd10Code())
-                    .append(": ").append(d.getDescription())
-                    .append(" (").append(d.getSeverity()).append(")\n"));
+            diagnoses.forEach(d -> sb.append("- ")
+                    .append(d.getIcd10Code())
+                    .append(": ")
+                    .append(d.getDescription())
+                    .append(" (")
+                    .append(d.getSeverity())
+                    .append(")\n"));
         }
 
         sb.append("\n**Prescripciones:**\n");
         if (prescriptions.isEmpty()) {
             sb.append("- Sin prescripciones registradas\n");
         } else {
-            prescriptions.forEach(p -> sb.append("- ").append(p.getMedication().getName())
-                    .append(" ").append(p.getDosage())
-                    .append(", ").append(p.getFrequency()).append("\n"));
+            prescriptions.forEach(p -> sb.append("- ")
+                    .append(p.getMedication().getName())
+                    .append(" ")
+                    .append(p.getDosage())
+                    .append(", ")
+                    .append(p.getFrequency())
+                    .append("\n"));
         }
 
         sb.append("\n**Procedimientos realizados:**\n");
@@ -184,12 +212,18 @@ public class ItemSuggestionService {
         }
 
         sb.append("\n## Catálogo de servicios disponibles\n");
-        services.forEach(s -> sb.append("- ").append(s.getName())
-                .append(" | $").append(s.getPrice()).append("\n"));
+        services.forEach(s -> sb.append("- ")
+                .append(s.getName())
+                .append(" | $")
+                .append(s.getPrice())
+                .append("\n"));
 
         sb.append("\n## Catálogo de medicamentos disponibles\n");
-        medications.forEach(m -> sb.append("- ").append(m.getName())
-                .append(" | $").append(m.getPrice()).append("\n"));
+        medications.forEach(m -> sb.append("- ")
+                .append(m.getName())
+                .append(" | $")
+                .append(m.getPrice())
+                .append("\n"));
 
         sb.append("\nSugiere los ítems del catálogo que corresponden facturar para esta cita.");
 

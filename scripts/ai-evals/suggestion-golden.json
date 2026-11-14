@@ -1,0 +1,25 @@
+{
+  "feature": "suggestion",
+  "version": "2026-11-13",
+  "description": "Casos dorados de sugerencia de items de factura (P4). Los invoiceId usan placeholders ${VAR} que el runner resuelve desde el entorno: hay que crear una factura local cuyo expediente clinico coincida con el escenario antes de ejecutar el eval.",
+  "cases": [
+    {
+      "id": "consulta-hta-seguimiento",
+      "invoiceId": "${AI_EVAL_INVOICE_HTA}",
+      "scenario": "Consulta de seguimiento por hipertension esencial con toma de presion y ajuste de losartan.",
+      "expectedItems": [
+        { "itemType": "service", "name": "Consulta de seguimiento" },
+        { "itemType": "medication", "name": "Losartan 50 mg" }
+      ]
+    },
+    {
+      "id": "consulta-faringitis",
+      "invoiceId": "${AI_EVAL_INVOICE_FARINGITIS}",
+      "scenario": "Consulta por faringitis aguda con prescripcion de amoxicilina y cultivo faringeo.",
+      "expectedItems": [
+        { "itemType": "service", "name": "Consulta de medicina general" },
+        { "itemType": "medication", "name": "Amoxicilina 500 mg" }
+      ]
+    }
+  ]
+}

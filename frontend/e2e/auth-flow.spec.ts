@@ -202,7 +202,7 @@ test.describe('Profile page', () => {
     await openProfile(page)
 
     await expect(page.getByRole('heading', { name: 'Mi perfil' })).toBeVisible()
-    await expect(page.getByText('Informacion de la cuenta')).toBeVisible()
+    await expect(page.getByText('Información de la cuenta')).toBeVisible()
     await expect(page.getByText('Datos de usuario')).toBeVisible()
   })
 

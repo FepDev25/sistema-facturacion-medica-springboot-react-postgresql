@@ -19,7 +19,12 @@ export function PatientsPage() {
   const [page, setPage] = useState(0)
   const pageSize = 20
 
-  const { data: patientsPage, isLoading } = usePatientsPage({
+  const {
+    data: patientsPage,
+    isLoading,
+    isError,
+    refetch,
+  } = usePatientsPage({
     lastName: search.trim() || undefined,
     page,
     size: pageSize,
@@ -86,16 +91,18 @@ export function PatientsPage() {
           columns={columns}
           data={patients}
           isLoading={isLoading}
+          isError={isError}
+          onRetry={() => void refetch()}
           pageSize={20}
           emptyMessage={
             search ? 'Sin resultados para la búsqueda.' : 'No hay pacientes registrados.'
           }
         />
 
-        {!isLoading && patientsPage && patientsPage.totalPages > 1 ? (
+        {!isLoading && !isError && patientsPage && patientsPage.totalPages > 1 ? (
           <div className="mt-3 flex items-center justify-between px-1">
             <p className="text-xs text-muted-foreground">
-              Pagina {patientsPage.number + 1} de {patientsPage.totalPages} -{' '}
+              Página {patientsPage.number + 1} de {patientsPage.totalPages} -{' '}
               {patientsPage.totalElements} pacientes
             </p>
             <div className="flex items-center gap-1">
@@ -103,7 +110,7 @@ export function PatientsPage() {
                 variant="outline"
                 size="icon"
                 className="h-7 w-7"
-                aria-label="Pagina anterior"
+                aria-label="Página anterior"
                 onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
                 disabled={patientsPage.number <= 0}
               >
@@ -113,7 +120,7 @@ export function PatientsPage() {
                 variant="outline"
                 size="icon"
                 className="h-7 w-7"
-                aria-label="Pagina siguiente"
+                aria-label="Página siguiente"
                 onClick={() =>
                   setPage((prev) =>
                     patientsPage.number + 1 >= patientsPage.totalPages ? prev : prev + 1,

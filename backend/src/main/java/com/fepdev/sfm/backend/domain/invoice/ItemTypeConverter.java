@@ -15,5 +15,4 @@ public class ItemTypeConverter implements AttributeConverter<ItemType, String> {
     public ItemType convertToEntityAttribute(String dbData) {
         return dbData == null ? null : ItemType.valueOf(dbData.toUpperCase());
     }
-    
 }

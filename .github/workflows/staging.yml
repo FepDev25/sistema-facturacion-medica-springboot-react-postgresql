@@ -1,0 +1,210 @@
+name: Staging
+
+# Deshabilitado por defecto: cada job exige vars.STAGING_ENABLED == 'true'.
+# Sin esa variable el workflow se dispara pero no despliega nada.
+# Diseño y checklist en docs/staging.md.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [develop]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: staging
+  cancel-in-progress: false
+
+env:
+  STAGING_HEROKU_APP: ${{ vars.STAGING_HEROKU_APP }}
+  STAGING_BACKEND_URL: ${{ vars.STAGING_BACKEND_URL }}
+  STAGING_HEALTH_URL: ${{ vars.STAGING_HEALTH_URL }}
+  STAGING_FRONTEND_URL: ${{ vars.STAGING_FRONTEND_URL }}
+
+jobs:
+  backend-staging:
+    name: Backend staging
+    if: vars.STAGING_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment:
+      name: staging
+      url: ${{ vars.STAGING_FRONTEND_URL }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Verificar configuración de staging
+        run: |
+          set -u
+          for name in STAGING_HEROKU_APP STAGING_BACKEND_URL STAGING_HEALTH_URL; do
+            if [ -z "${!name}" ]; then
+              echo "::error title=Staging::Falta la variable $name"
+              exit 1
+            fi
+          done
+          if [ -z "${{ secrets.STAGING_HEROKU_API_KEY }}" ]; then
+            echo "::error title=Staging::Falta el secret STAGING_HEROKU_API_KEY"
+            exit 1
+          fi
+
+      - name: Instalar Heroku CLI
+        run: curl -fsSL https://cli-assets.heroku.com/install.sh | sh
+
+      - name: Verificar acceso a la app de staging
+        env:
+          HEROKU_API_KEY: ${{ secrets.STAGING_HEROKU_API_KEY }}
+        run: |
+          echo "App de staging: $STAGING_HEROKU_APP"
+          if ! heroku apps:info --app "$STAGING_HEROKU_APP" >/dev/null 2>&1; then
+            echo "::error title=Heroku::La API key no puede acceder a $STAGING_HEROKU_APP"
+            exit 1
+          fi
+
+      - name: Login al registry de Heroku
+        env:
+          HEROKU_API_KEY: ${{ secrets.STAGING_HEROKU_API_KEY }}
+        run: echo "$HEROKU_API_KEY" | docker login --username=_ --password-stdin registry.heroku.com
+
+      - name: Configurar Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build y push de la imagen
+        uses: docker/build-push-action@v7
+        with:
+          context: ./backend
+          platforms: linux/amd64
+          provenance: false
+          sbom: false
+          outputs: type=image,name=registry.heroku.com/${{ env.STAGING_HEROKU_APP }}/web,push=true,oci-mediatypes=false
+
+      - name: Release en staging
+        env:
+          HEROKU_API_KEY: ${{ secrets.STAGING_HEROKU_API_KEY }}
+        run: heroku container:release web --app "$STAGING_HEROKU_APP"
+
+      - name: Smoke test del backend de staging
+        run: |
+          for i in $(seq 1 30); do
+            status=$(curl -s -o /dev/null -w '%{http_code}' "$STAGING_HEALTH_URL" || true)
+            if [ "$status" = "200" ]; then
+              echo "Health check OK en el intento $i."
+              exit 0
+            fi
+            echo "Intento $i/30: HTTP $status"
+            sleep 10
+          done
+          echo "::error title=Staging::El backend no respondió 200 en $STAGING_HEALTH_URL"
+          exit 1
+
+      - name: Resumen del deploy
+        if: always()
+        env:
+          HEROKU_API_KEY: ${{ secrets.STAGING_HEROKU_API_KEY }}
+        run: |
+          {
+            echo "## Deploy backend staging"
+            echo ""
+            echo "- Commit: \`$GITHUB_SHA\`"
+            echo "- App: \`$STAGING_HEROKU_APP\`"
+            echo "- Health: $STAGING_HEALTH_URL"
+            echo ""
+            echo "Rollback: \`heroku releases:rollback -a $STAGING_HEROKU_APP\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+          heroku releases --app "$STAGING_HEROKU_APP" --num 3 || true
+
+  frontend-staging:
+    name: Frontend staging
+    if: vars.STAGING_ENABLED == 'true'
+    needs: [backend-staging]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: staging
+      url: ${{ vars.STAGING_FRONTEND_URL }}
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Verificar configuración de staging
+        run: |
+          set -u
+          if [ -z "$STAGING_BACKEND_URL" ] || [ -z "$STAGING_FRONTEND_URL" ]; then
+            echo "::error title=Staging::Faltan STAGING_BACKEND_URL o STAGING_FRONTEND_URL"
+            exit 1
+          fi
+          if [ -z "${{ secrets.STAGING_VERCEL_TOKEN }}" ]; then
+            echo "::error title=Staging::Falta el secret STAGING_VERCEL_TOKEN"
+            exit 1
+          fi
+
+      - name: Configurar Node 22
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Build de producción
+        run: npm run build
+
+      # El rewrite de /api apunta a producción en el repo. Se reescribe solo
+      # en el workspace del runner para que staging use su propio backend.
+      - name: Apuntar el rewrite /api al backend de staging
+        run: |
+          python3 - <<'PY'
+          import json, os
+          path = 'vercel.json'
+          with open(path) as handle:
+              config = json.load(handle)
+          config['rewrites'][0]['destination'] = os.environ['STAGING_BACKEND_URL'] + '/api/:path*'
+          with open(path, 'w') as handle:
+              json.dump(config, handle, indent=2, ensure_ascii=False)
+              handle.write('\n')
+          PY
+          cat vercel.json
+
+      - name: Instalar Vercel CLI
+        run: npm install --global vercel@latest
+
+      - name: Pull del proyecto de staging
+        env:
+          VERCEL_TOKEN: ${{ secrets.STAGING_VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.STAGING_VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.STAGING_VERCEL_PROJECT_ID }}
+        run: vercel pull --yes --environment=production --token="$VERCEL_TOKEN"
+
+      - name: Build con Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.STAGING_VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.STAGING_VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.STAGING_VERCEL_PROJECT_ID }}
+        run: vercel build --prod --token="$VERCEL_TOKEN"
+
+      - name: Deploy a staging
+        env:
+          VERCEL_TOKEN: ${{ secrets.STAGING_VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.STAGING_VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.STAGING_VERCEL_PROJECT_ID }}
+        run: vercel deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+
+      - name: Smoke test del frontend de staging
+        run: |
+          for i in $(seq 1 20); do
+            status=$(curl -s -o /dev/null -w '%{http_code}' "$STAGING_FRONTEND_URL/" || true)
+            if [ "$status" = "200" ]; then
+              echo "Frontend de staging OK en el intento $i."
+              exit 0
+            fi
+            echo "Intento $i/20: HTTP $status"
+            sleep 5
+          done
+          echo "::error title=Staging::El frontend no respondió 200 en $STAGING_FRONTEND_URL"
+          exit 1

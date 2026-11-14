@@ -2,16 +2,14 @@ package com.fepdev.sfm.backend.domain.payment;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fepdev.sfm.backend.domain.invoice.Invoice;
+import com.fepdev.sfm.backend.domain.payment.dto.PaymentCreateRequest;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import com.fepdev.sfm.backend.domain.invoice.Invoice;
-import com.fepdev.sfm.backend.domain.payment.dto.PaymentCreateRequest;
 
 class PaymentMapperImplTest {
 
@@ -21,12 +19,7 @@ class PaymentMapperImplTest {
     void toEntity_mapsCreateRequest() {
         OffsetDateTime paymentDate = OffsetDateTime.now();
         PaymentCreateRequest request = new PaymentCreateRequest(
-                UUID.randomUUID(),
-                new BigDecimal("25.50"),
-                PaymentMethod.DEBIT_CARD,
-                "REF-001",
-                "nota",
-                paymentDate);
+                UUID.randomUUID(), new BigDecimal("25.50"), PaymentMethod.DEBIT_CARD, "REF-001", "nota", paymentDate);
 
         Payment entity = mapper.toEntity(request);
 

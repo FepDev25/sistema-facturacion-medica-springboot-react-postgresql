@@ -1,17 +1,15 @@
 package com.fepdev.sfm.backend.domain.catalog;
 
+import com.fepdev.sfm.backend.domain.catalog.dto.ServiceCreateRequest;
+import com.fepdev.sfm.backend.domain.catalog.dto.ServiceResponse;
+import com.fepdev.sfm.backend.domain.catalog.dto.ServiceSummaryResponse;
+import com.fepdev.sfm.backend.domain.catalog.dto.ServiceUpdateRequest;
 import java.util.List;
-
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
-
-import com.fepdev.sfm.backend.domain.catalog.dto.ServiceCreateRequest;
-import com.fepdev.sfm.backend.domain.catalog.dto.ServiceResponse;
-import com.fepdev.sfm.backend.domain.catalog.dto.ServiceSummaryResponse;
-import com.fepdev.sfm.backend.domain.catalog.dto.ServiceUpdateRequest;
 
 @Mapper(componentModel = "spring")
 public interface ServicesCatalogMapper {

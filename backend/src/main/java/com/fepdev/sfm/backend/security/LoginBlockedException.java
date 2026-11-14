@@ -9,8 +9,8 @@ public class LoginBlockedException extends RuntimeException {
     private final long retryAfterSeconds;
 
     public LoginBlockedException(long retryAfterSeconds) {
-        super("Demasiados intentos de inicio de sesion. Intenta de nuevo en "
-                + Math.max(1, retryAfterSeconds) + " segundos.");
+        super("Demasiados intentos de inicio de sesion. Intenta de nuevo en " + Math.max(1, retryAfterSeconds)
+                + " segundos.");
         this.retryAfterSeconds = Math.max(1, retryAfterSeconds);
     }
 

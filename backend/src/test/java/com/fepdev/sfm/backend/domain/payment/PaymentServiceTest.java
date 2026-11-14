@@ -1,25 +1,11 @@
 package com.fepdev.sfm.backend.domain.payment;
 
-import java.math.BigDecimal;
-import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 import com.fepdev.sfm.backend.domain.invoice.Invoice;
 import com.fepdev.sfm.backend.domain.invoice.InvoiceRepository;
@@ -27,22 +13,39 @@ import com.fepdev.sfm.backend.domain.invoice.InvoiceStatus;
 import com.fepdev.sfm.backend.domain.payment.dto.PaymentCreateRequest;
 import com.fepdev.sfm.backend.domain.payment.dto.PaymentResponse;
 import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
-
 import jakarta.persistence.EntityNotFoundException;
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 class PaymentServiceTest {
 
-    @Mock PaymentRepository paymentRepository;
-    @Mock PaymentMapper paymentMapper;
-    @Mock InvoiceRepository invoiceRepository;
+    @Mock
+    PaymentRepository paymentRepository;
 
-    @InjectMocks PaymentService paymentService;
+    @Mock
+    PaymentMapper paymentMapper;
+
+    @Mock
+    InvoiceRepository invoiceRepository;
+
+    @InjectMocks
+    PaymentService paymentService;
 
     // invoiceId, amount, paymentMethod, referenceNumber, notes, paymentDate
     private PaymentCreateRequest paymentRequest(UUID invoiceId, BigDecimal amount) {
-        return new PaymentCreateRequest(
-            invoiceId, amount, PaymentMethod.CASH, null, null, OffsetDateTime.now());
+        return new PaymentCreateRequest(invoiceId, amount, PaymentMethod.CASH, null, null, OffsetDateTime.now());
     }
 
     private Invoice invoiceWith(InvoiceStatus status, BigDecimal total) {
@@ -70,28 +73,28 @@ class PaymentServiceTest {
         when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> paymentService.registerPayment(paymentRequest(invoiceId, BigDecimal.TEN)))
-            .isInstanceOf(EntityNotFoundException.class);
+                .isInstanceOf(EntityNotFoundException.class);
     }
 
     @Test
     void registerPayment_whenInvoiceDraft_throwsBusinessRuleException() {
         UUID invoiceId = UUID.randomUUID();
         when(invoiceRepository.findById(invoiceId))
-            .thenReturn(Optional.of(invoiceWith(InvoiceStatus.DRAFT, new BigDecimal("200.00"))));
+                .thenReturn(Optional.of(invoiceWith(InvoiceStatus.DRAFT, new BigDecimal("200.00"))));
 
         assertThatThrownBy(() -> paymentService.registerPayment(paymentRequest(invoiceId, BigDecimal.TEN)))
-            .isInstanceOf(BusinessRuleException.class)
-            .hasMessageContaining("PENDING");
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("PENDING");
     }
 
     @Test
     void registerPayment_whenInvoiceCancelled_throwsBusinessRuleException() {
         UUID invoiceId = UUID.randomUUID();
         when(invoiceRepository.findById(invoiceId))
-            .thenReturn(Optional.of(invoiceWith(InvoiceStatus.CANCELLED, new BigDecimal("200.00"))));
+                .thenReturn(Optional.of(invoiceWith(InvoiceStatus.CANCELLED, new BigDecimal("200.00"))));
 
         assertThatThrownBy(() -> paymentService.registerPayment(paymentRequest(invoiceId, BigDecimal.TEN)))
-            .isInstanceOf(BusinessRuleException.class);
+                .isInstanceOf(BusinessRuleException.class);
     }
 
     @Test
@@ -110,12 +113,12 @@ class PaymentServiceTest {
         UUID invoiceId = UUID.randomUUID();
         // total=100, alreadyPaid=60, pendingBalance=40, newPayment=50 → excede
         when(invoiceRepository.findById(invoiceId))
-            .thenReturn(Optional.of(invoiceWith(InvoiceStatus.PENDING, new BigDecimal("100.00"))));
+                .thenReturn(Optional.of(invoiceWith(InvoiceStatus.PENDING, new BigDecimal("100.00"))));
         when(paymentRepository.sumAmountByInvoiceId(invoiceId)).thenReturn(new BigDecimal("60.00"));
 
         assertThatThrownBy(() -> paymentService.registerPayment(paymentRequest(invoiceId, new BigDecimal("50.00"))))
-            .isInstanceOf(BusinessRuleException.class)
-            .hasMessageContaining("saldo pendiente");
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("saldo pendiente");
     }
 
     @Test
@@ -147,21 +150,22 @@ class PaymentServiceTest {
         when(paymentRepository.sumAmountByInvoiceId(invoiceId)).thenReturn(BigDecimal.ZERO);
 
         assertThatThrownBy(() -> paymentService.registerPayment(paymentRequest(invoiceId, new BigDecimal("50.00"))))
-            .isInstanceOf(BusinessRuleException.class)
-            .hasMessageContaining("saldo pendiente");
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("saldo pendiente");
     }
 
     @Test
     void registerPayment_whenInsuranceCoversEverything_rejectsAnyPayment() {
         UUID invoiceId = UUID.randomUUID();
-        Invoice invoice = invoiceWithCoverage(InvoiceStatus.PENDING, new BigDecimal("100.00"), new BigDecimal("100.00"));
+        Invoice invoice =
+                invoiceWithCoverage(InvoiceStatus.PENDING, new BigDecimal("100.00"), new BigDecimal("100.00"));
 
         when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
         when(paymentRepository.sumAmountByInvoiceId(invoiceId)).thenReturn(BigDecimal.ZERO);
 
         assertThatThrownBy(() -> paymentService.registerPayment(paymentRequest(invoiceId, new BigDecimal("0.01"))))
-            .isInstanceOf(BusinessRuleException.class)
-            .hasMessageContaining("saldo pendiente");
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("saldo pendiente");
     }
 
     @Test
@@ -192,7 +196,15 @@ class PaymentServiceTest {
         Invoice invoice = invoiceWith(InvoiceStatus.PENDING, new BigDecimal("100.00"));
         Payment payment = new Payment();
         PaymentResponse response = new PaymentResponse(
-            UUID.randomUUID(), invoiceId, null, new BigDecimal("100.00"), PaymentMethod.CASH, null, null, null, null);
+                UUID.randomUUID(),
+                invoiceId,
+                null,
+                new BigDecimal("100.00"),
+                PaymentMethod.CASH,
+                null,
+                null,
+                null,
+                null);
 
         when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
         when(paymentRepository.sumAmountByInvoiceId(invoiceId)).thenReturn(BigDecimal.ZERO);
@@ -214,7 +226,15 @@ class PaymentServiceTest {
         Invoice invoice = invoiceWith(InvoiceStatus.PENDING, new BigDecimal("200.00"));
         Payment payment = new Payment();
         PaymentResponse response = new PaymentResponse(
-            UUID.randomUUID(), invoiceId, null, new BigDecimal("80.00"), PaymentMethod.CASH, null, null, null, null);
+                UUID.randomUUID(),
+                invoiceId,
+                null,
+                new BigDecimal("80.00"),
+                PaymentMethod.CASH,
+                null,
+                null,
+                null,
+                null);
 
         when(invoiceRepository.findById(invoiceId)).thenReturn(Optional.of(invoice));
         when(paymentRepository.sumAmountByInvoiceId(invoiceId)).thenReturn(BigDecimal.ZERO);
@@ -348,7 +368,7 @@ class PaymentServiceTest {
         when(invoiceRepository.existsById(invoiceId)).thenReturn(false);
 
         assertThatThrownBy(() -> paymentService.getPaymentsByInvoice(invoiceId, Pageable.unpaged()))
-            .isInstanceOf(EntityNotFoundException.class);
+                .isInstanceOf(EntityNotFoundException.class);
     }
 
     @Test
@@ -386,11 +406,25 @@ class PaymentServiceTest {
         Payment p1 = new Payment();
         Payment p2 = new Payment();
         PaymentResponse r1 = new PaymentResponse(
-                UUID.randomUUID(), invoiceId, "FAC-1", new BigDecimal("10.00"), PaymentMethod.CASH,
-                null, null, OffsetDateTime.now(), OffsetDateTime.now());
+                UUID.randomUUID(),
+                invoiceId,
+                "FAC-1",
+                new BigDecimal("10.00"),
+                PaymentMethod.CASH,
+                null,
+                null,
+                OffsetDateTime.now(),
+                OffsetDateTime.now());
         PaymentResponse r2 = new PaymentResponse(
-                UUID.randomUUID(), invoiceId, "FAC-1", new BigDecimal("20.00"), PaymentMethod.CREDIT_CARD,
-                "REF-2", null, OffsetDateTime.now(), OffsetDateTime.now());
+                UUID.randomUUID(),
+                invoiceId,
+                "FAC-1",
+                new BigDecimal("20.00"),
+                PaymentMethod.CREDIT_CARD,
+                "REF-2",
+                null,
+                OffsetDateTime.now(),
+                OffsetDateTime.now());
 
         when(invoiceRepository.existsById(invoiceId)).thenReturn(true);
         when(paymentRepository.findByInvoiceIdOrderByPaymentDateDesc(eq(invoiceId), eq(pageable)))

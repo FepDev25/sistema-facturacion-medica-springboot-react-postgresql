@@ -2,7 +2,6 @@ package com.fepdev.sfm.backend.domain.doctor;
 
 import com.fepdev.sfm.backend.security.SystemUser;
 import com.fepdev.sfm.backend.shared.domain.BaseEntity;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -45,5 +44,4 @@ public class Doctor extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "fk_doctors_user"))
     private SystemUser user;
-    
 }

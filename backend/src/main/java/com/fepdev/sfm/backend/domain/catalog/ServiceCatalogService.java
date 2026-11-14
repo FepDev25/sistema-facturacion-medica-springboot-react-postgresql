@@ -1,8 +1,13 @@
 package com.fepdev.sfm.backend.domain.catalog;
 
+import com.fepdev.sfm.backend.domain.catalog.dto.ServiceCreateRequest;
+import com.fepdev.sfm.backend.domain.catalog.dto.ServiceResponse;
+import com.fepdev.sfm.backend.domain.catalog.dto.ServiceSummaryResponse;
+import com.fepdev.sfm.backend.domain.catalog.dto.ServiceUpdateRequest;
+import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
+import jakarta.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.UUID;
-
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -11,33 +16,29 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fepdev.sfm.backend.domain.catalog.dto.ServiceCreateRequest;
-import com.fepdev.sfm.backend.domain.catalog.dto.ServiceResponse;
-import com.fepdev.sfm.backend.domain.catalog.dto.ServiceSummaryResponse;
-import com.fepdev.sfm.backend.domain.catalog.dto.ServiceUpdateRequest;
-import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
-
-import jakarta.persistence.EntityNotFoundException;
-
 @Service
 public class ServiceCatalogService {
-    
+
     private final ServicesCatalogRepository servicesCatalogRepository;
     private final ServicesCatalogMapper servicesCatalogMapper;
     private final CatalogPriceHistoryRepository catalogPriceHistoryRepository;
 
-    public ServiceCatalogService(ServicesCatalogRepository servicesCatalogRepository, ServicesCatalogMapper servicesCatalogMapper, CatalogPriceHistoryRepository catalogPriceHistoryRepository) {
+    public ServiceCatalogService(
+            ServicesCatalogRepository servicesCatalogRepository,
+            ServicesCatalogMapper servicesCatalogMapper,
+            CatalogPriceHistoryRepository catalogPriceHistoryRepository) {
         this.servicesCatalogRepository = servicesCatalogRepository;
         this.servicesCatalogMapper = servicesCatalogMapper;
         this.catalogPriceHistoryRepository = catalogPriceHistoryRepository;
     }
 
-    @Caching(evict = {
-        @CacheEvict(value = "services", allEntries = true),
-        @CacheEvict(value = "services-list", allEntries = true)
-    })
+    @Caching(
+            evict = {
+                @CacheEvict(value = "services", allEntries = true),
+                @CacheEvict(value = "services-list", allEntries = true)
+            })
     @Transactional
-    public ServiceResponse createServicesCatalog(ServiceCreateRequest request){
+    public ServiceResponse createServicesCatalog(ServiceCreateRequest request) {
         // create request a entidad, setear isActive=true
         ServicesCatalog entity = servicesCatalogMapper.toEntity(request);
         entity.setIsActive(true);
@@ -47,17 +48,19 @@ public class ServiceCatalogService {
         return servicesCatalogMapper.toResponse(savedEntity);
     }
 
-    @Caching(evict = {
-        @CacheEvict(value = "services", allEntries = true),
-        @CacheEvict(value = "services-list", allEntries = true)
-    })
+    @Caching(
+            evict = {
+                @CacheEvict(value = "services", allEntries = true),
+                @CacheEvict(value = "services-list", allEntries = true)
+            })
     @Transactional
-    public ServiceResponse updateServiceCatalog(UUID id, ServiceUpdateRequest request){
+    public ServiceResponse updateServiceCatalog(UUID id, ServiceUpdateRequest request) {
 
         // buscar la entidad por el id
-        ServicesCatalog entity = servicesCatalogRepository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException("Servicio con ID " + id + " no encontrado"));
-        
+        ServicesCatalog entity = servicesCatalogRepository
+                .findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Servicio con ID " + id + " no encontrado"));
+
         // si cambia el precio, guardar el cambio en CatalogPriceHistory
         if (request.price() != null && !request.price().equals(entity.getPrice())) {
             CatalogPriceHistory history = new CatalogPriceHistory();
@@ -76,18 +79,19 @@ public class ServiceCatalogService {
         // guardar y retornar
         ServicesCatalog updatedEntity = servicesCatalogRepository.save(entity);
         return servicesCatalogMapper.toResponse(updatedEntity);
-
     }
 
     // metodo para desactivar un servicio
-    @Caching(evict = {
-        @CacheEvict(value = "services", allEntries = true),
-        @CacheEvict(value = "services-list", allEntries = true)
-    })
+    @Caching(
+            evict = {
+                @CacheEvict(value = "services", allEntries = true),
+                @CacheEvict(value = "services-list", allEntries = true)
+            })
     @Transactional
     public void deactivateServiceCatalog(UUID id) {
-        ServicesCatalog entity = servicesCatalogRepository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException("Servicio con ID " + id + " no encontrado"));
+        ServicesCatalog entity = servicesCatalogRepository
+                .findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Servicio con ID " + id + " no encontrado"));
         entity.setIsActive(false);
         servicesCatalogRepository.save(entity);
     }
@@ -96,8 +100,9 @@ public class ServiceCatalogService {
     @Cacheable(value = "services", key = "#id")
     @Transactional(readOnly = true)
     public ServiceResponse getServiceCatalogById(UUID id) {
-        ServicesCatalog entity = servicesCatalogRepository.findById(id)
-            .orElseThrow(() -> new EntityNotFoundException("Servicio con ID " + id + " no encontrado"));
+        ServicesCatalog entity = servicesCatalogRepository
+                .findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Servicio con ID " + id + " no encontrado"));
         return servicesCatalogMapper.toResponse(entity);
     }
 
@@ -119,5 +124,4 @@ public class ServiceCatalogService {
         // tranformar la pagina de entidades a dtos
         return page.map(servicesCatalogMapper::toSummaryResponse);
     }
-
 }

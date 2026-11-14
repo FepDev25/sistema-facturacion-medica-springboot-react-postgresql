@@ -18,5 +18,4 @@ public enum Severity {
     public static Severity fromJson(String value) {
         return value == null ? null : Severity.valueOf(value.toUpperCase());
     }
-
 }

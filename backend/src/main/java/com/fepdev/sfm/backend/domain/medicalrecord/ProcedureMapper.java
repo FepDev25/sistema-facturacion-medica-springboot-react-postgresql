@@ -1,12 +1,10 @@
 package com.fepdev.sfm.backend.domain.medicalrecord;
 
-import java.util.List;
-
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-
 import com.fepdev.sfm.backend.domain.medicalrecord.dto.ProcedureCreateRequest;
 import com.fepdev.sfm.backend.domain.medicalrecord.dto.ProcedureResponse;
+import java.util.List;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface ProcedureMapper {

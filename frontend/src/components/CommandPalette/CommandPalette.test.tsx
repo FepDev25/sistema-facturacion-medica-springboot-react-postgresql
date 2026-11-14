@@ -64,6 +64,34 @@ describe('CommandPalette', () => {
     expect(mockNavigate).toHaveBeenCalledWith({ to: '/patients/p-1' })
   })
 
+  it('expone el patrón combobox y navega con flechas + Enter', async () => {
+    const user = userEvent.setup()
+    const onOpenChange = vi.fn()
+    render(<CommandPalette open onOpenChange={onOpenChange} />)
+
+    const input = screen.getByRole('combobox', { name: 'Buscar pacientes o secciones' })
+    expect(input).toHaveAttribute('aria-controls', 'command-palette-listbox')
+    expect(input).toHaveAttribute('aria-expanded', 'true')
+
+    await user.type(input, 'fact')
+    await user.keyboard('{ArrowDown}{ArrowUp}{Enter}')
+
+    expect(onOpenChange).toHaveBeenCalledWith(false)
+    expect(mockNavigate).toHaveBeenCalledWith({ to: '/invoices' })
+  })
+
+  it('soporta Home/End para el elemento activo', async () => {
+    const user = userEvent.setup()
+    render(<CommandPalette open onOpenChange={vi.fn()} />)
+
+    const input = screen.getByRole('combobox', { name: 'Buscar pacientes o secciones' })
+    await user.type(input, 'fact')
+    await user.keyboard('{End}')
+
+    const options = screen.getAllByRole('option')
+    expect(options[options.length - 1]).toHaveAttribute('aria-selected', 'true')
+  })
+
   it('abre con Ctrl+K', async () => {
     const onOpenChange = vi.fn()
     render(<CommandPalette open={false} onOpenChange={onOpenChange} />)

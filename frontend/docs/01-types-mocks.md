@@ -10,7 +10,17 @@ Las fases 1 y 2 del proyecto establecen la capa de contratos de datos: los tipos
 
 ### Principio de Diseno
 
-Cada interfaz de TypeScript es el espejo directo del DTO correspondiente en el backend Java. El objetivo es que cuando se conecte el backend real, no sea necesario modificar ningún tipo del frontend. La correspondencia es:
+El contrato HTTP (`backend/openapi/openapi.yaml`) es la fuente de verdad. El archivo
+`src/types/api-generated.ts` se genera con `npm run generate:types` (openapi-typescript) y
+`src/types/api.ts` expone alias tipados (`ApiInvoiceViewResponse`, `ApiPaymentResponse`, etc.)
+que usan las capas `api/` al leer respuestas del servidor.
+
+Los archivos `src/types/*.ts` siguen siendo modelos de vista: campos planos, etiquetas y valores
+derivados que la UI consume. Cuando el backend cambia, se regeneran los tipos y el CI falla si
+`api-generated.ts` quedo desactualizado (`npm run generate:types:check`).
+
+Cada interfaz de TypeScript es el espejo del DTO correspondiente en el backend Java. La
+correspondencia es:
 
 | Java (backend)              | TypeScript (frontend)                  |
 | --------------------------- | -------------------------------------- |
@@ -39,6 +49,8 @@ Cada dominio tiene tres categorías de tipos:
 
 ```
 src/types/
+├── api-generated.ts   # Generado desde openapi.yaml — no editar a mano
+├── api.ts             # Alias de los schemas OpenAPI usados por la capa api/
 ├── common.ts          # PageResponse<T>, ApiError, FieldError
 ├── enums.ts           # 7 enums + 7 mapas de etiquetas en español
 ├── patient.ts         # PatientCreateRequest, PatientUpdateRequest, PatientResponse, PatientSummaryResponse
@@ -49,6 +61,11 @@ src/types/
 ├── catalog.ts         # Service*, Medication*, CatalogPriceHistory*
 ├── invoice.ts         # Invoice*, InvoiceItem*, InvoiceSummary*, Payment*
 └── index.ts           # Barrel export de todos los tipos
+```
+
+```bash
+npm run generate:types        # regenera src/types/api-generated.ts
+npm run generate:types:check  # regenera y falla si hay diff (CI)
 ```
 
 ---

@@ -1,5 +1,6 @@
 package com.fepdev.sfm.backend.security;
 
+import com.fepdev.sfm.backend.security.dto.SystemUserSummaryResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -9,8 +10,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.fepdev.sfm.backend.security.dto.SystemUserSummaryResponse;
 
 @RestController
 @RequestMapping("/api/v1/system-users")
@@ -30,8 +29,8 @@ public class SystemUserController {
 
         Page<SystemUser> users = systemUserRepository.findWithFilters(role, active, pageable);
 
-        Page<SystemUserSummaryResponse> response = users.map(u ->
-                new SystemUserSummaryResponse(u.getId(), u.getUsername(), u.getEmail(), u.getRole().name(), u.isActive()));
+        Page<SystemUserSummaryResponse> response = users.map(u -> new SystemUserSummaryResponse(
+                u.getId(), u.getUsername(), u.getEmail(), u.getRole().name(), u.isActive()));
         return ResponseEntity.ok(response);
     }
 }

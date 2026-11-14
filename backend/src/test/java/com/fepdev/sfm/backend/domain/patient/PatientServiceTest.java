@@ -7,18 +7,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-
 import com.fepdev.sfm.backend.domain.appointment.AppointmentMapper;
 import com.fepdev.sfm.backend.domain.appointment.AppointmentRepository;
 import com.fepdev.sfm.backend.domain.insurance.InsurancePolicyMapper;
@@ -27,20 +15,41 @@ import com.fepdev.sfm.backend.domain.patient.dto.PatientCreateRequest;
 import com.fepdev.sfm.backend.domain.patient.dto.PatientResponse;
 import com.fepdev.sfm.backend.domain.patient.dto.PatientSummaryResponse;
 import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
-
 import jakarta.persistence.EntityNotFoundException;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 class PatientServiceTest {
 
-    @Mock PatientRepository patientRepository;
-    @Mock PatientMapper patientMapper;
-    @Mock AppointmentRepository appointmentRepository;
-    @Mock AppointmentMapper appointmentMapper;
-    @Mock InsurancePolicyRepository insurancePolicyRepository;
-    @Mock InsurancePolicyMapper insurancePolicyMapper;
+    @Mock
+    PatientRepository patientRepository;
 
-    @InjectMocks PatientService patientService;
+    @Mock
+    PatientMapper patientMapper;
+
+    @Mock
+    AppointmentRepository appointmentRepository;
+
+    @Mock
+    AppointmentMapper appointmentMapper;
+
+    @Mock
+    InsurancePolicyRepository insurancePolicyRepository;
+
+    @Mock
+    InsurancePolicyMapper insurancePolicyMapper;
+
+    @InjectMocks
+    PatientService patientService;
 
     // dni, firstName, lastName, birthDate, gender, phone, email, address, bloodType, allergies
     private PatientCreateRequest requestWith(String dni) {
@@ -52,8 +61,8 @@ class PatientServiceTest {
         when(patientRepository.existsByDni("12345678")).thenReturn(true);
 
         assertThatThrownBy(() -> patientService.createPatient(requestWith("12345678")))
-            .isInstanceOf(BusinessRuleException.class)
-            .hasMessageContaining("12345678");
+                .isInstanceOf(BusinessRuleException.class)
+                .hasMessageContaining("12345678");
 
         verify(patientRepository, never()).save(any());
     }
@@ -63,7 +72,7 @@ class PatientServiceTest {
         PatientCreateRequest request = requestWith(null);
         Patient patient = new Patient();
         PatientResponse expected = new PatientResponse(
-            UUID.randomUUID(), null, "Juan", "Pérez", null, null, null, null, null, null, null, null, null);
+                UUID.randomUUID(), null, "Juan", "Pérez", null, null, null, null, null, null, null, null, null);
 
         when(patientMapper.toEntity(request)).thenReturn(patient);
         when(patientRepository.save(patient)).thenReturn(patient);
@@ -80,7 +89,7 @@ class PatientServiceTest {
         PatientCreateRequest request = requestWith("87654321");
         Patient patient = new Patient();
         PatientResponse expected = new PatientResponse(
-            UUID.randomUUID(), "87654321", "Juan", "Pérez", null, null, null, null, null, null, null, null, null);
+                UUID.randomUUID(), "87654321", "Juan", "Pérez", null, null, null, null, null, null, null, null, null);
 
         when(patientRepository.existsByDni("87654321")).thenReturn(false);
         when(patientMapper.toEntity(request)).thenReturn(patient);
@@ -97,8 +106,7 @@ class PatientServiceTest {
         UUID id = UUID.randomUUID();
         when(patientRepository.findById(id)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> patientService.getPatientById(id))
-            .isInstanceOf(EntityNotFoundException.class);
+        assertThatThrownBy(() -> patientService.getPatientById(id)).isInstanceOf(EntityNotFoundException.class);
     }
 
     @Test
@@ -106,8 +114,7 @@ class PatientServiceTest {
         UUID id = UUID.randomUUID();
         when(patientRepository.findById(id)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> patientService.updatePatient(id, null))
-            .isInstanceOf(EntityNotFoundException.class);
+        assertThatThrownBy(() -> patientService.updatePatient(id, null)).isInstanceOf(EntityNotFoundException.class);
     }
 
     @Test
@@ -147,6 +154,6 @@ class PatientServiceTest {
         when(patientRepository.existsById(patientId)).thenReturn(false);
 
         assertThatThrownBy(() -> patientService.getPatientPolicies(patientId, true, Pageable.unpaged()))
-            .isInstanceOf(EntityNotFoundException.class);
+                .isInstanceOf(EntityNotFoundException.class);
     }
 }

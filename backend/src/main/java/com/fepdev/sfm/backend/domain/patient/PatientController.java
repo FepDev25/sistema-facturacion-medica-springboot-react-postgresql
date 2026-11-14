@@ -1,9 +1,17 @@
 package com.fepdev.sfm.backend.domain.patient;
 
+import com.fepdev.sfm.backend.domain.appointment.dto.AppointmentSummaryResponse;
+import com.fepdev.sfm.backend.domain.insurance.dto.InsurancePolicySummaryResponse;
+import com.fepdev.sfm.backend.domain.invoice.InvoiceStatus;
+import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceListViewResponse;
+import com.fepdev.sfm.backend.domain.patient.dto.PatientCreateRequest;
+import com.fepdev.sfm.backend.domain.patient.dto.PatientResponse;
+import com.fepdev.sfm.backend.domain.patient.dto.PatientSummaryResponse;
+import com.fepdev.sfm.backend.domain.patient.dto.PatientUpdateRequest;
+import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
 import java.util.UUID;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -19,17 +27,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.fepdev.sfm.backend.domain.appointment.dto.AppointmentSummaryResponse;
-import com.fepdev.sfm.backend.domain.insurance.dto.InsurancePolicySummaryResponse;
-import com.fepdev.sfm.backend.domain.invoice.InvoiceStatus;
-import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceListViewResponse;
-import com.fepdev.sfm.backend.domain.patient.dto.PatientCreateRequest;
-import com.fepdev.sfm.backend.domain.patient.dto.PatientResponse;
-import com.fepdev.sfm.backend.domain.patient.dto.PatientSummaryResponse;
-import com.fepdev.sfm.backend.domain.patient.dto.PatientUpdateRequest;
-
-import jakarta.validation.Valid;
-
 @RestController
 @RequestMapping("/api/v1/patients")
 public class PatientController {
@@ -42,19 +39,19 @@ public class PatientController {
 
     @PostMapping
     public ResponseEntity<PatientResponse> create(
-            @Valid @RequestBody PatientCreateRequest request,
-            UriComponentsBuilder uriBuilder) {
+            @Valid @RequestBody PatientCreateRequest request, UriComponentsBuilder uriBuilder) {
 
         PatientResponse response = patientService.createPatient(request);
-        URI location = uriBuilder.path("/api/v1/patients/{id}")
-                .buildAndExpand(response.id()).toUri();
+        URI location = uriBuilder
+                .path("/api/v1/patients/{id}")
+                .buildAndExpand(response.id())
+                .toUri();
         return ResponseEntity.created(location).body(response);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<PatientResponse> update(
-            @PathVariable UUID id,
-            @Valid @RequestBody PatientUpdateRequest request) {
+            @PathVariable UUID id, @Valid @RequestBody PatientUpdateRequest request) {
 
         return ResponseEntity.ok(patientService.updatePatient(id, request));
     }

@@ -21,10 +21,11 @@ El workflow vive en
 
 Se ejecutan dos jobs en paralelo:
 
-- **Backend**: `./mvnw -B -ntp verify`. Corre la suite completa (458 unitarios +
+- **Backend**: `./mvnw -B -ntp spotless:check` y después
+  `./mvnw -B -ntp verify`. Corre la suite completa (572 tests: unidad +
   integración con Testcontainers) y aplica el gate de JaCoCo.
-- **Frontend**: `npm ci`, `npm run lint`, `npm run test:coverage` y
-  `npm run build`.
+- **Frontend**: `npm ci`, `npm run generate:types:check`, `npm run lint`,
+  `npm run test:coverage` y `npm run build`.
 
 El job de deploy no se ejecuta en PRs. Vercel genera una preview del frontend.
 
@@ -166,7 +167,7 @@ cd backend
 ./mvnw -Punit test
 ```
 
-Corre 384 tests y omite los `*DataJpaTest`, `*FlowE2ETest` y
+Corre 541 tests y omite los `*DataJpaTest`, `*FlowE2ETest` y
 `BackendApplicationTests`, que requieren Testcontainers.
 
 La suite completa sigue necesitando Docker:
@@ -202,11 +203,29 @@ npm run build
 
 | Proyecto | Gate |
 |---|---|
-| Backend | 80% líneas / 65% ramas (JaCoCo, `verify`) |
-| Frontend | 35% statements / 30% branches / 38% functions / 36% lines (Vitest) |
+| Backend | 82% líneas / 66% ramas (JaCoCo, `verify`) |
+| Frontend | 41% statements / 39% branches / 40% functions / 42% lines (Vitest) |
 
-Los umbrales del frontend son un piso medido en noviembre de 2026. Se pueden
-subir cuando la cobertura real mejore; no se bajan para destrabar un PR.
+Cobertura real medida el 2026-11-13: backend **90.62% líneas / 73.88% ramas**;
+frontend **50.23 / 47.72 / 50.00 / 50.98**. Los umbrales siguen siendo un piso:
+se suben cuando la cobertura mejore y no se bajan para destrabar un PR.
+
+## Formato Java (Spotless)
+
+El backend usa [`spotless-maven-plugin`](../backend/pom.xml) con **Palantir Java
+Format** (4 espacios, 120 columnas) y `removeUnusedImports`. El objetivo
+`spotless:check` corre antes de los tests en CI y también queda enlazado a la
+fase `verify`, así que `./mvnw clean verify` falla si el código no está
+formateado.
+
+```bash
+cd backend
+./mvnw spotless:apply   # formatear
+./mvnw spotless:check   # verificar
+```
+
+El frontend sigue cubierto por Prettier (`npm run format:check`). No reformatear
+el frontend de forma global.
 
 ## E2E Playwright
 
@@ -264,13 +283,12 @@ E2E_RECEPTIONIST_USER=recep1 E2E_RECEPTIONIST_PASS=recep123 \
 npm run e2e
 ```
 
-La suite local validada en noviembre de 2026: **108 passed, 18 skipped, 0
-failed**. En CI con los seeds: **116 passed, 10 skipped, 0 failed**. Los skips
-son condicionales del dataset (por ejemplo, paciente sin alergias o factura que
-no está en borrador).
+La suite local validada en noviembre de 2026: **129 passed, 0 skipped, 0
+failed**. Ya no hay skips condicionales: el seed `V14__e2e_scenarios.sql` provee
+paciente, citas, póliza y facturas deterministas para todos los flujos.
 
-El job se fija en `ubuntu-24.04` porque Playwright 1.59 todavía no soporta las
-dependencias de Ubuntu 26, que es el nuevo `ubuntu-latest`.
+El job se fija en `ubuntu-24.04` para evitar que un cambio de dependencias del
+runner `ubuntu-latest` rompa Playwright de forma silenciosa.
 
 En CI, los artefactos `playwright-results` incluyen screenshots, videos,
 traces, el reporte HTML y los logs del backend/frontend.
@@ -278,6 +296,31 @@ traces, el reporte HTML y los logs del backend/frontend.
 > El workflow E2E corre en paralelo al CI principal y **no bloquea el deploy**
 > todavía. Si se quiere que sea un gate de producción, hay que integrarlo como
 > `needs` del job de deploy o esperar el resultado con `workflow_run`.
+
+## Staging
+
+El ambiente de staging está **deshabilitado por defecto** y no crea recursos
+desde el repositorio. El diseño completo (Heroku, Vercel, Neon, secretos,
+costos, migraciones y rollback) está en [`docs/staging.md`](staging.md).
+
+- Workflow: [`.github/workflows/staging.yml`](../.github/workflows/staging.yml).
+- Disparadores: `workflow_dispatch` y push a `develop`.
+- Cada job exige `vars.STAGING_ENABLED == 'true'`. Sin esa variable el workflow
+  se ejecuta pero no despliega.
+- Backend: imagen Docker a `registry.heroku.com/$STAGING_HEROKU_APP/web`.
+- Frontend: Vercel CLI contra el proyecto de staging; el rewrite `/api` se
+  reescribe solo en el runner para apuntar al backend de staging.
+- Secretos/variables: `STAGING_HEROKU_API_KEY`, `STAGING_VERCEL_TOKEN`,
+  `STAGING_VERCEL_ORG_ID`, `STAGING_VERCEL_PROJECT_ID`; variables
+  `STAGING_HEROKU_APP`, `STAGING_BACKEND_URL`, `STAGING_HEALTH_URL`,
+  `STAGING_FRONTEND_URL`.
+- Flyway corre al arrancar el backend de staging contra la branch de Neon
+  `staging`. Las migraciones son expand/contract y nunca se apunta staging a la
+  base de producción.
+
+Ejecución manual: **Actions → Staging → Run workflow** con `STAGING_ENABLED=true`.
+Rollback: `heroku releases:rollback -a <app-staging>` y promover un deployment
+anterior en Vercel; deshabilitar todo con `STAGING_ENABLED=false`.
 
 ## Dependabot
 
@@ -289,6 +332,11 @@ traces, el reporte HTML y los logs del backend/frontend.
 
 Los updates `minor`/`patch` se agrupan en un PR por ecosistema; los `major`
 quedan como PRs individuales para revisarlos con más cuidado.
+
+Los majors pendientes (`jsdom`, `@tanstack/react-table`, `lucide-react` y
+`@types/node`) tienen un plan de migración con impacto, orden, tests y rollback
+en [`docs/dependabot-majors.md`](dependabot-majors.md). No se migran en el bloque
+de deuda: cada uno va en su propia rama y PR.
 
 ## Troubleshooting
 

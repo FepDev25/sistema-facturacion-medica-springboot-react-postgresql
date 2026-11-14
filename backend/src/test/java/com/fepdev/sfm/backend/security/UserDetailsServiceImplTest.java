@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,9 +15,11 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 @ExtendWith(MockitoExtension.class)
 class UserDetailsServiceImplTest {
 
-    @Mock private SystemUserRepository systemUserRepository;
+    @Mock
+    private SystemUserRepository systemUserRepository;
 
-    @InjectMocks private UserDetailsServiceImpl service;
+    @InjectMocks
+    private UserDetailsServiceImpl service;
 
     @Test
     void loadUserByUsername_whenExists_returnsUserDetails() {

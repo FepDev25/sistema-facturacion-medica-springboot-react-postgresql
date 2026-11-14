@@ -1,17 +1,15 @@
 package com.fepdev.sfm.backend.domain.insurance;
 
+import com.fepdev.sfm.backend.domain.insurance.dto.InsurancePolicyCreateRequest;
+import com.fepdev.sfm.backend.domain.insurance.dto.InsurancePolicyResponse;
+import com.fepdev.sfm.backend.domain.insurance.dto.InsurancePolicySummaryResponse;
+import com.fepdev.sfm.backend.domain.insurance.dto.InsurancePolicyUpdateRequest;
 import java.util.List;
-
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
-
-import com.fepdev.sfm.backend.domain.insurance.dto.InsurancePolicyCreateRequest;
-import com.fepdev.sfm.backend.domain.insurance.dto.InsurancePolicyResponse;
-import com.fepdev.sfm.backend.domain.insurance.dto.InsurancePolicySummaryResponse;
-import com.fepdev.sfm.backend.domain.insurance.dto.InsurancePolicyUpdateRequest;
 
 @Mapper(componentModel = "spring")
 public interface InsurancePolicyMapper {

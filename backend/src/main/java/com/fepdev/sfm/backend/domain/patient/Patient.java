@@ -1,18 +1,16 @@
 package com.fepdev.sfm.backend.domain.patient;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.fepdev.sfm.backend.domain.appointment.Appointment;
 import com.fepdev.sfm.backend.domain.insurance.InsurancePolicy;
 import com.fepdev.sfm.backend.shared.domain.BaseEntity;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -61,5 +59,4 @@ public class Patient extends BaseEntity {
 
     @Column(name = "allergies", length = 500)
     private String allergies;
-
 }

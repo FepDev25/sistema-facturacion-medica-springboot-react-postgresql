@@ -5,7 +5,7 @@ import {
   useReactTable,
   type ColumnDef,
 } from '@tanstack/react-table'
-import { ChevronLeft, ChevronRight, Inbox } from 'lucide-react'
+import { AlertTriangle, ChevronLeft, ChevronRight, Inbox, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
@@ -21,6 +21,9 @@ interface DataTableProps<T> {
   columns: ColumnDef<T, unknown>[]
   data: T[]
   isLoading?: boolean
+  isError?: boolean
+  errorMessage?: string
+  onRetry?: () => void
   pageSize?: number
   emptyMessage?: string
 }
@@ -29,6 +32,9 @@ export function DataTable<T>({
   columns,
   data,
   isLoading = false,
+  isError = false,
+  errorMessage = 'No se pudieron cargar los datos.',
+  onRetry,
   pageSize = 20,
   emptyMessage = 'Sin resultados.',
 }: DataTableProps<T>) {
@@ -80,6 +86,26 @@ export function DataTable<T>({
                     ))}
                   </TableRow>
                 ))
+              ) : isError ? (
+                <TableRow className="hover:bg-transparent">
+                  <TableCell colSpan={columns.length} className="h-40">
+                    <div
+                      className="flex flex-col items-center justify-center gap-2 text-center"
+                      role="alert"
+                    >
+                      <span className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+                        <AlertTriangle className="h-5 w-5" />
+                      </span>
+                      <p className="text-sm text-muted-foreground">{errorMessage}</p>
+                      {onRetry ? (
+                        <Button variant="outline" size="sm" onClick={onRetry}>
+                          <RefreshCw className="h-3.5 w-3.5" />
+                          Reintentar
+                        </Button>
+                      ) : null}
+                    </div>
+                  </TableCell>
+                </TableRow>
               ) : table.getRowModel().rows.length > 0 ? (
                 table.getRowModel().rows.map((row) => (
                   <TableRow key={row.id} className="h-12 hover:bg-muted/40">
@@ -107,7 +133,7 @@ export function DataTable<T>({
         </div>
       </div>
 
-      {!isLoading && pageCount > 1 && (
+      {!isLoading && !isError && pageCount > 1 && (
         <div className="flex items-center justify-between px-1">
           <p className="text-xs text-muted-foreground">
             {totalRows === 0

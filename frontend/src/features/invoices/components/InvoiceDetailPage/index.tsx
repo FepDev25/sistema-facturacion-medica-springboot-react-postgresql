@@ -91,7 +91,7 @@ export function InvoiceDetailPage() {
   if (!invoice) {
     return (
       <div className="px-6 py-8">
-        <p className="text-sm text-muted-foreground mb-4">No se encontro la factura.</p>
+        <p className="text-sm text-muted-foreground mb-4">No se encontró la factura.</p>
         <BackToListButton fallbackTo="/invoices" label="Volver a facturas" />
       </div>
     )
@@ -164,7 +164,7 @@ export function InvoiceDetailPage() {
               </div>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Emision</p>
+              <p className="text-xs text-muted-foreground">Emisión</p>
               <p className="text-sm text-foreground">{formatDate(invoice.issueDate)}</p>
             </div>
             <div>
@@ -278,7 +278,7 @@ export function InvoiceDetailPage() {
                 <p className="text-xs text-muted-foreground mb-1">Poliza para esta factura</p>
                 <Select value={selectedPolicyId} onValueChange={selectPolicy}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Sin poliza" />
+                    <SelectValue placeholder="Sin póliza" />
                   </SelectTrigger>
                   <SelectContent>
                     {patientPolicies.map((policy) => (
@@ -304,7 +304,7 @@ export function InvoiceDetailPage() {
                   })
                 }}
               >
-                Aplicar poliza
+                Aplicar póliza
               </Button>
 
               <Button
@@ -321,7 +321,7 @@ export function InvoiceDetailPage() {
                   assignInsurancePolicy.mutate({ insurancePolicyId: null })
                 }}
               >
-                Quitar poliza
+                Quitar póliza
               </Button>
             </div>
           ) : null}

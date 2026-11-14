@@ -1,21 +1,8 @@
 package com.fepdev.sfm.backend.web.payment;
 
-import java.math.BigDecimal;
-import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.UUID;
-
-import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -29,8 +16,19 @@ import com.fepdev.sfm.backend.domain.payment.dto.PaymentResponse;
 import com.fepdev.sfm.backend.security.JwtAuthenticationFilter;
 import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
 import com.fepdev.sfm.backend.shared.exception.HandlerException;
-
 import jakarta.persistence.EntityNotFoundException;
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(PaymentController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -50,8 +48,16 @@ class PaymentControllerWebMvcTest {
     void register_whenValidRequest_returns201() throws Exception {
         UUID id = UUID.randomUUID();
         UUID invoiceId = UUID.randomUUID();
-        PaymentResponse response = new PaymentResponse(id, invoiceId, "FAC-2026-0001", new BigDecimal("20.00"),
-                PaymentMethod.CASH, null, null, OffsetDateTime.now(), OffsetDateTime.now());
+        PaymentResponse response = new PaymentResponse(
+                id,
+                invoiceId,
+                "FAC-2026-0001",
+                new BigDecimal("20.00"),
+                PaymentMethod.CASH,
+                null,
+                null,
+                OffsetDateTime.now(),
+                OffsetDateTime.now());
 
         when(paymentService.registerPayment(any())).thenReturn(response);
 
@@ -64,7 +70,9 @@ class PaymentControllerWebMvcTest {
                 }
                 """.formatted(invoiceId, OffsetDateTime.now());
 
-        mockMvc.perform(post("/api/v1/payments").contentType(MediaType.APPLICATION_JSON).content(body))
+        mockMvc.perform(post("/api/v1/payments")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(id.toString()))
                 .andExpect(jsonPath("$.paymentMethod").value("cash"))
@@ -72,12 +80,15 @@ class PaymentControllerWebMvcTest {
 
         var captor = org.mockito.ArgumentCaptor.forClass(PaymentCreateRequest.class);
         verify(paymentService).registerPayment(captor.capture());
-        org.assertj.core.api.Assertions.assertThat(captor.getValue().paymentMethod()).isEqualTo(PaymentMethod.CASH);
+        org.assertj.core.api.Assertions.assertThat(captor.getValue().paymentMethod())
+                .isEqualTo(PaymentMethod.CASH);
     }
 
     @Test
     void register_whenInvalidRequest_returns400() throws Exception {
-        mockMvc.perform(post("/api/v1/payments").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        mockMvc.perform(post("/api/v1/payments")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400));
     }
@@ -106,7 +117,9 @@ class PaymentControllerWebMvcTest {
                 }
                 """.formatted(invoiceId, OffsetDateTime.now());
 
-        mockMvc.perform(post("/api/v1/payments").contentType(MediaType.APPLICATION_JSON).content(body))
+        mockMvc.perform(post("/api/v1/payments")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
                 .andExpect(status().isUnprocessableContent())
                 .andExpect(jsonPath("$.status").value(422));
     }
@@ -115,10 +128,17 @@ class PaymentControllerWebMvcTest {
     void getByInvoice_whenFound_returnsPagedPayments() throws Exception {
         UUID invoiceId = UUID.randomUUID();
         PaymentResponse response = new PaymentResponse(
-                UUID.randomUUID(), invoiceId, "FAC-2026-0003", new BigDecimal("35.00"),
-                PaymentMethod.CREDIT_CARD, "REF-001", null, OffsetDateTime.now(), OffsetDateTime.now());
-        var page = new org.springframework.data.domain.PageImpl<>(List.of(response),
-                org.springframework.data.domain.PageRequest.of(0, 20), 1);
+                UUID.randomUUID(),
+                invoiceId,
+                "FAC-2026-0003",
+                new BigDecimal("35.00"),
+                PaymentMethod.CREDIT_CARD,
+                "REF-001",
+                null,
+                OffsetDateTime.now(),
+                OffsetDateTime.now());
+        var page = new org.springframework.data.domain.PageImpl<>(
+                List.of(response), org.springframework.data.domain.PageRequest.of(0, 20), 1);
 
         when(paymentService.getPaymentsByInvoice(any(), any())).thenReturn(page);
 

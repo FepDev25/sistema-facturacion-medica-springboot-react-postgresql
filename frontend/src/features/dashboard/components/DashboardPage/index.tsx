@@ -106,7 +106,7 @@ export function DashboardPage() {
             tone="primary"
           />
           <MetricCard
-            label="Medicos activos"
+            label="Médicos activos"
             value={isLoading ? '...' : String(data?.activeDoctors ?? 0)}
             helper="Disponibles en agenda"
             icon={Stethoscope}
@@ -120,7 +120,7 @@ export function DashboardPage() {
             tone="neutral"
           />
           <MetricCard
-            label="Proximas citas"
+            label="Próximas citas"
             value={isLoading ? '...' : String(data?.upcomingAppointments ?? 0)}
             helper="Pendientes por atender"
             icon={Activity}

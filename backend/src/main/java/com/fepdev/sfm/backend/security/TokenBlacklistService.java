@@ -1,7 +1,6 @@
 package com.fepdev.sfm.backend.security;
 
 import java.time.Duration;
-
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 

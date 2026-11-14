@@ -1,23 +1,5 @@
 package com.fepdev.sfm.backend.ai.history;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.ai.document.Document;
-import org.springframework.ai.vectorstore.VectorStore;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.support.TransactionSynchronization;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
-
 import com.fepdev.sfm.backend.domain.medicalrecord.Diagnosis;
 import com.fepdev.sfm.backend.domain.medicalrecord.DiagnosisRepository;
 import com.fepdev.sfm.backend.domain.medicalrecord.MedicalRecord;
@@ -26,6 +8,22 @@ import com.fepdev.sfm.backend.domain.medicalrecord.Prescription;
 import com.fepdev.sfm.backend.domain.medicalrecord.PrescriptionRepository;
 import com.fepdev.sfm.backend.domain.medicalrecord.Procedure;
 import com.fepdev.sfm.backend.domain.medicalrecord.ProcedureRepository;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.ai.document.Document;
+import org.springframework.ai.vectorstore.VectorStore;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 @Component
 public class PatientHistoryIndexer {
@@ -39,7 +37,9 @@ public class PatientHistoryIndexer {
     private final PrescriptionRepository prescriptionRepository;
     private final ProcedureRepository procedureRepository;
 
-    public PatientHistoryIndexer(VectorStore vectorStore, JdbcTemplate jdbc,
+    public PatientHistoryIndexer(
+            VectorStore vectorStore,
+            JdbcTemplate jdbc,
             MedicalRecordRepository medicalRecordRepository,
             DiagnosisRepository diagnosisRepository,
             PrescriptionRepository prescriptionRepository,
@@ -55,7 +55,8 @@ public class PatientHistoryIndexer {
     public boolean isPatientIndexed(UUID patientId) {
         Integer count = jdbc.queryForObject(
                 "SELECT COUNT(*) FROM vector_store WHERE metadata->>'patientId' = ?",
-                Integer.class, patientId.toString());
+                Integer.class,
+                patientId.toString());
         return count != null && count > 0;
     }
 
@@ -68,7 +69,8 @@ public class PatientHistoryIndexer {
         }
         Integer indexed = jdbc.queryForObject(
                 "SELECT COUNT(*) FROM vector_store WHERE metadata->>'patientId' = ?",
-                Integer.class, patientId.toString());
+                Integer.class,
+                patientId.toString());
         return indexed != null && indexed >= expected;
     }
 
@@ -77,7 +79,8 @@ public class PatientHistoryIndexer {
     public int resolveTopK(UUID patientId) {
         Integer indexed = jdbc.queryForObject(
                 "SELECT COUNT(*) FROM vector_store WHERE metadata->>'patientId' = ?",
-                Integer.class, patientId.toString());
+                Integer.class,
+                patientId.toString());
         if (indexed == null || indexed <= 8) return 6;
         if (indexed <= 15) return 10;
         return 15;
@@ -95,14 +98,14 @@ public class PatientHistoryIndexer {
 
         StringBuilder sb = new StringBuilder();
         sb.append("Historial clínico completo del paciente (")
-          .append(records.size()).append(" expedientes):\n\n");
+                .append(records.size())
+                .append(" expedientes):\n\n");
 
         // Diagnósticos deduplicados por código ICD-10, con conteo de recurrencias
         if (!allDiagnoses.isEmpty()) {
             Map<String, long[]> byCode = new LinkedHashMap<>();
             for (Diagnosis d : allDiagnoses) {
-                byCode.computeIfAbsent(d.getIcd10Code() + "|" + d.getDescription(),
-                        k -> new long[]{0})[0]++;
+                byCode.computeIfAbsent(d.getIcd10Code() + "|" + d.getDescription(), k -> new long[] {0})[0]++;
             }
             sb.append("## Diagnósticos registrados (").append(byCode.size()).append(" únicos):\n");
             byCode.forEach((key, count) -> {
@@ -118,7 +121,7 @@ public class PatientHistoryIndexer {
         if (!allPrescriptions.isEmpty()) {
             Map<String, long[]> byName = new LinkedHashMap<>();
             for (Prescription p : allPrescriptions) {
-                byName.computeIfAbsent(p.getMedication().getName(), k -> new long[]{0})[0]++;
+                byName.computeIfAbsent(p.getMedication().getName(), k -> new long[] {0})[0]++;
             }
             sb.append("## Medicamentos prescritos (").append(byName.size()).append(" únicos):\n");
             byName.forEach((name, count) -> {
@@ -145,9 +148,9 @@ public class PatientHistoryIndexer {
 
         // Período del historial
         sb.append("Período del historial: ")
-          .append(records.get(records.size() - 1).getRecordDate().toLocalDate())
-          .append(" — ")
-          .append(records.get(0).getRecordDate().toLocalDate());
+                .append(records.get(records.size() - 1).getRecordDate().toLocalDate())
+                .append(" — ")
+                .append(records.get(0).getRecordDate().toLocalDate());
 
         return sb.toString();
     }
@@ -174,13 +177,13 @@ public class PatientHistoryIndexer {
     }
 
     private void removeStaleDocuments(UUID patientId, List<MedicalRecord> records) {
-        Set<String> currentIds = records.stream()
-                .map(record -> record.getId().toString())
-                .collect(Collectors.toSet());
+        Set<String> currentIds =
+                records.stream().map(record -> record.getId().toString()).collect(Collectors.toSet());
 
         List<String> indexedIds = jdbc.queryForList(
                 "SELECT metadata->>'medicalRecordId' FROM vector_store WHERE metadata->>'patientId' = ?",
-                String.class, patientId.toString());
+                String.class,
+                patientId.toString());
 
         for (String indexedId : indexedIds) {
             if (indexedId != null && !currentIds.contains(indexedId)) {
@@ -192,10 +195,10 @@ public class PatientHistoryIndexer {
     // Elimina el documento existente del expediente y lo re-indexa con el estado actual de la BD.
     // Llamado de forma asíncrona después de que la transacción del servicio hace commit.
     public void reindexRecord(UUID medicalRecordId) {
-        MedicalRecord record = medicalRecordRepository.findByIdWithPatient(medicalRecordId).orElse(null);
+        MedicalRecord record =
+                medicalRecordRepository.findByIdWithPatient(medicalRecordId).orElse(null);
         if (record == null) {
-            jdbc.update("DELETE FROM vector_store WHERE metadata->>'medicalRecordId' = ?",
-                    medicalRecordId.toString());
+            jdbc.update("DELETE FROM vector_store WHERE metadata->>'medicalRecordId' = ?", medicalRecordId.toString());
             log.warn("Re-indexación: expediente {} no encontrado — probablemente eliminado", medicalRecordId);
             return;
         }
@@ -204,9 +207,14 @@ public class PatientHistoryIndexer {
         // Si el embedding falla, el expediente sigue en el índice con su versión previa.
         Document document = buildDocument(record);
         vectorStore.add(List.of(document));
-        jdbc.update("DELETE FROM vector_store WHERE metadata->>'medicalRecordId' = ? AND id <> ?",
-                medicalRecordId.toString(), document.getId());
-        log.debug("Expediente {} re-indexado (paciente {})", medicalRecordId, record.getPatient().getId());
+        jdbc.update(
+                "DELETE FROM vector_store WHERE metadata->>'medicalRecordId' = ? AND id <> ?",
+                medicalRecordId.toString(),
+                document.getId());
+        log.debug(
+                "Expediente {} re-indexado (paciente {})",
+                medicalRecordId,
+                record.getPatient().getId());
     }
 
     // Registra un re-índice asíncrono post-commit. Llamado desde servicios de dominio cuando
@@ -237,7 +245,11 @@ public class PatientHistoryIndexer {
                     log.error("Error re-indexando expediente {} tras {} intentos", medicalRecordId, attempt, e);
                     return;
                 }
-                log.warn("Error re-indexando expediente {} (intento {}/3): {}", medicalRecordId, attempt, e.getMessage());
+                log.warn(
+                        "Error re-indexando expediente {} (intento {}/3): {}",
+                        medicalRecordId,
+                        attempt,
+                        e.getMessage());
                 try {
                     Thread.sleep(200L * attempt);
                 } catch (InterruptedException interrupted) {
@@ -261,8 +273,11 @@ public class PatientHistoryIndexer {
         return new Document(text, metadata);
     }
 
-    private String buildDocumentText(MedicalRecord record, List<Diagnosis> diagnoses,
-            List<Prescription> prescriptions, List<Procedure> procedures) {
+    private String buildDocumentText(
+            MedicalRecord record,
+            List<Diagnosis> diagnoses,
+            List<Prescription> prescriptions,
+            List<Procedure> procedures) {
         StringBuilder sb = new StringBuilder();
         sb.append("Fecha: ").append(record.getRecordDate().toLocalDate()).append("\n");
         sb.append("Notas clínicas: ").append(record.getClinicalNotes()).append("\n");
@@ -285,10 +300,15 @@ public class PatientHistoryIndexer {
         if (!prescriptions.isEmpty()) {
             sb.append("Prescripciones:");
             for (Prescription p : prescriptions) {
-                sb.append("\n- ").append(p.getMedication().getName())
-                  .append(" — ").append(p.getDosage())
-                  .append(", ").append(p.getFrequency())
-                  .append(", ").append(p.getDurationDays()).append(" días");
+                sb.append("\n- ")
+                        .append(p.getMedication().getName())
+                        .append(" — ")
+                        .append(p.getDosage())
+                        .append(", ")
+                        .append(p.getFrequency())
+                        .append(", ")
+                        .append(p.getDurationDays())
+                        .append(" días");
                 if (p.getInstructions() != null && !p.getInstructions().isBlank()) {
                     sb.append(" (").append(p.getInstructions()).append(")");
                 }

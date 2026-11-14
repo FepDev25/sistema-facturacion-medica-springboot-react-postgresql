@@ -3,7 +3,6 @@ package com.fepdev.sfm.backend.domain.medicalrecord;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -25,7 +24,8 @@ public interface MedicalRecordRepository extends JpaRepository<MedicalRecord, UU
     Page<MedicalRecord> findByPatientId(@Param("patientId") UUID patientId, Pageable pageable);
 
     // carga eagerly la asociación patient para evitar LazyInitializationException fuera de sesión JPA
-    @Query("SELECT m FROM MedicalRecord m JOIN FETCH m.patient WHERE m.patient.id = :patientId ORDER BY m.recordDate DESC")
+    @Query(
+            "SELECT m FROM MedicalRecord m JOIN FETCH m.patient WHERE m.patient.id = :patientId ORDER BY m.recordDate DESC")
     List<MedicalRecord> findByPatientIdEager(@Param("patientId") UUID patientId);
 
     @Query("SELECT COUNT(mr) FROM MedicalRecord mr WHERE mr.patient.id = :patientId")

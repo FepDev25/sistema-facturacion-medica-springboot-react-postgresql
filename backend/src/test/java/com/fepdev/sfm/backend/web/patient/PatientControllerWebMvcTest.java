@@ -1,21 +1,8 @@
 package com.fepdev.sfm.backend.web.patient;
 
-import java.time.LocalDate;
-import java.util.List;
-import java.util.UUID;
-
 import static org.hamcrest.Matchers.containsString;
-import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -31,8 +18,19 @@ import com.fepdev.sfm.backend.domain.patient.dto.PatientSummaryResponse;
 import com.fepdev.sfm.backend.security.JwtAuthenticationFilter;
 import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
 import com.fepdev.sfm.backend.shared.exception.HandlerException;
-
 import jakarta.persistence.EntityNotFoundException;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(PatientController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -136,8 +134,19 @@ class PatientControllerWebMvcTest {
     void update_getByDni_list_and_search_coverEndpoints() throws Exception {
         UUID id = UUID.randomUUID();
         PatientResponse response = new PatientResponse(
-                id, "12345678", "Ana", "Lopez", LocalDate.of(1990, 1, 1), Gender.FEMALE,
-                "5551234", "ana@example.com", "Calle 1", "O+", null, null, null);
+                id,
+                "12345678",
+                "Ana",
+                "Lopez",
+                LocalDate.of(1990, 1, 1),
+                Gender.FEMALE,
+                "5551234",
+                "ana@example.com",
+                "Calle 1",
+                "O+",
+                null,
+                null,
+                null);
         var summary = new PatientSummaryResponse(id, "12345678", "Ana", "Lopez", "5551234");
 
         when(patientService.updatePatient(any(), any())).thenReturn(response);
@@ -171,8 +180,13 @@ class PatientControllerWebMvcTest {
         UUID id = UUID.randomUUID();
 
         var appt = new com.fepdev.sfm.backend.domain.appointment.dto.AppointmentSummaryResponse(
-                UUID.randomUUID(), "Ana", "Lopez", "Doc", "Torres",
-                java.time.OffsetDateTime.now().plusDays(1), com.fepdev.sfm.backend.domain.appointment.Status.SCHEDULED);
+                UUID.randomUUID(),
+                "Ana",
+                "Lopez",
+                "Doc",
+                "Torres",
+                java.time.OffsetDateTime.now().plusDays(1),
+                com.fepdev.sfm.backend.domain.appointment.Status.SCHEDULED);
         var pol = new com.fepdev.sfm.backend.domain.insurance.dto.InsurancePolicySummaryResponse(
                 UUID.randomUUID(), "POL-9", "Seguro", new java.math.BigDecimal("80.00"), true);
 

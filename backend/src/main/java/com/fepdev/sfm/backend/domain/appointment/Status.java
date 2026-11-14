@@ -4,11 +4,11 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 public enum Status {
-    SCHEDULED, 
+    SCHEDULED,
     CONFIRMED,
     IN_PROGRESS,
     COMPLETED,
-    CANCELLED, 
+    CANCELLED,
     NO_SHOW;
 
     @JsonValue

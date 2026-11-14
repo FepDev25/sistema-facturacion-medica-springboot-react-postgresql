@@ -1,10 +1,15 @@
 package com.fepdev.sfm.backend.domain.doctor;
 
+import com.fepdev.sfm.backend.domain.appointment.dto.AppointmentSummaryResponse;
+import com.fepdev.sfm.backend.domain.doctor.dto.DoctorCreateRequest;
+import com.fepdev.sfm.backend.domain.doctor.dto.DoctorResponse;
+import com.fepdev.sfm.backend.domain.doctor.dto.DoctorSummaryResponse;
+import com.fepdev.sfm.backend.domain.doctor.dto.DoctorUpdateRequest;
+import jakarta.validation.Valid;
 import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -22,14 +27,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.fepdev.sfm.backend.domain.appointment.dto.AppointmentSummaryResponse;
-import com.fepdev.sfm.backend.domain.doctor.dto.DoctorCreateRequest;
-import com.fepdev.sfm.backend.domain.doctor.dto.DoctorResponse;
-import com.fepdev.sfm.backend.domain.doctor.dto.DoctorSummaryResponse;
-import com.fepdev.sfm.backend.domain.doctor.dto.DoctorUpdateRequest;
-
-import jakarta.validation.Valid;
-
 @RestController
 @RequestMapping("/api/v1/doctors")
 public class DoctorController {
@@ -42,19 +39,19 @@ public class DoctorController {
 
     @PostMapping
     public ResponseEntity<DoctorResponse> create(
-            @Valid @RequestBody DoctorCreateRequest request,
-            UriComponentsBuilder uriBuilder) {
+            @Valid @RequestBody DoctorCreateRequest request, UriComponentsBuilder uriBuilder) {
 
         DoctorResponse response = doctorService.createDoctor(request);
-        URI location = uriBuilder.path("/api/v1/doctors/{id}")
-                .buildAndExpand(response.id()).toUri();
+        URI location = uriBuilder
+                .path("/api/v1/doctors/{id}")
+                .buildAndExpand(response.id())
+                .toUri();
         return ResponseEntity.created(location).body(response);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<DoctorResponse> update(
-            @PathVariable UUID id,
-            @Valid @RequestBody DoctorUpdateRequest request) {
+            @PathVariable UUID id, @Valid @RequestBody DoctorUpdateRequest request) {
 
         return ResponseEntity.ok(doctorService.updateDoctor(id, request));
     }
@@ -92,6 +89,7 @@ public class DoctorController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime to,
             @PageableDefault(size = 50, sort = "scheduledAt", direction = Sort.Direction.ASC) Pageable pageable) {
 
-        return ResponseEntity.ok(doctorService.getAppointmentsByDoctorId(id, from, to, pageable).getContent());
+        return ResponseEntity.ok(
+                doctorService.getAppointmentsByDoctorId(id, from, to, pageable).getContent());
     }
 }

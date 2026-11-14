@@ -1,15 +1,7 @@
 package com.fepdev.sfm.backend.integration.e2e;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.OffsetDateTime;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.test.context.jdbc.Sql;
 
 import com.fepdev.sfm.backend.domain.doctor.Doctor;
 import com.fepdev.sfm.backend.domain.insurance.InsurancePolicy;
@@ -21,6 +13,11 @@ import com.fepdev.sfm.backend.domain.patient.Patient;
 import com.fepdev.sfm.backend.domain.payment.PaymentMethod;
 import com.fepdev.sfm.backend.domain.payment.dto.PaymentCreateRequest;
 import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import org.junit.jupiter.api.Test;
+import org.springframework.test.context.jdbc.Sql;
 
 @Sql(scripts = "/sql/cleanup_test_data.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class InsuranceCoverageFlowE2ETest extends AbstractPostgresFlowE2ETest {
@@ -47,13 +44,15 @@ class InsuranceCoverageFlowE2ETest extends AbstractPostgresFlowE2ETest {
         invoice.setInsurancePolicy(activePolicy);
         invoiceRepository.save(invoice);
 
-        invoiceService.addItem(invoice.getId(), new InvoiceItemRequest(
-                service.getId(),
-                null,
-                ItemType.SERVICE,
-                "Consulta cobertura activa",
-                1,
-                new BigDecimal("100.00")));
+        invoiceService.addItem(
+                invoice.getId(),
+                new InvoiceItemRequest(
+                        service.getId(),
+                        null,
+                        ItemType.SERVICE,
+                        "Consulta cobertura activa",
+                        1,
+                        new BigDecimal("100.00")));
 
         var recalculated = getInvoice(invoice.getId());
         assertThat(recalculated.getInsuranceCoverage()).isGreaterThan(BigDecimal.ZERO);
@@ -84,13 +83,15 @@ class InsuranceCoverageFlowE2ETest extends AbstractPostgresFlowE2ETest {
         invoice.setInsurancePolicy(expiredPolicy);
         invoiceRepository.save(invoice);
 
-        invoiceService.addItem(invoice.getId(), new InvoiceItemRequest(
-                service.getId(),
-                null,
-                ItemType.SERVICE,
-                "Consulta poliza expirada",
-                1,
-                new BigDecimal("120.00")));
+        invoiceService.addItem(
+                invoice.getId(),
+                new InvoiceItemRequest(
+                        service.getId(),
+                        null,
+                        ItemType.SERVICE,
+                        "Consulta poliza expirada",
+                        1,
+                        new BigDecimal("120.00")));
 
         var recalculated = getInvoice(invoice.getId());
         assertThat(recalculated.getInsuranceCoverage()).isEqualByComparingTo("0.00");
@@ -119,13 +120,15 @@ class InsuranceCoverageFlowE2ETest extends AbstractPostgresFlowE2ETest {
         invoice.setInsurancePolicy(policyWithInactiveProvider);
         invoiceRepository.save(invoice);
 
-        invoiceService.addItem(invoice.getId(), new InvoiceItemRequest(
-                service.getId(),
-                null,
-                ItemType.SERVICE,
-                "Consulta proveedor inactivo",
-                1,
-                new BigDecimal("140.00")));
+        invoiceService.addItem(
+                invoice.getId(),
+                new InvoiceItemRequest(
+                        service.getId(),
+                        null,
+                        ItemType.SERVICE,
+                        "Consulta proveedor inactivo",
+                        1,
+                        new BigDecimal("140.00")));
 
         var recalculated = getInvoice(invoice.getId());
         assertThat(recalculated.getInsuranceCoverage()).isEqualByComparingTo("0.00");
@@ -154,28 +157,31 @@ class InsuranceCoverageFlowE2ETest extends AbstractPostgresFlowE2ETest {
         invoice.setInsurancePolicy(policy);
         invoiceRepository.save(invoice);
 
-        invoiceService.addItem(invoice.getId(), new InvoiceItemRequest(
-                service.getId(),
-                null,
-                ItemType.SERVICE,
-                "Consulta con cobertura",
-                1,
-                new BigDecimal("100.00")));
+        invoiceService.addItem(
+                invoice.getId(),
+                new InvoiceItemRequest(
+                        service.getId(),
+                        null,
+                        ItemType.SERVICE,
+                        "Consulta con cobertura",
+                        1,
+                        new BigDecimal("100.00")));
 
         invoiceService.confirmInvoice(invoice.getId());
 
         var pending = getInvoice(invoice.getId());
         assertThat(pending.getStatus()).isEqualTo(InvoiceStatus.PENDING);
-        assertThat(pending.getPatientResponsibility()).isEqualByComparingTo(pending.getTotal().multiply(new BigDecimal("0.20")));
+        assertThat(pending.getPatientResponsibility())
+                .isEqualByComparingTo(pending.getTotal().multiply(new BigDecimal("0.20")));
 
         // la parte del seguro no se puede cobrar al paciente
         assertThatThrownBy(() -> paymentService.registerPayment(new PaymentCreateRequest(
-                invoice.getId(),
-                pending.getTotal(),
-                PaymentMethod.CASH,
-                null,
-                "Intento de cobrar la parte del seguro",
-                OffsetDateTime.now())))
+                        invoice.getId(),
+                        pending.getTotal(),
+                        PaymentMethod.CASH,
+                        null,
+                        "Intento de cobrar la parte del seguro",
+                        OffsetDateTime.now())))
                 .isInstanceOf(BusinessRuleException.class)
                 .hasMessageContaining("saldo pendiente");
 
@@ -215,13 +221,15 @@ class InsuranceCoverageFlowE2ETest extends AbstractPostgresFlowE2ETest {
         invoice.setInsurancePolicy(policy);
         invoiceRepository.save(invoice);
 
-        invoiceService.addItem(invoice.getId(), new InvoiceItemRequest(
-                service.getId(),
-                null,
-                ItemType.SERVICE,
-                "Consulta cubierta al 100 %",
-                1,
-                new BigDecimal("100.00")));
+        invoiceService.addItem(
+                invoice.getId(),
+                new InvoiceItemRequest(
+                        service.getId(),
+                        null,
+                        ItemType.SERVICE,
+                        "Consulta cubierta al 100 %",
+                        1,
+                        new BigDecimal("100.00")));
 
         invoiceService.confirmInvoice(invoice.getId());
 

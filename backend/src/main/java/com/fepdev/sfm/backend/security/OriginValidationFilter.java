@@ -1,15 +1,13 @@
 package com.fepdev.sfm.backend.security;
 
-import java.io.IOException;
-import java.util.Set;
-
-import org.springframework.http.MediaType;
-import org.springframework.web.filter.OncePerRequestFilter;
-
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Set;
+import org.springframework.http.MediaType;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
  * Defensa CSRF para la sesion en cookies.
@@ -30,8 +28,8 @@ public class OriginValidationFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-            FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
 
         if (SAFE_METHODS.contains(request.getMethod())) {
             filterChain.doFilter(request, response);
@@ -48,8 +46,7 @@ public class OriginValidationFilter extends OncePerRequestFilter {
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
             response.setCharacterEncoding("UTF-8");
             response.getWriter().write("""
-                    {"status":403,"error":"Forbidden","message":"Origen no permitido.","path":"%s"}"""
-                    .formatted(request.getRequestURI()));
+                    {"status":403,"error":"Forbidden","message":"Origen no permitido.","path":"%s"}""".formatted(request.getRequestURI()));
             return;
         }
 

@@ -1,16 +1,5 @@
 package com.fepdev.sfm.backend.domain.appointment;
 
-import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.UUID;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.fepdev.sfm.backend.domain.appointment.dto.AppointmentCreateRequest;
 import com.fepdev.sfm.backend.domain.appointment.dto.AppointmentResponse;
 import com.fepdev.sfm.backend.domain.appointment.dto.AppointmentSummaryResponse;
@@ -24,8 +13,16 @@ import com.fepdev.sfm.backend.domain.medicalrecord.dto.MedicalRecordCreateReques
 import com.fepdev.sfm.backend.domain.patient.PatientRepository;
 import com.fepdev.sfm.backend.security.SystemUserRepository;
 import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
-
 import jakarta.persistence.EntityNotFoundException;
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AppointmentService {
@@ -45,11 +42,15 @@ public class AppointmentService {
 
     private final InvoiceService invoiceService;
 
-    public AppointmentService(AppointmentRepository appointmentRepository, AppointmentMapper appointmentMapper,
-            DoctorRepository doctorRepository, PatientRepository patientRepository,
+    public AppointmentService(
+            AppointmentRepository appointmentRepository,
+            AppointmentMapper appointmentMapper,
+            DoctorRepository doctorRepository,
+            PatientRepository patientRepository,
             SystemUserRepository systemUserRepository,
             MedicalRecordRepository medicalRecordRepository,
-            MedicalRecordMapper medicalRecordMapper, InvoiceService invoiceService) {
+            MedicalRecordMapper medicalRecordMapper,
+            InvoiceService invoiceService) {
         this.appointmentRepository = appointmentRepository;
         this.appointmentMapper = appointmentMapper;
         this.doctorRepository = doctorRepository;
@@ -64,8 +65,10 @@ public class AppointmentService {
     @Transactional
     public AppointmentResponse createAppointment(AppointmentCreateRequest request) {
 
-        Doctor doctor = doctorRepository.findById(request.doctorId())
-                .orElseThrow(() -> new EntityNotFoundException("El doctor con el id: " + request.doctorId() + " no existe"));
+        Doctor doctor = doctorRepository
+                .findById(request.doctorId())
+                .orElseThrow(
+                        () -> new EntityNotFoundException("El doctor con el id: " + request.doctorId() + " no existe"));
 
         // fix: doctor inactivo es regla de negocio, no "not found"
         if (!doctor.isActive()) {
@@ -80,8 +83,10 @@ public class AppointmentService {
         OffsetDateTime endTime = request.scheduledAt().plusMinutes(request.durationMinutes());
 
         // fix: overlap real entre intervalos, excluyendo citas canceladas/no_show
-        if (appointmentRepository.hasScheduleConflict(request.doctorId(), request.scheduledAt(), endTime, INACTIVE_STATUSES)) {
-            throw new BusinessRuleException("El doctor ya tiene una cita activa que se superpone con el horario solicitado");
+        if (appointmentRepository.hasScheduleConflict(
+                request.doctorId(), request.scheduledAt(), endTime, INACTIVE_STATUSES)) {
+            throw new BusinessRuleException(
+                    "El doctor ya tiene una cita activa que se superpone con el horario solicitado");
         }
 
         Appointment appointment = appointmentMapper.toEntity(request);
@@ -95,11 +100,13 @@ public class AppointmentService {
     // confirmar una cita: SCHEDULED a CONFIRMED
     @Transactional
     public AppointmentResponse confirmAppointment(UUID id) {
-        Appointment appointment = appointmentRepository.findById(id)
+        Appointment appointment = appointmentRepository
+                .findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("La cita con el id: " + id + " no existe"));
 
         if (appointment.getStatus() != Status.SCHEDULED) {
-            throw new BusinessRuleException("Solo se pueden confirmar citas en estado SCHEDULED. Estado actual: " + appointment.getStatus());
+            throw new BusinessRuleException(
+                    "Solo se pueden confirmar citas en estado SCHEDULED. Estado actual: " + appointment.getStatus());
         }
 
         appointment.setStatus(Status.CONFIRMED);
@@ -109,11 +116,13 @@ public class AppointmentService {
     // iniciar consulta: CONFIRMED a IN_PROGRESS
     @Transactional
     public AppointmentResponse startAppointment(UUID id) {
-        Appointment appointment = appointmentRepository.findById(id)
+        Appointment appointment = appointmentRepository
+                .findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("La cita con el id: " + id + " no existe"));
 
         if (appointment.getStatus() != Status.CONFIRMED) {
-            throw new BusinessRuleException("Solo se pueden iniciar citas en estado CONFIRMED. Estado actual: " + appointment.getStatus());
+            throw new BusinessRuleException(
+                    "Solo se pueden iniciar citas en estado CONFIRMED. Estado actual: " + appointment.getStatus());
         }
 
         appointment.setStatus(Status.IN_PROGRESS);
@@ -123,20 +132,24 @@ public class AppointmentService {
     // completar consulta: IN_PROGRESS a COMPLETED
     @Transactional
     public AppointmentResponse completeAppointment(UUID id, MedicalRecordCreateRequest medicalRecordRequest) {
-        Appointment appointment = appointmentRepository.findById(id)
+        Appointment appointment = appointmentRepository
+                .findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("La cita con el id: " + id + " no existe"));
 
         if (appointment.getStatus() != Status.IN_PROGRESS) {
-            throw new BusinessRuleException("Solo se pueden completar citas en estado IN_PROGRESS. Estado actual: " + appointment.getStatus());
+            throw new BusinessRuleException(
+                    "Solo se pueden completar citas en estado IN_PROGRESS. Estado actual: " + appointment.getStatus());
         }
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getName() != null) {
             String username = auth.getName();
-            Doctor authenticatedDoctor = doctorRepository.findByUserId(
-                    systemUserRepository.findByUsername(username)
-                            .orElseThrow(() -> new BusinessRuleException(
-                                    "No se encontró el usuario autenticado en el sistema.")).getId())
+            Doctor authenticatedDoctor = doctorRepository
+                    .findByUserId(systemUserRepository
+                            .findByUsername(username)
+                            .orElseThrow(() ->
+                                    new BusinessRuleException("No se encontró el usuario autenticado en el sistema."))
+                            .getId())
                     .orElse(null);
             if (authenticatedDoctor == null) {
                 throw new BusinessRuleException("El usuario autenticado no tiene un perfil de doctor vinculado.");
@@ -164,11 +177,14 @@ public class AppointmentService {
     // cancelar una cita: SCHEDULED o CONFIRMED a CANCELLED
     @Transactional
     public AppointmentResponse cancelAppointment(UUID id) {
-        Appointment appointment = appointmentRepository.findById(id)
+        Appointment appointment = appointmentRepository
+                .findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("La cita con el id: " + id + " no existe"));
 
         if (appointment.getStatus() != Status.SCHEDULED && appointment.getStatus() != Status.CONFIRMED) {
-            throw new BusinessRuleException("Solo se pueden cancelar citas en estado SCHEDULED o CONFIRMED. Estado actual: " + appointment.getStatus());
+            throw new BusinessRuleException(
+                    "Solo se pueden cancelar citas en estado SCHEDULED o CONFIRMED. Estado actual: "
+                            + appointment.getStatus());
         }
 
         appointment.setStatus(Status.CANCELLED);
@@ -178,11 +194,14 @@ public class AppointmentService {
     // registrar no-presentación: SCHEDULED o CONFIRMED a NO_SHOW
     @Transactional
     public AppointmentResponse markNoShow(UUID id) {
-        Appointment appointment = appointmentRepository.findById(id)
+        Appointment appointment = appointmentRepository
+                .findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("La cita con el id: " + id + " no existe"));
 
         if (appointment.getStatus() != Status.SCHEDULED && appointment.getStatus() != Status.CONFIRMED) {
-            throw new BusinessRuleException("Solo se puede registrar no-presentación en citas en estado SCHEDULED o CONFIRMED. Estado actual: " + appointment.getStatus());
+            throw new BusinessRuleException(
+                    "Solo se puede registrar no-presentación en citas en estado SCHEDULED o CONFIRMED. Estado actual: "
+                            + appointment.getStatus());
         }
 
         appointment.setStatus(Status.NO_SHOW);
@@ -192,7 +211,8 @@ public class AppointmentService {
     // obtener una cita por su id
     @Transactional(readOnly = true)
     public AppointmentResponse getAppointmentById(UUID id) {
-        Appointment appointment = appointmentRepository.findById(id)
+        Appointment appointment = appointmentRepository
+                .findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("La cita con el id: " + id + " no existe"));
         return enrichWithInvoice(appointmentMapper.toResponse(appointment));
     }
@@ -249,17 +269,25 @@ public class AppointmentService {
 
     // listar citas con filtros opcionales: doctor, paciente, estado, rango de fechas
     @Transactional(readOnly = true)
-    public Page<AppointmentSummaryResponse> getAppointments(UUID doctorId, UUID patientId, Status status,
-            OffsetDateTime startDate, OffsetDateTime endDate, Pageable pageable) {
-        return appointmentRepository.findWithFilters(doctorId, patientId, status, startDate, endDate, pageable)
+    public Page<AppointmentSummaryResponse> getAppointments(
+            UUID doctorId,
+            UUID patientId,
+            Status status,
+            OffsetDateTime startDate,
+            OffsetDateTime endDate,
+            Pageable pageable) {
+        return appointmentRepository
+                .findWithFilters(doctorId, patientId, status, startDate, endDate, pageable)
                 .map(appointmentMapper::toSummaryResponse);
     }
 
     // obtener los slots ocupados de un médico en un rango de fechas, excluyendo canceladas y no_show
     // consumidor calcula los huecos libres a partir de esta lista
     @Transactional(readOnly = true)
-    public List<AppointmentSummaryResponse> getDoctorAvailability(UUID doctorId, OffsetDateTime startDate, OffsetDateTime endDate) {
-        doctorRepository.findById(doctorId)
+    public List<AppointmentSummaryResponse> getDoctorAvailability(
+            UUID doctorId, OffsetDateTime startDate, OffsetDateTime endDate) {
+        doctorRepository
+                .findById(doctorId)
                 .orElseThrow(() -> new EntityNotFoundException("El doctor con el id: " + doctorId + " no existe"));
 
         return appointmentRepository

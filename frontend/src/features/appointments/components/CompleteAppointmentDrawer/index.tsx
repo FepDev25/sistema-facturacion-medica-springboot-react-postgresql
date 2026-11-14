@@ -82,7 +82,7 @@ export function CompleteAppointmentDrawer({
                 name="clinicalNotes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Notas clinicas</FormLabel>
+                    <FormLabel>Notas clínicas</FormLabel>
                     <FormControl>
                       <Textarea {...field} rows={5} className="resize-none" />
                     </FormControl>

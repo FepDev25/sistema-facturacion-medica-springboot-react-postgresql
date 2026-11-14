@@ -1,14 +1,13 @@
 package com.fepdev.sfm.backend.security;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.time.Duration;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * Emite y limpia las cookies de sesion.
@@ -44,17 +43,21 @@ public class AuthCookieService {
 
     public void writeSession(HttpServletResponse response, String accessToken, String refreshToken) {
         response.setHeader(HttpHeaders.CACHE_CONTROL, "no-store");
-        response.addHeader(HttpHeaders.SET_COOKIE,
+        response.addHeader(
+                HttpHeaders.SET_COOKIE,
                 build(ACCESS_COOKIE, accessToken, ACCESS_PATH, accessMaxAge).toString());
-        response.addHeader(HttpHeaders.SET_COOKIE,
+        response.addHeader(
+                HttpHeaders.SET_COOKIE,
                 build(REFRESH_COOKIE, refreshToken, REFRESH_PATH, refreshMaxAge).toString());
     }
 
     public void clearSession(HttpServletResponse response) {
         response.setHeader(HttpHeaders.CACHE_CONTROL, "no-store");
-        response.addHeader(HttpHeaders.SET_COOKIE,
+        response.addHeader(
+                HttpHeaders.SET_COOKIE,
                 build(ACCESS_COOKIE, "", ACCESS_PATH, Duration.ZERO).toString());
-        response.addHeader(HttpHeaders.SET_COOKIE,
+        response.addHeader(
+                HttpHeaders.SET_COOKIE,
                 build(REFRESH_COOKIE, "", REFRESH_PATH, Duration.ZERO).toString());
     }
 

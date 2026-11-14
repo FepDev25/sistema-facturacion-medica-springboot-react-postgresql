@@ -2,21 +2,19 @@ package com.fepdev.sfm.backend.domain.invoice;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.UUID;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
-
 import com.fepdev.sfm.backend.domain.appointment.Appointment;
 import com.fepdev.sfm.backend.domain.catalog.MedicationsCatalog;
 import com.fepdev.sfm.backend.domain.catalog.ServicesCatalog;
 import com.fepdev.sfm.backend.domain.insurance.InsurancePolicy;
 import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceItemRequest;
 import com.fepdev.sfm.backend.domain.patient.Patient;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 class InvoiceItemAndMapperImplTest {
 
@@ -40,12 +38,7 @@ class InvoiceItemAndMapperImplTest {
         UUID itemId = UUID.randomUUID();
 
         InvoiceItemRequest request = new InvoiceItemRequest(
-                serviceId,
-                medicationId,
-                ItemType.SERVICE,
-                "Consulta",
-                2,
-                new BigDecimal("50.00"));
+                serviceId, medicationId, ItemType.SERVICE, "Consulta", 2, new BigDecimal("50.00"));
 
         InvoiceItem mappedEntity = invoiceItemMapper.toEntity(request);
         assertThat(mappedEntity.getItemType()).isEqualTo(ItemType.SERVICE);

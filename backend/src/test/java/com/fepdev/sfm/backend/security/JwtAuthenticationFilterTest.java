@@ -6,8 +6,10 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import io.jsonwebtoken.JwtException;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
 import java.io.IOException;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,20 +24,26 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import io.jsonwebtoken.JwtException;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-
 @ExtendWith(MockitoExtension.class)
 class JwtAuthenticationFilterTest {
 
-    @Mock private JwtService jwtService;
-    @Mock private UserDetailsServiceImpl userDetailsService;
-    @Mock private AuthCookieService authCookieService;
-    @Mock private TokenBlacklistService tokenBlacklistService;
-    @Mock private FilterChain filterChain;
+    @Mock
+    private JwtService jwtService;
 
-    @InjectMocks private JwtAuthenticationFilter filter;
+    @Mock
+    private UserDetailsServiceImpl userDetailsService;
+
+    @Mock
+    private AuthCookieService authCookieService;
+
+    @Mock
+    private TokenBlacklistService tokenBlacklistService;
+
+    @Mock
+    private FilterChain filterChain;
+
+    @InjectMocks
+    private JwtAuthenticationFilter filter;
 
     @AfterEach
     void cleanup() {
@@ -60,7 +68,8 @@ class JwtAuthenticationFilterTest {
         request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer token");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
-        UserDetails user = User.withUsername("ana").password("x").authorities("ADMIN").build();
+        UserDetails user =
+                User.withUsername("ana").password("x").authorities("ADMIN").build();
         when(jwtService.extractUsername("token")).thenReturn("ana");
         when(jwtService.extractJti("token")).thenReturn("jti-1");
         when(tokenBlacklistService.isBlacklisted("jti-1")).thenReturn(false);
@@ -79,7 +88,8 @@ class JwtAuthenticationFilterTest {
         MockHttpServletRequest request = new MockHttpServletRequest();
         MockHttpServletResponse response = new MockHttpServletResponse();
 
-        UserDetails user = User.withUsername("ana").password("x").authorities("ADMIN").build();
+        UserDetails user =
+                User.withUsername("ana").password("x").authorities("ADMIN").build();
         when(authCookieService.readAccessToken(request)).thenReturn("cookie-token");
         when(jwtService.extractUsername("cookie-token")).thenReturn("ana");
         when(jwtService.extractJti("cookie-token")).thenReturn("jti-2");
@@ -117,11 +127,11 @@ class JwtAuthenticationFilterTest {
         request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer token");
         MockHttpServletResponse response = new MockHttpServletResponse();
 
-        UserDetails user = User.withUsername("ana").password("x").authorities("ADMIN").build();
+        UserDetails user =
+                User.withUsername("ana").password("x").authorities("ADMIN").build();
         when(jwtService.extractUsername("token")).thenReturn("ana");
         when(jwtService.extractJti("token")).thenReturn("jti-4");
-        when(tokenBlacklistService.isBlacklisted("jti-4"))
-                .thenThrow(new RuntimeException("redis down"));
+        when(tokenBlacklistService.isBlacklisted("jti-4")).thenThrow(new RuntimeException("redis down"));
         when(userDetailsService.loadUserByUsername("ana")).thenReturn(user);
         when(jwtService.isAccessTokenValid("token", user)).thenReturn(true);
 

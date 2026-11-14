@@ -1,15 +1,14 @@
 package com.fepdev.sfm.backend.domain.catalog;
 
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.UUID;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import com.fepdev.sfm.backend.domain.catalog.dto.MedicationCreateRequest;
 import com.fepdev.sfm.backend.domain.catalog.dto.MedicationUpdateRequest;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 class MedicationsCatalogMapperImplTest {
 
@@ -41,8 +40,8 @@ class MedicationsCatalogMapperImplTest {
         entity.setRequiresPrescription(true);
         entity.setActive(true);
 
-        MedicationUpdateRequest request = new MedicationUpdateRequest("Nuevo", null, new BigDecimal("11.00"), Unit.MG, false,
-                false);
+        MedicationUpdateRequest request =
+                new MedicationUpdateRequest("Nuevo", null, new BigDecimal("11.00"), Unit.MG, false, false);
         mapper.updateEntity(request, entity);
 
         assertThat(entity.getCode()).isEqualTo("MED-ORIG");

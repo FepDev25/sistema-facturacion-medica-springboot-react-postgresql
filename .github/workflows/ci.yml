@@ -43,6 +43,10 @@ jobs:
           cache: maven
           cache-dependency-path: backend/pom.xml
 
+      - name: Verificar formato Java
+        working-directory: backend
+        run: ./mvnw -B -ntp spotless:check
+
       - name: Tests y cobertura
         working-directory: backend
         run: |
@@ -100,6 +104,9 @@ jobs:
       - name: Instalar dependencias
         run: npm ci
 
+      - name: Verificar tipos generados desde OpenAPI
+        run: npm run generate:types:check
+
       - name: Lint
         run: npm run lint
 
@@ -117,6 +124,24 @@ jobs:
           path: frontend/coverage/
           if-no-files-found: ignore
           retention-days: 7
+
+  # Gate offline de evals: valida el calculo de metricas y umbrales con fixtures.
+  # Los evals reales contra Anthropic/Google quedan manuales (consumen cuota).
+  evals:
+    name: Evals (offline)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Configurar Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Metricas y umbrales con fixtures
+        run: python3 -m unittest discover -s scripts/ai-evals -p 'test_*.py' -v
 
   changes:
     name: Cambios

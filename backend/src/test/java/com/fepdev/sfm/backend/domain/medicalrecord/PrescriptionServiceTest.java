@@ -5,9 +5,17 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fepdev.sfm.backend.ai.history.PatientHistoryIndexer;
+import com.fepdev.sfm.backend.domain.appointment.Appointment;
+import com.fepdev.sfm.backend.domain.appointment.Status;
+import com.fepdev.sfm.backend.domain.catalog.MedicationsCatalog;
+import com.fepdev.sfm.backend.domain.catalog.MedicationsCatalogRepository;
+import com.fepdev.sfm.backend.domain.medicalrecord.dto.PrescriptionCreateRequest;
+import com.fepdev.sfm.backend.domain.medicalrecord.dto.PrescriptionResponse;
+import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
+import jakarta.persistence.EntityNotFoundException;
 import java.util.Optional;
 import java.util.UUID;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,17 +24,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import com.fepdev.sfm.backend.domain.appointment.Appointment;
-import com.fepdev.sfm.backend.domain.appointment.Status;
-import com.fepdev.sfm.backend.domain.catalog.MedicationsCatalog;
-import com.fepdev.sfm.backend.domain.catalog.MedicationsCatalogRepository;
-import com.fepdev.sfm.backend.domain.medicalrecord.dto.PrescriptionCreateRequest;
-import com.fepdev.sfm.backend.domain.medicalrecord.dto.PrescriptionResponse;
-import com.fepdev.sfm.backend.ai.history.PatientHistoryIndexer;
-import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
-
-import jakarta.persistence.EntityNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
 class PrescriptionServiceTest {
@@ -104,8 +101,8 @@ class PrescriptionServiceTest {
         UUID appointmentId = UUID.randomUUID();
         UUID medicalRecordId = UUID.randomUUID();
         UUID medicationId = UUID.randomUUID();
-        PrescriptionCreateRequest request = new PrescriptionCreateRequest(
-                appointmentId, medicalRecordId, medicationId, "500mg", "q8h", 5, null);
+        PrescriptionCreateRequest request =
+                new PrescriptionCreateRequest(appointmentId, medicalRecordId, medicationId, "500mg", "q8h", 5, null);
 
         Appointment appointment = new Appointment();
         ReflectionTestUtils.setField(appointment, "id", appointmentId);
@@ -137,8 +134,16 @@ class PrescriptionServiceTest {
 
         Prescription entity = new Prescription();
         PrescriptionResponse response = new PrescriptionResponse(
-                UUID.randomUUID(), appointmentId, medicalRecordId, medicationId, "Amoxicilina",
-                "500mg", "q8h", 5, "tomar con comida", java.time.OffsetDateTime.now());
+                UUID.randomUUID(),
+                appointmentId,
+                medicalRecordId,
+                medicationId,
+                "Amoxicilina",
+                "500mg",
+                "q8h",
+                5,
+                "tomar con comida",
+                java.time.OffsetDateTime.now());
 
         when(medicalRecordRepository.findById(medicalRecordId)).thenReturn(Optional.of(medicalRecord));
         when(medicationRepository.findById(medicationId)).thenReturn(Optional.of(medication));
@@ -159,7 +164,8 @@ class PrescriptionServiceTest {
         UUID medicalRecordId = UUID.randomUUID();
         when(medicalRecordRepository.existsById(medicalRecordId)).thenReturn(false);
 
-        assertThatThrownBy(() -> prescriptionService.getPrescriptionsByMedicalRecord(medicalRecordId, Pageable.unpaged()))
+        assertThatThrownBy(
+                        () -> prescriptionService.getPrescriptionsByMedicalRecord(medicalRecordId, Pageable.unpaged()))
                 .isInstanceOf(EntityNotFoundException.class);
     }
 
@@ -168,8 +174,16 @@ class PrescriptionServiceTest {
         UUID medicalRecordId = UUID.randomUUID();
         Prescription entity = new Prescription();
         PrescriptionResponse response = new PrescriptionResponse(
-                UUID.randomUUID(), UUID.randomUUID(), medicalRecordId, UUID.randomUUID(), "Amoxicilina",
-                "500mg", "q8h", 5, null, java.time.OffsetDateTime.now());
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                medicalRecordId,
+                UUID.randomUUID(),
+                "Amoxicilina",
+                "500mg",
+                "q8h",
+                5,
+                null,
+                java.time.OffsetDateTime.now());
         Pageable pageable = Pageable.ofSize(10);
 
         when(medicalRecordRepository.existsById(medicalRecordId)).thenReturn(true);
@@ -187,7 +201,8 @@ class PrescriptionServiceTest {
     void hasPrescriptionForMedication_delegatesToRepository() {
         UUID appointmentId = UUID.randomUUID();
         UUID medicationId = UUID.randomUUID();
-        when(prescriptionRepository.existsByAppointmentIdAndMedicationId(appointmentId, medicationId)).thenReturn(true);
+        when(prescriptionRepository.existsByAppointmentIdAndMedicationId(appointmentId, medicationId))
+                .thenReturn(true);
 
         boolean result = prescriptionService.hasPrescriptionForMedication(appointmentId, medicationId);
 

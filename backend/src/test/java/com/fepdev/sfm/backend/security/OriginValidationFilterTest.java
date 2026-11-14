@@ -3,7 +3,6 @@ package com.fepdev.sfm.backend.security;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Set;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -11,8 +10,8 @@ import org.springframework.mock.web.MockHttpServletResponse;
 
 class OriginValidationFilterTest {
 
-    private final OriginValidationFilter filter = new OriginValidationFilter(
-            Set.of("https://app.example.com", "http://localhost:5173"));
+    private final OriginValidationFilter filter =
+            new OriginValidationFilter(Set.of("https://app.example.com", "http://localhost:5173"));
 
     private MockHttpServletRequest request(String method, String origin) {
         MockHttpServletRequest request = new MockHttpServletRequest(method, "/api/v1/patients");

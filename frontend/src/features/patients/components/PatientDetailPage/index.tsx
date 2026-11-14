@@ -126,6 +126,8 @@ export function PatientDetailPage() {
             columns={getPatientAppointmentColumns()}
             data={appointmentsQuery.data ?? []}
             isLoading={appointmentsQuery.isLoading}
+            isError={appointmentsQuery.isError}
+            onRetry={() => void appointmentsQuery.refetch()}
             pageSize={5}
             emptyMessage="Sin citas registradas para este paciente."
           />
@@ -140,6 +142,8 @@ export function PatientDetailPage() {
             columns={getPatientPolicyColumns()}
             data={policiesQuery.data ?? []}
             isLoading={policiesQuery.isLoading}
+            isError={policiesQuery.isError}
+            onRetry={() => void policiesQuery.refetch()}
             pageSize={5}
             emptyMessage="Sin pólizas registradas para este paciente."
           />
@@ -154,6 +158,8 @@ export function PatientDetailPage() {
             columns={getPatientInvoiceColumns()}
             data={invoicesQuery.data ?? []}
             isLoading={invoicesQuery.isLoading}
+            isError={invoicesQuery.isError}
+            onRetry={() => void invoicesQuery.refetch()}
             pageSize={5}
             emptyMessage="Sin facturas registradas para este paciente."
           />
@@ -162,12 +168,14 @@ export function PatientDetailPage() {
         <section className="rounded-xl border border-border bg-card p-5 shadow-card">
           <div className="flex items-center gap-2 mb-3">
             <FileHeart className="h-4 w-4 text-muted-foreground" />
-            <h2 className="text-sm font-semibold text-foreground">Expedientes clinicos</h2>
+            <h2 className="text-sm font-semibold text-foreground">Expedientes clínicos</h2>
           </div>
           <DataTable
             columns={getPatientMedicalRecordColumns()}
             data={medicalRecordsQuery.data ?? []}
             isLoading={medicalRecordsQuery.isLoading}
+            isError={medicalRecordsQuery.isError}
+            onRetry={() => void medicalRecordsQuery.refetch()}
             pageSize={5}
             emptyMessage="Sin expedientes registrados para este paciente."
           />

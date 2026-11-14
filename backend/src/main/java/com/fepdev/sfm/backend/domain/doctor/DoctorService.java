@@ -1,13 +1,5 @@
 package com.fepdev.sfm.backend.domain.doctor;
 
-import java.time.OffsetDateTime;
-import java.util.UUID;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.fepdev.sfm.backend.domain.appointment.AppointmentMapper;
 import com.fepdev.sfm.backend.domain.appointment.AppointmentRepository;
 import com.fepdev.sfm.backend.domain.appointment.dto.AppointmentSummaryResponse;
@@ -18,12 +10,17 @@ import com.fepdev.sfm.backend.domain.doctor.dto.DoctorUpdateRequest;
 import com.fepdev.sfm.backend.security.SystemUser;
 import com.fepdev.sfm.backend.security.SystemUserRepository;
 import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
-
 import jakarta.persistence.EntityNotFoundException;
+import java.time.OffsetDateTime;
+import java.util.UUID;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class DoctorService {
-    
+
     private final DoctorRepository doctorRepository;
     private final DoctorMapper doctorMapper;
     private final SystemUserRepository systemUserRepository;
@@ -31,8 +28,12 @@ public class DoctorService {
     private final AppointmentRepository appointmentRepository;
     private final AppointmentMapper appointmentMapper;
 
-    public DoctorService(DoctorRepository doctorRepository, DoctorMapper doctorMapper,
-            SystemUserRepository systemUserRepository, AppointmentRepository appointmentRepository, AppointmentMapper appointmentMapper) {
+    public DoctorService(
+            DoctorRepository doctorRepository,
+            DoctorMapper doctorMapper,
+            SystemUserRepository systemUserRepository,
+            AppointmentRepository appointmentRepository,
+            AppointmentMapper appointmentMapper) {
         this.doctorRepository = doctorRepository;
         this.doctorMapper = doctorMapper;
         this.systemUserRepository = systemUserRepository;
@@ -42,18 +43,22 @@ public class DoctorService {
 
     // crear doctor, se valida que no se repita el numero de licencia
     @Transactional
-    public DoctorResponse createDoctor(DoctorCreateRequest request){
+    public DoctorResponse createDoctor(DoctorCreateRequest request) {
 
         if (doctorRepository.existsByLicenseNumber(request.licenseNumber())) {
-            throw new BusinessRuleException("El doctor con el número de licencia " + request.licenseNumber() + " ya se encuentra registrado en el sistema.");
+            throw new BusinessRuleException("El doctor con el número de licencia " + request.licenseNumber()
+                    + " ya se encuentra registrado en el sistema.");
         }
 
         if (request.userId() != null) {
             if (doctorRepository.existsByUserId(request.userId())) {
-                throw new BusinessRuleException("El usuario con ID " + request.userId() + " ya está vinculado a otro doctor.");
+                throw new BusinessRuleException(
+                        "El usuario con ID " + request.userId() + " ya está vinculado a otro doctor.");
             }
-            SystemUser systemUser = systemUserRepository.findById(request.userId())
-                    .orElseThrow(() -> new EntityNotFoundException("Usuario del sistema con ID " + request.userId() + " no encontrado."));
+            SystemUser systemUser = systemUserRepository
+                    .findById(request.userId())
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            "Usuario del sistema con ID " + request.userId() + " no encontrado."));
             if (!"DOCTOR".equals(systemUser.getRole().name())) {
                 throw new BusinessRuleException("El usuario con ID " + request.userId() + " no tiene rol DOCTOR.");
             }
@@ -75,7 +80,8 @@ public class DoctorService {
     // actualizar un doctor, validando id
     @Transactional
     public DoctorResponse updateDoctor(UUID id, DoctorUpdateRequest request) {
-        Doctor doctor = doctorRepository.findById(id)
+        Doctor doctor = doctorRepository
+                .findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Doctor con ID " + id + " no encontrado."));
 
         doctorMapper.updateEntity(request, doctor);
@@ -86,7 +92,8 @@ public class DoctorService {
     // desactivar un doctor
     @Transactional
     public void deactivateDoctor(UUID id) {
-        Doctor doctor = doctorRepository.findById(id)
+        Doctor doctor = doctorRepository
+                .findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Doctor con ID " + id + " no encontrado."));
 
         doctor.setActive(false);
@@ -96,7 +103,8 @@ public class DoctorService {
     // encontrar doctor por id, validando que exista
     @Transactional(readOnly = true)
     public DoctorResponse getDoctorById(UUID id) {
-        Doctor doctor = doctorRepository.findById(id)
+        Doctor doctor = doctorRepository
+                .findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Doctor con ID " + id + " no encontrado."));
         return doctorMapper.toResponse(doctor);
     }
@@ -104,8 +112,10 @@ public class DoctorService {
     // encontrar doctor por numero de licencia, validando que exista
     @Transactional(readOnly = true)
     public DoctorResponse getDoctorByLicenseNumber(String licenseNumber) {
-        Doctor doctor = doctorRepository.findByLicenseNumber(licenseNumber)
-                .orElseThrow(() -> new EntityNotFoundException("Doctor con número de licencia " + licenseNumber + " no encontrado."));
+        Doctor doctor = doctorRepository
+                .findByLicenseNumber(licenseNumber)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "Doctor con número de licencia " + licenseNumber + " no encontrado."));
         return doctorMapper.toResponse(doctor);
     }
 
@@ -119,21 +129,24 @@ public class DoctorService {
 
     // obtener agenda de un doctor, con filtros opcionales de fecha, validando que el doctor exista
     @Transactional(readOnly = true)
-    public Page<AppointmentSummaryResponse> getAppointmentsByDoctorId(UUID doctorId, OffsetDateTime startDate, OffsetDateTime endDate, Pageable pageable) {
+    public Page<AppointmentSummaryResponse> getAppointmentsByDoctorId(
+            UUID doctorId, OffsetDateTime startDate, OffsetDateTime endDate, Pageable pageable) {
 
         if (!doctorRepository.existsById(doctorId)) {
             throw new EntityNotFoundException("Doctor con ID " + doctorId + " no encontrado.");
         }
 
-        return appointmentRepository.findWithFilters(doctorId, null, null, startDate, endDate, pageable)
+        return appointmentRepository
+                .findWithFilters(doctorId, null, null, startDate, endDate, pageable)
                 .map(appointmentMapper::toSummaryResponse);
     }
 
     @Transactional(readOnly = true)
     public DoctorResponse getDoctorByUserId(UUID userId) {
-        Doctor doctor = doctorRepository.findByUserId(userId)
-                .orElseThrow(() -> new EntityNotFoundException("No se encontró un doctor vinculado al usuario con ID " + userId + "."));
+        Doctor doctor = doctorRepository
+                .findByUserId(userId)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "No se encontró un doctor vinculado al usuario con ID " + userId + "."));
         return doctorMapper.toResponse(doctor);
     }
-
 }

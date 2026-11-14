@@ -1,17 +1,15 @@
 package com.fepdev.sfm.backend.domain.appointment;
 
-import java.time.OffsetDateTime;
-
 import com.fepdev.sfm.backend.domain.doctor.Doctor;
 import com.fepdev.sfm.backend.domain.patient.Patient;
 import com.fepdev.sfm.backend.shared.domain.BaseEntity;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.time.OffsetDateTime;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -51,5 +49,4 @@ public class Appointment extends BaseEntity {
     private String chiefComplaint;
 
     private String notes;
-
 }

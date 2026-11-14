@@ -6,13 +6,22 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fepdev.sfm.backend.domain.invoice.Invoice;
+import com.fepdev.sfm.backend.domain.invoice.InvoiceItem;
+import com.fepdev.sfm.backend.domain.invoice.InvoiceItemRepository;
+import com.fepdev.sfm.backend.domain.invoice.InvoiceRepository;
+import com.fepdev.sfm.backend.domain.invoice.InvoiceStatus;
+import com.fepdev.sfm.backend.domain.invoice.ItemType;
+import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceItemResponse;
+import com.fepdev.sfm.backend.domain.medicalrecord.Severity;
+import com.fepdev.sfm.backend.domain.medicalrecord.dto.DiagnosisResponse;
+import com.fepdev.sfm.backend.domain.medicalrecord.dto.PrescriptionResponse;
+import com.fepdev.sfm.backend.domain.patient.Patient;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,32 +35,27 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import com.fepdev.sfm.backend.domain.invoice.Invoice;
-import com.fepdev.sfm.backend.domain.invoice.InvoiceItem;
-import com.fepdev.sfm.backend.domain.invoice.InvoiceItemRepository;
-import com.fepdev.sfm.backend.domain.invoice.InvoiceRepository;
-import com.fepdev.sfm.backend.domain.invoice.InvoiceStatus;
-import com.fepdev.sfm.backend.domain.invoice.ItemType;
-import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceItemResponse;
-import com.fepdev.sfm.backend.domain.medicalrecord.Severity;
-import com.fepdev.sfm.backend.domain.medicalrecord.dto.DiagnosisResponse;
-import com.fepdev.sfm.backend.domain.medicalrecord.dto.PrescriptionResponse;
-import com.fepdev.sfm.backend.domain.patient.Patient;
-
 import tools.jackson.databind.ObjectMapper;
 
 @ExtendWith(MockitoExtension.class)
 class AuditAspectTest {
 
-    @Mock AuditLogRepository auditLogRepository;
-    @Mock InvoiceRepository invoiceRepository;
-    @Mock InvoiceItemRepository invoiceItemRepository;
-    @Mock ProceedingJoinPoint pjp;
+    @Mock
+    AuditLogRepository auditLogRepository;
+
+    @Mock
+    InvoiceRepository invoiceRepository;
+
+    @Mock
+    InvoiceItemRepository invoiceItemRepository;
+
+    @Mock
+    ProceedingJoinPoint pjp;
 
     ObjectMapper objectMapper = new ObjectMapper();
 
-    @InjectMocks AuditAspect auditAspect;
+    @InjectMocks
+    AuditAspect auditAspect;
 
     @BeforeEach
     void setUp() {
@@ -87,9 +91,14 @@ class AuditAspectTest {
     void auditAddDiagnosis_savesAuditLogWithCreateAction() throws Throwable {
         UUID id = UUID.randomUUID();
         DiagnosisResponse response = new DiagnosisResponse(
-                id, UUID.randomUUID(), UUID.randomUUID(),
-                "J01.9", "Sinusitis aguda", Severity.MILD,
-                OffsetDateTime.now(), OffsetDateTime.now());
+                id,
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                "J01.9",
+                "Sinusitis aguda",
+                Severity.MILD,
+                OffsetDateTime.now(),
+                OffsetDateTime.now());
 
         when(pjp.proceed()).thenReturn(response);
 
@@ -116,8 +125,16 @@ class AuditAspectTest {
     void auditCreatePrescription_savesAuditLogWithCreateAction() throws Throwable {
         UUID id = UUID.randomUUID();
         PrescriptionResponse response = new PrescriptionResponse(
-                id, UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),
-                "Ibuprofeno", "400mg", "Cada 8h", 7, null, OffsetDateTime.now());
+                id,
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                "Ibuprofeno",
+                "400mg",
+                "Cada 8h",
+                7,
+                null,
+                OffsetDateTime.now());
 
         when(pjp.proceed()).thenReturn(response);
 
@@ -280,9 +297,18 @@ class AuditAspectTest {
         UUID itemId = UUID.randomUUID();
 
         InvoiceItemResponse response = new InvoiceItemResponse(
-                itemId, invoiceId, null, "Consulta", null, null,
-                ItemType.SERVICE, "Consulta general", 1,
-                new BigDecimal("100.00"), new BigDecimal("100.00"), OffsetDateTime.now());
+                itemId,
+                invoiceId,
+                null,
+                "Consulta",
+                null,
+                null,
+                ItemType.SERVICE,
+                "Consulta general",
+                1,
+                new BigDecimal("100.00"),
+                new BigDecimal("100.00"),
+                OffsetDateTime.now());
 
         when(pjp.proceed()).thenReturn(response);
         mockPjpArgs(invoiceId);
@@ -360,9 +386,14 @@ class AuditAspectTest {
     @Test
     void resolveCurrentUser_whenNoAuth_returnsSystem() throws Throwable {
         DiagnosisResponse response = new DiagnosisResponse(
-                UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),
-                "J01.9", "Sinusitis", Severity.MODERATE,
-                OffsetDateTime.now(), OffsetDateTime.now());
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                "J01.9",
+                "Sinusitis",
+                Severity.MODERATE,
+                OffsetDateTime.now(),
+                OffsetDateTime.now());
 
         when(pjp.proceed()).thenReturn(response);
 
@@ -378,9 +409,14 @@ class AuditAspectTest {
         setAnonymousUser();
 
         DiagnosisResponse response = new DiagnosisResponse(
-                UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),
-                "J01.9", "Sinusitis", Severity.MODERATE,
-                OffsetDateTime.now(), OffsetDateTime.now());
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                "J01.9",
+                "Sinusitis",
+                Severity.MODERATE,
+                OffsetDateTime.now(),
+                OffsetDateTime.now());
 
         when(pjp.proceed()).thenReturn(response);
 
@@ -396,9 +432,14 @@ class AuditAspectTest {
         setAuthenticatedUser("admin");
 
         DiagnosisResponse response = new DiagnosisResponse(
-                UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),
-                "J01.9", "Sinusitis", Severity.MODERATE,
-                OffsetDateTime.now(), OffsetDateTime.now());
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                "J01.9",
+                "Sinusitis",
+                Severity.MODERATE,
+                OffsetDateTime.now(),
+                OffsetDateTime.now());
 
         when(pjp.proceed()).thenReturn(response);
 
@@ -448,9 +489,14 @@ class AuditAspectTest {
         ReflectionTestUtils.setField(auditAspect, "objectMapper", failingMapper);
 
         DiagnosisResponse response = new DiagnosisResponse(
-                UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(),
-                "J01.9", "Sinusitis", Severity.MODERATE,
-                OffsetDateTime.now(), OffsetDateTime.now());
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                "J01.9",
+                "Sinusitis",
+                Severity.MODERATE,
+                OffsetDateTime.now(),
+                OffsetDateTime.now());
 
         when(pjp.proceed()).thenReturn(response);
 
@@ -496,8 +542,7 @@ class AuditAspectTest {
     void auditCreateDraftInvoice_whenServiceThrows_propagatesExceptionWithoutSaving() throws Throwable {
         when(pjp.proceed()).thenThrow(new RuntimeException("db error"));
 
-        assertThatThrownBy(() -> auditAspect.auditCreateDraftInvoice(pjp))
-                .isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(() -> auditAspect.auditCreateDraftInvoice(pjp)).isInstanceOf(RuntimeException.class);
 
         verify(auditLogRepository, org.mockito.Mockito.never()).save(any());
     }
@@ -512,8 +557,7 @@ class AuditAspectTest {
         mockPjpArgs(invoiceId);
         when(pjp.proceed()).thenThrow(new RuntimeException("tx error"));
 
-        assertThatThrownBy(() -> auditAspect.auditCancelInvoice(pjp))
-                .isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(() -> auditAspect.auditCancelInvoice(pjp)).isInstanceOf(RuntimeException.class);
 
         verify(auditLogRepository, org.mockito.Mockito.never()).save(any());
     }
@@ -527,8 +571,7 @@ class AuditAspectTest {
         mockPjpArgs(invoiceId, itemId);
         when(pjp.proceed()).thenThrow(new RuntimeException("delete error"));
 
-        assertThatThrownBy(() -> auditAspect.auditRemoveItem(pjp))
-                .isInstanceOf(RuntimeException.class);
+        assertThatThrownBy(() -> auditAspect.auditRemoveItem(pjp)).isInstanceOf(RuntimeException.class);
 
         verify(auditLogRepository, org.mockito.Mockito.never()).save(any());
     }

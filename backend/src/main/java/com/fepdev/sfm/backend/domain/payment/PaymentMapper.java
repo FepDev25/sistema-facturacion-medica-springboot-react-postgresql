@@ -1,12 +1,10 @@
 package com.fepdev.sfm.backend.domain.payment;
 
-import java.util.List;
-
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-
 import com.fepdev.sfm.backend.domain.payment.dto.PaymentCreateRequest;
 import com.fepdev.sfm.backend.domain.payment.dto.PaymentResponse;
+import java.util.List;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface PaymentMapper {

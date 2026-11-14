@@ -15,5 +15,4 @@ public class GenderConverter implements AttributeConverter<Gender, String> {
     public Gender convertToEntityAttribute(String dbData) {
         return dbData == null ? null : Gender.valueOf(dbData.toUpperCase());
     }
-    
 }

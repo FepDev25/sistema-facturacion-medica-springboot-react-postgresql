@@ -1885,6 +1885,82 @@ paths:
         '403': { $ref: '#/components/responses/ForbiddenError' }
         '404': { $ref: '#/components/responses/NotFoundError' }
 
+  /api/v1/ai/patients/{patientId}/query/stream:
+    post:
+      tags: [AI]
+      operationId: ai_patients_query_history_stream
+      summary: Consultar el historial clinico con streaming SSE
+      description: |
+        Misma logica que `POST /api/v1/ai/patients/{patientId}/query` pero emite la
+        respuesta por Server-Sent Events. Eventos: `token` (delta de texto), `done`
+        (JSON `PatientHistoryAnswer` con fuentes) y `error` (JSON con `message`).
+        Mantiene la memoria conversacional por usuario + paciente del endpoint normal.
+      parameters:
+        - name: patientId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatientHistoryQuery'
+      responses:
+        '200':
+          description: Flujo de eventos SSE
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        '400': { $ref: '#/components/responses/BadRequestError' }
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+        '503': { $ref: '#/components/responses/ServiceUnavailableError' }
+
+  /api/v1/ai/patients/{patientId}/conversation:
+    delete:
+      tags: [AI]
+      operationId: ai_patients_clear_conversation
+      summary: Borrar la memoria conversacional del usuario para un paciente
+      description: |
+        Elimina los turnos guardados (Redis) del usuario autenticado para ese paciente.
+        No afecta a otros usuarios ni a otros pacientes.
+      parameters:
+        - name: patientId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Memoria conversacional eliminada
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '404': { $ref: '#/components/responses/NotFoundError' }
+
+  /api/v1/ai/lab:
+    get:
+      tags: [AI]
+      operationId: ai_lab_snapshot
+      summary: Snapshot de configuracion y consumo de IA (solo ADMIN)
+      description: |
+        Vista de solo lectura para el AI Lab: modelo, version de prompt, rate limit,
+        memoria conversacional, precio por modelo, consumo acumulado por feature
+        (requests, errores, tokens, costo, latencia) y umbrales de eval. No devuelve
+        contenido clinico ni prompts completos.
+      responses:
+        '200':
+          description: Snapshot del AI Lab
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AiLabResponse'
+        '401': { $ref: '#/components/responses/UnauthorizedError' }
+        '403': { $ref: '#/components/responses/ForbiddenError' }
+
   /api/v1/dashboard/metrics:
     get:
       tags: [Dashboard]
@@ -3149,6 +3225,68 @@ components:
           items:
             $ref: '#/components/schemas/HistorySource'
 
+    AiLabFeature:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        endpoint: { type: string }
+        promptVersion: { type: string }
+        description: { type: string }
+
+    AiLabPricing:
+      type: object
+      properties:
+        model: { type: string }
+        inputPerMillionUsd: { type: number }
+        outputPerMillionUsd: { type: number }
+
+    AiLabUsage:
+      type: object
+      properties:
+        feature: { type: string }
+        requests: { type: number }
+        errors: { type: number }
+        promptTokens: { type: number }
+        completionTokens: { type: number }
+        costUsd: { type: number }
+        latencyMaxMs: { type: number }
+
+    AiLabEvals:
+      type: object
+      properties:
+        mode: { type: string }
+        thresholdsVersion: { type: integer }
+        thresholds:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties: { type: number }
+
+    AiLabResponse:
+      type: object
+      properties:
+        model: { type: string }
+        promptVersion: { type: string }
+        distributedRateLimit: { type: boolean }
+        rateLimitPerMinute: { type: integer }
+        memoryTtlSeconds: { type: integer }
+        memoryMaxTurns: { type: integer }
+        features:
+          type: array
+          items:
+            $ref: '#/components/schemas/AiLabFeature'
+        pricing:
+          type: array
+          items:
+            $ref: '#/components/schemas/AiLabPricing'
+        usage:
+          type: array
+          items:
+            $ref: '#/components/schemas/AiLabUsage'
+        evals:
+          $ref: '#/components/schemas/AiLabEvals'
+
   responses:
     BadRequestError:
       description: Solicitud invalida
@@ -3188,6 +3326,12 @@ components:
             $ref: '#/components/schemas/ErrorResponse'
     TooManyRequestsError:
       description: Demasiados intentos (incluye Retry-After)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ServiceUnavailableError:
+      description: Servicio de IA no disponible temporalmente
       content:
         application/json:
           schema:

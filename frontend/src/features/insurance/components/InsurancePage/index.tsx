@@ -40,14 +40,24 @@ export function InsurancePage() {
   const [policyDrawerOpen, setPolicyDrawerOpen] = useState(false)
   const [selectedPolicy, setSelectedPolicy] = useState<InsurancePolicyResponse | null>(null)
 
-  const { data: providersData, isLoading: providersLoading } = useProvidersPage({
+  const {
+    data: providersData,
+    isLoading: providersLoading,
+    isError: providersError,
+    refetch: refetchProviders,
+  } = useProvidersPage({
     includeInactive: true,
     page: providersPage,
     size: pageSize,
   })
   const providers = providersData?.content ?? []
   const { data: patients = [] } = usePatients()
-  const { data: policiesData, isLoading: policiesLoading } = usePoliciesPage({
+  const {
+    data: policiesData,
+    isLoading: policiesLoading,
+    isError: policiesError,
+    refetch: refetchPolicies,
+  } = usePoliciesPage({
     patientId: policyPatientId !== 'all' ? policyPatientId : undefined,
     onlyActive: false,
     page: policiesPage,
@@ -110,7 +120,7 @@ export function InsurancePage() {
     <div className="flex flex-col h-full">
       <PageHeader
         title="Seguros"
-        subtitle="Administracion de aseguradoras y polizas por paciente"
+        subtitle="Administracion de aseguradoras y pólizas por paciente"
       />
 
       <div className="flex-1 px-6 py-5 overflow-auto">
@@ -228,7 +238,7 @@ export function InsurancePage() {
                     }}
                   >
                     <Plus className="h-3.5 w-3.5" />
-                    Nueva poliza
+                    Nueva póliza
                   </Button>
                 </div>
               )}
@@ -240,13 +250,18 @@ export function InsurancePage() {
               columns={providerColumns}
               data={filteredProviders}
               isLoading={providersLoading}
+              isError={providersError}
+              onRetry={() => void refetchProviders()}
               pageSize={20}
               emptyMessage="No hay aseguradoras registradas."
             />
-            {!providersLoading && providersData && providersData.totalPages > 1 ? (
+            {!providersLoading &&
+            !providersError &&
+            providersData &&
+            providersData.totalPages > 1 ? (
               <div className="mt-3 flex items-center justify-between px-1">
                 <p className="text-xs text-muted-foreground">
-                  Pagina {providersData.number + 1} de {providersData.totalPages} -{' '}
+                  Página {providersData.number + 1} de {providersData.totalPages} -{' '}
                   {providersData.totalElements} aseguradoras
                 </p>
                 <div className="flex items-center gap-1">
@@ -254,7 +269,7 @@ export function InsurancePage() {
                     variant="outline"
                     size="icon"
                     className="h-7 w-7"
-                    aria-label="Pagina anterior"
+                    aria-label="Página anterior"
                     onClick={() => setProvidersPage((prev) => Math.max(prev - 1, 0))}
                     disabled={providersData.number <= 0}
                   >
@@ -264,7 +279,7 @@ export function InsurancePage() {
                     variant="outline"
                     size="icon"
                     className="h-7 w-7"
-                    aria-label="Pagina siguiente"
+                    aria-label="Página siguiente"
                     onClick={() =>
                       setProvidersPage((prev) =>
                         providersData.number + 1 >= providersData.totalPages ? prev : prev + 1,
@@ -284,21 +299,23 @@ export function InsurancePage() {
               columns={policyColumns}
               data={filteredPolicies}
               isLoading={policiesLoading}
+              isError={policiesError}
+              onRetry={() => void refetchPolicies()}
               pageSize={20}
-              emptyMessage="No hay polizas registradas."
+              emptyMessage="No hay pólizas registradas."
             />
-            {!policiesLoading && policiesData && policiesData.totalPages > 1 ? (
+            {!policiesLoading && !policiesError && policiesData && policiesData.totalPages > 1 ? (
               <div className="mt-3 flex items-center justify-between px-1">
                 <p className="text-xs text-muted-foreground">
-                  Pagina {policiesData.number + 1} de {policiesData.totalPages} -{' '}
-                  {policiesData.totalElements} polizas
+                  Página {policiesData.number + 1} de {policiesData.totalPages} -{' '}
+                  {policiesData.totalElements} pólizas
                 </p>
                 <div className="flex items-center gap-1">
                   <Button
                     variant="outline"
                     size="icon"
                     className="h-7 w-7"
-                    aria-label="Pagina anterior"
+                    aria-label="Página anterior"
                     onClick={() => setPoliciesPage((prev) => Math.max(prev - 1, 0))}
                     disabled={policiesData.number <= 0}
                   >
@@ -308,7 +325,7 @@ export function InsurancePage() {
                     variant="outline"
                     size="icon"
                     className="h-7 w-7"
-                    aria-label="Pagina siguiente"
+                    aria-label="Página siguiente"
                     onClick={() =>
                       setPoliciesPage((prev) =>
                         policiesData.number + 1 >= policiesData.totalPages ? prev : prev + 1,

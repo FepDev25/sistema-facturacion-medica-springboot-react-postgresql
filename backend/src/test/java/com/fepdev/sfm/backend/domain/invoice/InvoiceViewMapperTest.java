@@ -2,15 +2,6 @@ package com.fepdev.sfm.backend.domain.invoice;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.UUID;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
-
 import com.fepdev.sfm.backend.domain.appointment.Appointment;
 import com.fepdev.sfm.backend.domain.appointment.Status;
 import com.fepdev.sfm.backend.domain.catalog.MedicationsCatalog;
@@ -20,6 +11,13 @@ import com.fepdev.sfm.backend.domain.insurance.InsuranceProvider;
 import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceListViewResponse;
 import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceViewResponse;
 import com.fepdev.sfm.backend.domain.patient.Patient;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 class InvoiceViewMapperTest {
 

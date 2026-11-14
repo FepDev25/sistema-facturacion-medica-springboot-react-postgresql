@@ -1,12 +1,10 @@
 package com.fepdev.sfm.backend.domain.catalog;
 
-import java.math.BigDecimal;
-
 import com.fepdev.sfm.backend.shared.domain.BaseEntity;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,7 +14,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class MedicationsCatalog extends BaseEntity{
+public class MedicationsCatalog extends BaseEntity {
 
     @Column(nullable = false, unique = true, length = 50)
     private String code;

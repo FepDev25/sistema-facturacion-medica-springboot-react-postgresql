@@ -1,30 +1,27 @@
 package com.fepdev.sfm.backend.security;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.util.Date;
-import java.util.UUID;
-import java.util.function.Function;
-
-import javax.crypto.SecretKey;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Service;
-
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Date;
+import java.util.UUID;
+import java.util.function.Function;
+import javax.crypto.SecretKey;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Service;
 
 // Servicio para generar y validar JWTs de acceso y refresh tokens.
 @Service
 public class JwtService {
 
-    private static final String CLAIM_TYPE   = "type";
+    private static final String CLAIM_TYPE = "type";
     private static final String CLAIM_FAMILY = "fam";
-    private static final String TYPE_ACCESS  = "access";
+    private static final String TYPE_ACCESS = "access";
     private static final String TYPE_REFRESH = "refresh";
 
     // obtener desde el archivo de configuracion
@@ -53,8 +50,7 @@ public class JwtService {
 
     // Genera un token con el username como subject, el rol del usuario,
     // un claim "type" para distinguir access vs refresh tokens, y un jti unico.
-    private String buildToken(UserDetails userDetails, long expirationMs, String tokenType,
-            UUID familyId) {
+    private String buildToken(UserDetails userDetails, long expirationMs, String tokenType, UUID familyId) {
         var builder = Jwts.builder()
                 .id(UUID.randomUUID().toString())
                 .subject(userDetails.getUsername())

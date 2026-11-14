@@ -2,7 +2,6 @@ package com.fepdev.sfm.backend.domain.insurance;
 
 import java.util.Optional;
 import java.util.UUID;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -22,20 +21,19 @@ public interface InsurancePolicyRepository extends JpaRepository<InsurancePolicy
         WHERE p.provider.id = :providerId AND p.isActive = true""")
     boolean existsActiveByProviderId(@Param("providerId") UUID providerId);
 
-    // obtener las pólizas de un paciente, con opción de filtrar solo las activas o todas, ordenadas por fecha de inicio descendente
+    // obtener las pólizas de un paciente, con opción de filtrar solo las activas o todas, ordenadas por fecha de inicio
+    // descendente
     @Query("""
         SELECT p FROM InsurancePolicy p
-        WHERE p.patient.id = :patientId 
+        WHERE p.patient.id = :patientId
         AND (:onlyActive IS NULL OR :onlyActive = false OR p.isActive = true)
         ORDER BY p.startDate DESC""")
-    Page<InsurancePolicy> findByPatientIdWithFilter(@Param("patientId") UUID patientId, 
-                                                    @Param("onlyActive") Boolean onlyActive, 
-                                                    Pageable pageable);
+    Page<InsurancePolicy> findByPatientIdWithFilter(
+            @Param("patientId") UUID patientId, @Param("onlyActive") Boolean onlyActive, Pageable pageable);
 
     @Query("""
         SELECT p FROM InsurancePolicy p
         WHERE (:onlyActive IS NULL OR :onlyActive = false OR p.isActive = true)
         ORDER BY p.startDate DESC""")
-    Page<InsurancePolicy> findAllWithFilter(@Param("onlyActive") Boolean onlyActive,
-                                            Pageable pageable);
+    Page<InsurancePolicy> findAllWithFilter(@Param("onlyActive") Boolean onlyActive, Pageable pageable);
 }

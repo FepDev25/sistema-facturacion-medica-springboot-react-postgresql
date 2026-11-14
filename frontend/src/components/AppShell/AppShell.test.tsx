@@ -39,6 +39,7 @@ vi.mock('lucide-react', () => ({
   CalendarDays: () => <span>icon-calendar</span>,
   ClipboardList: () => <span>icon-clipboard</span>,
   CreditCard: () => <span>icon-credit</span>,
+  FlaskConical: () => <span>icon-flask</span>,
   LogOut: () => <span>icon-logout</span>,
   LayoutDashboard: () => <span>icon-dashboard</span>,
   Menu: () => <span>icon-menu</span>,
@@ -129,7 +130,7 @@ describe('AppShell', () => {
   })
 
   describe('nav filtering by role (desktop sidebar)', () => {
-    it('ADMIN sees all 7 nav items', () => {
+    it('ADMIN sees all 8 nav items', () => {
       setSession({ role: 'ADMIN' })
       render(
         <AppShell>
@@ -144,6 +145,7 @@ describe('AppShell', () => {
       expect(within(nav).getByText('Facturas')).toBeInTheDocument()
       expect(within(nav).getByText('Seguros')).toBeInTheDocument()
       expect(within(nav).getByText('Catálogo')).toBeInTheDocument()
+      expect(within(nav).getByText('AI Lab')).toBeInTheDocument()
     })
 
     it('DOCTOR sees only Dashboard and Citas', () => {
@@ -190,6 +192,23 @@ describe('AppShell', () => {
       const nav = getSidebar()
       expect(within(nav).queryByText('Dashboard')).not.toBeInTheDocument()
       expect(within(nav).queryByText('Citas')).not.toBeInTheDocument()
+    })
+
+    it('expone etiquetas accesibles para la navegación principal y móvil', async () => {
+      const user = userEvent.setup()
+      setSession({ role: 'ADMIN' })
+      render(
+        <AppShell>
+          <p>content</p>
+        </AppShell>,
+      )
+
+      expect(screen.getByRole('navigation', { name: 'Navegación principal' })).toBeInTheDocument()
+
+      await user.click(screen.getByRole('button', { name: 'Abrir menú' }))
+      expect(
+        screen.getByRole('navigation', { name: 'Navegación principal móvil' }),
+      ).toBeInTheDocument()
     })
 
     it('mobile nav mirrors desktop nav for ADMIN', async () => {

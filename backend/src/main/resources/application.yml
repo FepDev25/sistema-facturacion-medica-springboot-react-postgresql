@@ -46,13 +46,30 @@ spring:
 
 # JWT - propiedades custom del proyecto
 app:
+  # Rate limit compartido en Redis (IA y login). false = solo memoria (tests/un dyno).
+  rate-limit:
+    distributed: true
   ai:
-    # Limite por usuario para endpoints /api/v1/ai/** (ventana fija de 1 minuto)
+    # Limite por usuario para endpoints /api/v1/ai/** (ventana fija de 1 minuto).
+    # El contador vive en Redis y degrada a memoria si Redis no responde.
     rate-limit:
       requests-per-minute: 20
     # Timeout por llamada al LLM y reintentos ante errores transitorios
     timeout-seconds: 30
     max-retries: 1
+    # Version del prompt: se registra en cada linea de usage para correlacionar cambios.
+    prompt-version: 2026-11-13.1
+    # Memoria conversacional de P3 (por usuario + paciente)
+    memory:
+      ttl-seconds: 1800
+      max-turns: 6
+    # Tarifas publicas USD por millon de tokens. Ajustar si cambia el proveedor.
+    pricing:
+      default-model: claude-haiku-4-5-20251001
+      models:
+        claude-haiku-4-5-20251001:
+          input-per-million-usd: 1.0
+          output-per-million-usd: 5.0
   jwt:
     # Clave generica de desarrollo. REEMPLAZAR por variable de entorno en produccion.
     secret: c2ZtLXNlY3JldC1rZXktZm9yLWRldmVsb3BtZW50LXVzZS1vbmx5LTI1NmJpdHM=

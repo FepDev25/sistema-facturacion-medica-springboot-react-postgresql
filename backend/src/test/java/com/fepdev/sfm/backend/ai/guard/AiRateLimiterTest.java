@@ -1,5 +1,6 @@
 package com.fepdev.sfm.backend.ai.guard;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -8,7 +9,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
-
 import org.junit.jupiter.api.Test;
 
 class AiRateLimiterTest {
@@ -48,8 +48,10 @@ class AiRateLimiterTest {
         limiter.check("doctor1");
 
         assertThatThrownBy(() -> limiter.check("doctor1"))
-                .isInstanceOf(AiRateLimitExceededException.class)
-                .hasMessageContaining("2 solicitudes");
+                .isInstanceOfSatisfying(AiRateLimitExceededException.class, ex -> {
+                    assertThat(ex.getMessage()).contains("2 solicitudes");
+                    assertThat(ex.getRetryAfterSeconds()).isBetween(1L, 60L);
+                });
     }
 
     @Test
@@ -59,8 +61,7 @@ class AiRateLimiterTest {
         limiter.check("doctor1");
 
         assertThatCode(() -> limiter.check("recep1")).doesNotThrowAnyException();
-        assertThatThrownBy(() -> limiter.check("doctor1"))
-                .isInstanceOf(AiRateLimitExceededException.class);
+        assertThatThrownBy(() -> limiter.check("doctor1")).isInstanceOf(AiRateLimitExceededException.class);
     }
 
     @Test
@@ -69,8 +70,7 @@ class AiRateLimiterTest {
         var limiter = new AiRateLimiter(1, clock);
 
         limiter.check("doctor1");
-        assertThatThrownBy(() -> limiter.check("doctor1"))
-                .isInstanceOf(AiRateLimitExceededException.class);
+        assertThatThrownBy(() -> limiter.check("doctor1")).isInstanceOf(AiRateLimitExceededException.class);
 
         clock.advance(Duration.ofSeconds(31));
 

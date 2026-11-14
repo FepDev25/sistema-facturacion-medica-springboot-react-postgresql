@@ -2,7 +2,6 @@ package com.fepdev.sfm.backend.domain.medicalrecord;
 
 import java.util.List;
 import java.util.UUID;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -23,10 +22,12 @@ public interface PrescriptionRepository extends JpaRepository<Prescription, UUID
     List<Prescription> findAllByMedicalRecordId(@Param("medicalRecordId") UUID medicalRecordId);
 
     // carga eagerly la asociación medication para uso fuera de sesión JPA (indexación de historial)
-    @Query("SELECT p FROM Prescription p JOIN FETCH p.medication WHERE p.medicalRecord.id = :medicalRecordId ORDER BY p.createdAt DESC")
+    @Query(
+            "SELECT p FROM Prescription p JOIN FETCH p.medication WHERE p.medicalRecord.id = :medicalRecordId ORDER BY p.createdAt DESC")
     List<Prescription> findAllByMedicalRecordIdEager(@Param("medicalRecordId") UUID medicalRecordId);
 
-    @Query("SELECT p FROM Prescription p JOIN FETCH p.medication WHERE p.medicalRecord.patient.id = :patientId ORDER BY p.createdAt DESC")
+    @Query(
+            "SELECT p FROM Prescription p JOIN FETCH p.medication WHERE p.medicalRecord.patient.id = :patientId ORDER BY p.createdAt DESC")
     List<Prescription> findAllByPatientIdEager(@Param("patientId") UUID patientId);
 
     // verificar si existe prescripción para un medicamento en una cita (usado por facturación)

@@ -1,20 +1,7 @@
 package com.fepdev.sfm.backend.web.medicalrecord;
 
-import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -33,8 +20,19 @@ import com.fepdev.sfm.backend.domain.medicalrecord.dto.ProcedureResponse;
 import com.fepdev.sfm.backend.security.JwtAuthenticationFilter;
 import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
 import com.fepdev.sfm.backend.shared.exception.HandlerException;
-
 import jakarta.persistence.EntityNotFoundException;
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(MedicalRecordController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -63,7 +61,17 @@ class MedicalRecordControllerWebMvcTest {
     void getById_whenFound_returns200() throws Exception {
         UUID id = UUID.randomUUID();
         MedicalRecordResponse response = new MedicalRecordResponse(
-                id, UUID.randomUUID(), "Ana", "Lopez", UUID.randomUUID(), Map.of(), null, "Notas", OffsetDateTime.now(), null, null);
+                id,
+                UUID.randomUUID(),
+                "Ana",
+                "Lopez",
+                UUID.randomUUID(),
+                Map.of(),
+                null,
+                "Notas",
+                OffsetDateTime.now(),
+                null,
+                null);
         when(medicalRecordService.getMedicalRecordById(id)).thenReturn(response);
 
         mockMvc.perform(get("/api/v1/medical-records/{id}", id))
@@ -95,7 +103,14 @@ class MedicalRecordControllerWebMvcTest {
     void addDiagnosis_whenBusinessRuleFails_returns422() throws Exception {
         UUID id = UUID.randomUUID();
         DiagnosisResponse diagnosisResponse = new DiagnosisResponse(
-                UUID.randomUUID(), UUID.randomUUID(), id, "J02.9", "Faringitis", Severity.MILD, OffsetDateTime.now(), OffsetDateTime.now());
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                id,
+                "J02.9",
+                "Faringitis",
+                Severity.MILD,
+                OffsetDateTime.now(),
+                OffsetDateTime.now());
         when(diagnosisService.addDiagnosis(any())).thenThrow(new BusinessRuleException("No corresponde"));
 
         String body = """
@@ -120,9 +135,19 @@ class MedicalRecordControllerWebMvcTest {
     void getByAppointment_whenFound_returns200() throws Exception {
         UUID appointmentId = UUID.randomUUID();
         MedicalRecordResponse response = new MedicalRecordResponse(
-                UUID.randomUUID(), UUID.randomUUID(), "Ana", "Lopez", appointmentId,
-                Map.of("hr", 70), "normal", "Notas", OffsetDateTime.now(), null, null);
-        when(medicalRecordService.getMedicalRecordByAppointmentId(appointmentId)).thenReturn(response);
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                "Ana",
+                "Lopez",
+                appointmentId,
+                Map.of("hr", 70),
+                "normal",
+                "Notas",
+                OffsetDateTime.now(),
+                null,
+                null);
+        when(medicalRecordService.getMedicalRecordByAppointmentId(appointmentId))
+                .thenReturn(response);
 
         mockMvc.perform(get("/api/v1/medical-records/appointment/{appointmentId}", appointmentId))
                 .andExpect(status().isOk())
@@ -133,10 +158,19 @@ class MedicalRecordControllerWebMvcTest {
     void getByPatient_whenFound_returnsPage() throws Exception {
         UUID patientId = UUID.randomUUID();
         MedicalRecordResponse response = new MedicalRecordResponse(
-                UUID.randomUUID(), patientId, "Ana", "Lopez", UUID.randomUUID(),
-                Map.of(), null, "Notas", OffsetDateTime.now(), null, null);
-        var page = new org.springframework.data.domain.PageImpl<>(List.of(response),
-                org.springframework.data.domain.PageRequest.of(0, 20), 1);
+                UUID.randomUUID(),
+                patientId,
+                "Ana",
+                "Lopez",
+                UUID.randomUUID(),
+                Map.of(),
+                null,
+                "Notas",
+                OffsetDateTime.now(),
+                null,
+                null);
+        var page = new org.springframework.data.domain.PageImpl<>(
+                List.of(response), org.springframework.data.domain.PageRequest.of(0, 20), 1);
         when(medicalRecordService.getMedicalRecordsByPatientId(any(), any())).thenReturn(page);
 
         mockMvc.perform(get("/api/v1/medical-records/patient/{patientId}", patientId))
@@ -147,10 +181,16 @@ class MedicalRecordControllerWebMvcTest {
     @Test
     void getDiagnosesByIcd10_whenFound_returnsPage() throws Exception {
         DiagnosisResponse response = new DiagnosisResponse(
-                UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID(), "J02.9", "Faringitis",
-                Severity.MILD, OffsetDateTime.now(), OffsetDateTime.now());
-        var page = new org.springframework.data.domain.PageImpl<>(List.of(response),
-                org.springframework.data.domain.PageRequest.of(0, 20), 1);
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                "J02.9",
+                "Faringitis",
+                Severity.MILD,
+                OffsetDateTime.now(),
+                OffsetDateTime.now());
+        var page = new org.springframework.data.domain.PageImpl<>(
+                List.of(response), org.springframework.data.domain.PageRequest.of(0, 20), 1);
         when(diagnosisService.getDiagnosesByIcd10Code(any(), any())).thenReturn(page);
 
         mockMvc.perform(get("/api/v1/medical-records/diagnoses/icd10").param("code", "J02.9"))
@@ -163,8 +203,16 @@ class MedicalRecordControllerWebMvcTest {
     void addPrescription_whenValid_returns200() throws Exception {
         UUID mrId = UUID.randomUUID();
         PrescriptionResponse response = new PrescriptionResponse(
-                UUID.randomUUID(), UUID.randomUUID(), mrId, UUID.randomUUID(), "Amoxicilina",
-                "500mg", "q8h", 5, "ok", OffsetDateTime.now());
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                mrId,
+                UUID.randomUUID(),
+                "Amoxicilina",
+                "500mg",
+                "q8h",
+                5,
+                "ok",
+                OffsetDateTime.now());
         when(prescriptionService.createPrescription(any())).thenReturn(response);
 
         String body = """
@@ -190,8 +238,14 @@ class MedicalRecordControllerWebMvcTest {
     void addProcedure_whenValid_returns200() throws Exception {
         UUID mrId = UUID.randomUUID();
         ProcedureResponse response = new ProcedureResponse(
-                UUID.randomUUID(), UUID.randomUUID(), mrId, "PROC-1", "Lavado", "ok",
-                OffsetDateTime.now(), OffsetDateTime.now());
+                UUID.randomUUID(),
+                UUID.randomUUID(),
+                mrId,
+                "PROC-1",
+                "Lavado",
+                "ok",
+                OffsetDateTime.now(),
+                OffsetDateTime.now());
         when(procedureService.createProcedure(any())).thenReturn(response);
 
         String body = """

@@ -311,6 +311,7 @@ ai/history/
   AiPatientHistoryController.java     — endpoint REST
   PatientHistoryQueryService.java     — clasificacion de intencion + orquestacion de rutas
   PatientHistoryIndexer.java          — indexacion on-demand, re-indexacion, buildSummaryContext
+  PatientConversationMemory.java      — memoria por usuario + paciente en Redis
   dto/
     PatientHistoryQuery.java          — record { @NotBlank String question }
     PatientHistoryAnswer.java         — record { String answer, List<HistorySource> sources }
@@ -352,3 +353,37 @@ La indexacion on-demand tiene un costo proporcional al numero de expedientes. Un
 ### Grounding limitado al contexto recuperado
 
 El sistema responde basandose exclusivamente en los expedientes del vector store o en los datos de BD (Ruta B). Si un expediente tiene informacion incompleta o notas clinicas vagas, la respuesta reflejara esa limitacion. No hay mecanismo de inferencia clinica mas alla de lo documentado.
+
+---
+
+## Memoria conversacional (B.1)
+
+Cada `(userId, patientId)` tiene una conversación independiente en Redis:
+
+- Clave: `sfm:ai:conversation:{userId}:{patientId}` (Redis list, un JSON por turno).
+- TTL configurable: `app.ai.memory.ttl-seconds` (1800 s por defecto).
+- Turnos máximos: `app.ai.memory.max-turns` (6 por defecto); se recortan con `LTRIM`.
+- El prompt incluye los últimos N pares pregunta/respuesta, truncando cada respuesta a
+  1.200 caracteres para acotar el costo.
+- El vector search usa la última pregunta + la actual como query de recuperación, para
+  que seguimientos como "¿y desde cuándo?" conserven el tema.
+- Aislamiento: la clave incluye usuario y paciente; un usuario nunca ve turnos de otro.
+- Si Redis no responde, `PatientConversationMemory` usa un buffer local por instancia
+  (el chat sigue funcionando en un solo dyno).
+- `DELETE /api/v1/ai/patients/{patientId}/conversation` borra solo la memoria del
+  usuario autenticado para ese paciente (204).
+
+## Streaming SSE (B.1)
+
+`POST /api/v1/ai/patients/{patientId}/query/stream` mantiene la misma validación,
+routing, memoria y rate limit que el endpoint normal. Emite:
+
+| Evento | `data` | Cuándo |
+|---|---|---|
+| `token` | texto parcial | por cada delta del modelo |
+| `done` | `PatientHistoryAnswer` (JSON) | al completar; incluye fuentes |
+| `error` | `{"message": "..."}` | error del proveedor o timeout |
+
+El timeout de `AiCallExecutor` se aplica al `Flux` (`app.ai.timeout-seconds`) y los
+errores del proveedor se normalizan a 503 lógico dentro del evento. El endpoint
+original sin streaming sigue disponible para clientes existentes.

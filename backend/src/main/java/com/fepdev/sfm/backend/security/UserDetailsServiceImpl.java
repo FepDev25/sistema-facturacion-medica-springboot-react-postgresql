@@ -15,12 +15,13 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         this.systemUserRepository = systemUserRepository;
     }
 
-    // Carga el usuario por username para autenticacion. 
+    // Carga el usuario por username para autenticacion.
     // Retorna un UserDetails con username, password hash y rol.
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return systemUserRepository.findByUsername(username)
+        return systemUserRepository
+                .findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado: " + username));
     }
 }

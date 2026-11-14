@@ -30,10 +30,10 @@ export default defineConfig({
       // Piso de cobertura medido en noviembre de 2026. Subir solo cuando
       // la cobertura real mejore; nunca bajar para destrabar un PR.
       thresholds: {
-        statements: 35,
-        branches: 30,
-        functions: 38,
-        lines: 36,
+        statements: 41,
+        branches: 39,
+        functions: 40,
+        lines: 42,
       },
     },
   },

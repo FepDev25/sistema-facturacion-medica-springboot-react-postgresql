@@ -2,19 +2,17 @@ package com.fepdev.sfm.backend.persistence.invoice;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fepdev.sfm.backend.domain.invoice.InvoiceSequence;
+import com.fepdev.sfm.backend.domain.invoice.InvoiceSequenceRepository;
+import com.fepdev.sfm.backend.persistence.AbstractPostgresDataJpaTest;
+import com.fepdev.sfm.backend.persistence.TestJpaAuditingConfig;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.jdbc.Sql;
-
-import com.fepdev.sfm.backend.domain.invoice.InvoiceSequence;
-import com.fepdev.sfm.backend.domain.invoice.InvoiceSequenceRepository;
-import com.fepdev.sfm.backend.persistence.AbstractPostgresDataJpaTest;
-import com.fepdev.sfm.backend.persistence.TestJpaAuditingConfig;
-
-import jakarta.persistence.EntityManager;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)

@@ -1,16 +1,5 @@
 package com.fepdev.sfm.backend.domain.dashboard;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.Clock;
-import java.time.LocalDate;
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
-import java.util.List;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.fepdev.sfm.backend.domain.appointment.AppointmentRepository;
 import com.fepdev.sfm.backend.domain.appointment.Status;
 import com.fepdev.sfm.backend.domain.dashboard.dto.DashboardMetricsResponse;
@@ -19,19 +8,25 @@ import com.fepdev.sfm.backend.domain.invoice.InvoiceRepository;
 import com.fepdev.sfm.backend.domain.invoice.InvoiceStatus;
 import com.fepdev.sfm.backend.domain.patient.PatientRepository;
 import com.fepdev.sfm.backend.domain.payment.PaymentRepository;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Clock;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.util.List;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class DashboardService {
 
     // Estados que ocupan agenda: las canceladas y no-show no cuentan como citas del día.
-    private static final List<Status> AGENDA_STATUSES =
-            List.of(Status.SCHEDULED, Status.CONFIRMED, Status.IN_PROGRESS);
-    private static final List<Status> UPCOMING_STATUSES =
-            List.of(Status.SCHEDULED, Status.CONFIRMED);
+    private static final List<Status> AGENDA_STATUSES = List.of(Status.SCHEDULED, Status.CONFIRMED, Status.IN_PROGRESS);
+    private static final List<Status> UPCOMING_STATUSES = List.of(Status.SCHEDULED, Status.CONFIRMED);
     private static final List<InvoiceStatus> PENDING_STATUSES =
             List.of(InvoiceStatus.PENDING, InvoiceStatus.PARTIAL_PAID);
-    private static final List<InvoiceStatus> OVERDUE_STATUSES =
-            List.of(InvoiceStatus.OVERDUE);
+    private static final List<InvoiceStatus> OVERDUE_STATUSES = List.of(InvoiceStatus.OVERDUE);
 
     private final PatientRepository patientRepository;
     private final DoctorRepository doctorRepository;
@@ -40,7 +35,8 @@ public class DashboardService {
     private final PaymentRepository paymentRepository;
     private final Clock clock;
 
-    public DashboardService(PatientRepository patientRepository,
+    public DashboardService(
+            PatientRepository patientRepository,
             DoctorRepository doctorRepository,
             AppointmentRepository appointmentRepository,
             InvoiceRepository invoiceRepository,
@@ -66,8 +62,7 @@ public class DashboardService {
                 doctorRepository.countActiveDoctors(),
                 appointmentRepository.countByStatusInAndScheduledAtBetween(
                         AGENDA_STATUSES, startOfDay, startOfTomorrow),
-                appointmentRepository.countUpcomingByStatusIn(
-                        UPCOMING_STATUSES, OffsetDateTime.now(clock)),
+                appointmentRepository.countUpcomingByStatusIn(UPCOMING_STATUSES, OffsetDateTime.now(clock)),
                 invoiceRepository.countByStatusIn(PENDING_STATUSES),
                 invoiceRepository.countByStatusIn(OVERDUE_STATUSES),
                 money(paymentRepository.sumAllAmounts()),

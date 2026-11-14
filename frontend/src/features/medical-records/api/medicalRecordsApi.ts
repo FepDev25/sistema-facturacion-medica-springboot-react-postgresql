@@ -15,9 +15,9 @@ import type {
 const SEVERITY_VALUES = ['mild', 'moderate', 'severe', 'critical'] as const
 
 export const CompleteAppointmentFormSchema = z.object({
-  clinicalNotes: z.string().min(1, 'Requerido').max(2000, 'Maximo 2000 caracteres'),
-  physicalExam: z.string().max(2000, 'Maximo 2000 caracteres').optional(),
-  bloodPressure: z.string().max(30, 'Maximo 30 caracteres').optional(),
+  clinicalNotes: z.string().min(1, 'Requerido').max(2000, 'Máximo 2000 caracteres'),
+  physicalExam: z.string().max(2000, 'Máximo 2000 caracteres').optional(),
+  bloodPressure: z.string().max(30, 'Máximo 30 caracteres').optional(),
   heartRate: z.number().int().min(1).max(300).optional(),
   temperature: z.number().min(30).max(45).optional(),
   oxygenSaturation: z.number().min(0).max(100).optional(),
@@ -32,9 +32,9 @@ export const DiagnosisFormSchema = z.object({
   icd10Code: z
     .string()
     .min(1, 'Requerido')
-    .max(10, 'Maximo 10 caracteres')
-    .regex(/^[A-Z][0-9]{2}(\.[0-9A-Z]{1,4})?$/, 'Formato ICD-10 invalido'),
-  description: z.string().min(1, 'Requerido').max(1000, 'Maximo 1000 caracteres'),
+    .max(10, 'Máximo 10 caracteres')
+    .regex(/^[A-Z][0-9]{2}(\.[0-9A-Z]{1,4})?$/, 'Formato ICD-10 inválido'),
+  description: z.string().min(1, 'Requerido').max(1000, 'Máximo 1000 caracteres'),
   severity: z.enum(SEVERITY_VALUES).optional(),
   diagnosedAt: z.string().min(1, 'Requerido'),
 })
@@ -43,18 +43,18 @@ export type DiagnosisFormValues = z.infer<typeof DiagnosisFormSchema>
 
 export const PrescriptionFormSchema = z.object({
   medicationId: z.string().min(1, 'Requerido'),
-  dosage: z.string().min(1, 'Requerido').max(200, 'Maximo 200 caracteres'),
-  frequency: z.string().min(1, 'Requerido').max(200, 'Maximo 200 caracteres'),
-  durationDays: z.number().int().min(1, 'Minimo 1').max(365, 'Maximo 365'),
-  instructions: z.string().max(1000, 'Maximo 1000 caracteres').optional(),
+  dosage: z.string().min(1, 'Requerido').max(200, 'Máximo 200 caracteres'),
+  frequency: z.string().min(1, 'Requerido').max(200, 'Máximo 200 caracteres'),
+  durationDays: z.number().int().min(1, 'Mínimo 1').max(365, 'Máximo 365'),
+  instructions: z.string().max(1000, 'Máximo 1000 caracteres').optional(),
 })
 
 export type PrescriptionFormValues = z.infer<typeof PrescriptionFormSchema>
 
 export const ProcedureFormSchema = z.object({
-  procedureCode: z.string().min(1, 'Requerido').max(50, 'Maximo 50 caracteres'),
-  description: z.string().min(1, 'Requerido').max(1000, 'Maximo 1000 caracteres'),
-  notes: z.string().max(1000, 'Maximo 1000 caracteres').optional(),
+  procedureCode: z.string().min(1, 'Requerido').max(50, 'Máximo 50 caracteres'),
+  description: z.string().min(1, 'Requerido').max(1000, 'Máximo 1000 caracteres'),
+  notes: z.string().max(1000, 'Máximo 1000 caracteres').optional(),
   performedAt: z.string().min(1, 'Requerido'),
 })
 

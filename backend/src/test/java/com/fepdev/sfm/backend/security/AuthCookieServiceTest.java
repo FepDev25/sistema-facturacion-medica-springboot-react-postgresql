@@ -2,13 +2,11 @@ package com.fepdev.sfm.backend.security;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import jakarta.servlet.http.Cookie;
 import java.util.List;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-
-import jakarta.servlet.http.Cookie;
 
 class AuthCookieServiceTest {
 
@@ -62,7 +60,8 @@ class AuthCookieServiceTest {
     @Test
     void readsCookiesFromRequest() {
         MockHttpServletRequest request = new MockHttpServletRequest();
-        request.setCookies(new Cookie(AuthCookieService.ACCESS_COOKIE, "access"),
+        request.setCookies(
+                new Cookie(AuthCookieService.ACCESS_COOKIE, "access"),
                 new Cookie(AuthCookieService.REFRESH_COOKIE, "refresh"));
 
         assertThat(service(false).readAccessToken(request)).isEqualTo("access");

@@ -194,23 +194,26 @@ sequenceDiagram
     participant C as Cliente (SPA)
     participant F as JwtFilter
     participant A as AuthController
-    participant R as Redis
+    participant P as PostgreSQL (refresh_tokens)
+    participant R as Redis (blacklist)
 
     C->>A: POST /auth/login
-    A-->>C: accessToken (15 min) + refreshToken (7 días)
+    A-->>C: Set-Cookie sfm_access (15 min) + sfm_refresh (7 días)<br/>httpOnly · SameSite=Strict
 
     Note over C,F: Requests autenticadas
-    C->>F: Authorization: Bearer accessToken
-    F->>F: Validar firma + expiración + blacklist Redis
+    C->>F: Cookie sfm_access (mismo origen)
+    F->>F: Validar firma + expiración
+    F->>R: Consultar JTI en blacklist
 
     Note over C,A: Renovación silenciosa
-    C->>A: POST /auth/refresh (refreshToken)
-    A->>R: Verificar JTI no revocado
-    A-->>C: nuevo accessToken
+    C->>A: POST /auth/refresh (cookie sfm_refresh)
+    A->>P: Verificar hash + familia + detección de reuso
+    A-->>C: Rotar cookies (ventana de gracia 15 s)
 
     Note over C,A: Logout
     C->>A: POST /auth/logout
-    A->>R: JTI en blacklist con TTL restante
+    A->>P: Revocar familia de refresh tokens
+    A->>R: Blacklist del access JTI con TTL restante
 ```
 
 ---
@@ -220,16 +223,20 @@ sequenceDiagram
 ```mermaid
 graph TB
     subgraph "E2E — Testcontainers + SpringBootTest"
-        E2E["5 flujos de negocio completos<br/>PostgreSQL real en Docker"]
+        E2E["7 flujos de negocio completos<br/>PostgreSQL real en Docker"]
     end
     subgraph "Slice — MockMvc / DataJPA"
-        WEB["12 WebMvc — controllers, security, validación"]
+        WEB["17 WebMvc — controllers, security, validación"]
         JPA["9 DataJPA — repositorios, constraints, queries nativas"]
     end
     subgraph "Unit — JUnit 5 + Mockito"
-        SVC["30 Service — lógica de negocio, máquinas de estado"]
-        MAP["16 Mapper/DTO — MapStruct, records"]
-        SEC["5 Security — JWT, filtros"]
+        SVC["23 Service — lógica de negocio, máquinas de estado"]
+        MAP["17 Mapper/DTO — MapStruct, records"]
+        SEC["6 Security — JWT, filtros"]
         AUD["1 Audit — AOP aspect"]
+        OTH["13 Config/IA — properties, converters, guards"]
     end
 ```
+
+Total: **93 clases y 572 tests**, cobertura global **90.62 % líneas / 73.88 %
+ramas** (umbral 82/66).

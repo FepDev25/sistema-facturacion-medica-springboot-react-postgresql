@@ -97,9 +97,9 @@ describe('DashboardPage', () => {
     render(<DashboardPage />)
 
     expect(screen.getByText('Pacientes')).toBeInTheDocument()
-    expect(screen.getByText('Medicos activos')).toBeInTheDocument()
+    expect(screen.getByText('Médicos activos')).toBeInTheDocument()
     expect(screen.getByText('Citas hoy')).toBeInTheDocument()
-    expect(screen.getByText('Proximas citas')).toBeInTheDocument()
+    expect(screen.getByText('Próximas citas')).toBeInTheDocument()
     expect(screen.getByText('Facturas pendientes')).toBeInTheDocument()
     expect(screen.getByText('Facturas vencidas')).toBeInTheDocument()
     expect(screen.getByText('Cobrado')).toBeInTheDocument()

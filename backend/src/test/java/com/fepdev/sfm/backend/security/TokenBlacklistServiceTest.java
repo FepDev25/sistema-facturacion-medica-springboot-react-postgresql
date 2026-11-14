@@ -6,7 +6,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.Duration;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -18,10 +17,14 @@ import org.springframework.data.redis.core.ValueOperations;
 @ExtendWith(MockitoExtension.class)
 class TokenBlacklistServiceTest {
 
-    @Mock private StringRedisTemplate redisTemplate;
-    @Mock private ValueOperations<String, String> valueOperations;
+    @Mock
+    private StringRedisTemplate redisTemplate;
 
-    @InjectMocks private TokenBlacklistService service;
+    @Mock
+    private ValueOperations<String, String> valueOperations;
+
+    @InjectMocks
+    private TokenBlacklistService service;
 
     @Test
     void blacklist_withPositiveTtl_storesKeyWithTtl() {

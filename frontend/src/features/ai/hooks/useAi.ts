@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import type { AxiosError } from 'axios'
 import * as aiApi from '../api/aiApi'
@@ -45,5 +45,13 @@ export function useSuggestItems() {
         toast.error('Error al obtener sugerencias. Intente de nuevo.')
       }
     },
+  })
+}
+
+export function useAiLab() {
+  return useQuery({
+    queryKey: ['ai-lab'],
+    queryFn: () => aiApi.getAiLab(),
+    refetchInterval: 30_000,
   })
 }

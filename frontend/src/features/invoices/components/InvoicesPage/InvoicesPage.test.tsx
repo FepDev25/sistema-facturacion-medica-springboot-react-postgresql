@@ -113,7 +113,7 @@ describe('InvoicesPage', () => {
     m.page = { ...m.page, totalElements: 40, totalPages: 2, number: 0, empty: false }
 
     render(<InvoicesPage />)
-    fireEvent.click(screen.getByRole('button', { name: 'Pagina siguiente' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Página siguiente' }))
 
     expect(mockUseInvoices).toHaveBeenLastCalledWith(expect.objectContaining({ page: 1 }))
   })

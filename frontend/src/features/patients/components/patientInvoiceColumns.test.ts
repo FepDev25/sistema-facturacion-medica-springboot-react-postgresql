@@ -22,7 +22,7 @@ describe('getPatientInvoiceColumns', () => {
     const cols = getPatientInvoiceColumns()
     expect(cols[0].header).toBe('Factura')
     expect(cols[1].header).toBe('Estado')
-    expect(cols[2].header).toBe('Emision')
+    expect(cols[2].header).toBe('Emisión')
     expect(cols[3].header).toBe('Vencimiento')
   })
 

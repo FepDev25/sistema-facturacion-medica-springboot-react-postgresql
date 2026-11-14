@@ -2,17 +2,6 @@ package com.fepdev.sfm.backend.persistence.invoice;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
-import org.springframework.context.annotation.Import;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.test.context.jdbc.Sql;
-
 import com.fepdev.sfm.backend.domain.invoice.Invoice;
 import com.fepdev.sfm.backend.domain.invoice.InvoiceRepository;
 import com.fepdev.sfm.backend.domain.invoice.InvoiceStatus;
@@ -20,8 +9,16 @@ import com.fepdev.sfm.backend.domain.patient.Gender;
 import com.fepdev.sfm.backend.domain.patient.Patient;
 import com.fepdev.sfm.backend.persistence.AbstractPostgresDataJpaTest;
 import com.fepdev.sfm.backend.persistence.TestJpaAuditingConfig;
-
 import jakarta.persistence.EntityManager;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
+import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.test.context.jdbc.Sql;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -40,7 +37,11 @@ class InvoiceRepositoryDataJpaTest extends AbstractPostgresDataJpaTest {
         Patient patientA = persistPatient("PA-001");
         Patient patientB = persistPatient("PA-002");
 
-        persistInvoice("FAC-2026-10001", patientA, InvoiceStatus.PENDING, LocalDate.now().minusDays(1));
+        persistInvoice(
+                "FAC-2026-10001",
+                patientA,
+                InvoiceStatus.PENDING,
+                LocalDate.now().minusDays(1));
         persistInvoice("FAC-2026-10002", patientA, InvoiceStatus.PAID, LocalDate.now());
         persistInvoice("FAC-2026-10003", patientB, InvoiceStatus.PAID, LocalDate.now());
 
@@ -58,15 +59,18 @@ class InvoiceRepositoryDataJpaTest extends AbstractPostgresDataJpaTest {
     @Test
     void findWithFilters_ordersByIssueDateDesc() {
         Patient patient = persistPatient("PA-003");
-        Invoice older = persistInvoice("FAC-2026-10004", patient, InvoiceStatus.PENDING, LocalDate.now().minusDays(3));
-        Invoice newer = persistInvoice("FAC-2026-10005", patient, InvoiceStatus.PENDING, LocalDate.now().minusDays(1));
+        Invoice older = persistInvoice(
+                "FAC-2026-10004",
+                patient,
+                InvoiceStatus.PENDING,
+                LocalDate.now().minusDays(3));
+        Invoice newer = persistInvoice(
+                "FAC-2026-10005",
+                patient,
+                InvoiceStatus.PENDING,
+                LocalDate.now().minusDays(1));
 
-        var page = invoiceRepository.findWithFilters(
-                patient.getId(),
-                null,
-                null,
-                null,
-                PageRequest.of(0, 10));
+        var page = invoiceRepository.findWithFilters(patient.getId(), null, null, null, PageRequest.of(0, 10));
 
         assertThat(page.getContent().get(0).getId()).isEqualTo(newer.getId());
         assertThat(page.getContent().get(1).getId()).isEqualTo(older.getId());

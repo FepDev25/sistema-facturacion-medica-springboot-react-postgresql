@@ -17,6 +17,11 @@ spring:
   cache:
     type: simple
 
+app:
+  # Los tests de integración no levantan Redis: el rate limit usa memoria local.
+  rate-limit:
+    distributed: false
+
 logging:
   level:
     com.fepdev.sfm: WARN

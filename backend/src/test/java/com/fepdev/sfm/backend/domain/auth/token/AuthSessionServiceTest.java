@@ -7,6 +7,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.fepdev.sfm.backend.security.JwtService;
+import com.fepdev.sfm.backend.security.Role;
+import com.fepdev.sfm.backend.security.SystemUser;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.Clock;
@@ -17,19 +21,12 @@ import java.time.ZoneOffset;
 import java.util.HexFormat;
 import java.util.Optional;
 import java.util.UUID;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import com.fepdev.sfm.backend.security.JwtService;
-import com.fepdev.sfm.backend.security.Role;
-import com.fepdev.sfm.backend.security.SystemUser;
-
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 @ExtendWith(MockitoExtension.class)
 class AuthSessionServiceTest {
@@ -57,8 +54,14 @@ class AuthSessionServiceTest {
     @BeforeEach
     void setUp() {
         Clock clock = Clock.fixed(NOW, ZoneOffset.UTC);
-        service = new AuthSessionService(jwtService, familyRepository, tokenRepository, clock,
-                meterRegistry, Duration.ofDays(7).toMillis(), 15);
+        service = new AuthSessionService(
+                jwtService,
+                familyRepository,
+                tokenRepository,
+                clock,
+                meterRegistry,
+                Duration.ofDays(7).toMillis(),
+                15);
 
         user = new SystemUser();
         ReflectionTestUtils.setField(user, "id", USER_ID);
@@ -158,8 +161,7 @@ class AuthSessionServiceTest {
         when(jwtService.extractFamilyId(RAW_TOKEN)).thenReturn(FAMILY_ID);
         when(tokenRepository.findByJtiForUpdate(JTI)).thenReturn(Optional.of(record));
 
-        assertThatThrownBy(() -> service.rotate(RAW_TOKEN, user))
-                .isInstanceOf(InvalidRefreshTokenException.class);
+        assertThatThrownBy(() -> service.rotate(RAW_TOKEN, user)).isInstanceOf(InvalidRefreshTokenException.class);
 
         assertThat(family.isRevoked()).isTrue();
         assertThat(family.getRevokeReason()).isEqualTo("reuse");
@@ -194,8 +196,7 @@ class AuthSessionServiceTest {
         when(jwtService.extractFamilyId(RAW_TOKEN)).thenReturn(FAMILY_ID);
         when(tokenRepository.findByJtiForUpdate(JTI)).thenReturn(Optional.of(record));
 
-        assertThatThrownBy(() -> service.rotate(RAW_TOKEN, user))
-                .isInstanceOf(InvalidRefreshTokenException.class);
+        assertThatThrownBy(() -> service.rotate(RAW_TOKEN, user)).isInstanceOf(InvalidRefreshTokenException.class);
         assertThat(family.isRevoked()).isFalse();
     }
 
@@ -209,8 +210,7 @@ class AuthSessionServiceTest {
         when(jwtService.extractFamilyId(RAW_TOKEN)).thenReturn(FAMILY_ID);
         when(tokenRepository.findByJtiForUpdate(JTI)).thenReturn(Optional.of(record));
 
-        assertThatThrownBy(() -> service.rotate(RAW_TOKEN, user))
-                .isInstanceOf(InvalidRefreshTokenException.class);
+        assertThatThrownBy(() -> service.rotate(RAW_TOKEN, user)).isInstanceOf(InvalidRefreshTokenException.class);
     }
 
     @Test
@@ -223,8 +223,7 @@ class AuthSessionServiceTest {
         when(jwtService.extractFamilyId(RAW_TOKEN)).thenReturn(FAMILY_ID);
         when(tokenRepository.findByJtiForUpdate(JTI)).thenReturn(Optional.of(record));
 
-        assertThatThrownBy(() -> service.rotate(RAW_TOKEN, user))
-                .isInstanceOf(InvalidRefreshTokenException.class);
+        assertThatThrownBy(() -> service.rotate(RAW_TOKEN, user)).isInstanceOf(InvalidRefreshTokenException.class);
         assertThat(family.isRevoked()).isTrue();
     }
 
@@ -237,8 +236,7 @@ class AuthSessionServiceTest {
         when(jwtService.extractFamilyId(RAW_TOKEN)).thenReturn(UUID.randomUUID());
         when(tokenRepository.findByJtiForUpdate(JTI)).thenReturn(Optional.of(record));
 
-        assertThatThrownBy(() -> service.rotate(RAW_TOKEN, user))
-                .isInstanceOf(InvalidRefreshTokenException.class);
+        assertThatThrownBy(() -> service.rotate(RAW_TOKEN, user)).isInstanceOf(InvalidRefreshTokenException.class);
         assertThat(family.isRevoked()).isTrue();
     }
 
@@ -247,8 +245,7 @@ class AuthSessionServiceTest {
         when(jwtService.extractJti(RAW_TOKEN)).thenReturn(JTI.toString());
         when(jwtService.extractFamilyId(RAW_TOKEN)).thenReturn(null);
 
-        assertThatThrownBy(() -> service.rotate(RAW_TOKEN, user))
-                .isInstanceOf(InvalidRefreshTokenException.class);
+        assertThatThrownBy(() -> service.rotate(RAW_TOKEN, user)).isInstanceOf(InvalidRefreshTokenException.class);
     }
 
     @Test
@@ -257,16 +254,14 @@ class AuthSessionServiceTest {
         when(jwtService.extractFamilyId(RAW_TOKEN)).thenReturn(FAMILY_ID);
         when(tokenRepository.findByJtiForUpdate(JTI)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.rotate(RAW_TOKEN, user))
-                .isInstanceOf(InvalidRefreshTokenException.class);
+        assertThatThrownBy(() -> service.rotate(RAW_TOKEN, user)).isInstanceOf(InvalidRefreshTokenException.class);
     }
 
     @Test
     void rotate_whenJtiMalformed_throws() {
         when(jwtService.extractJti(RAW_TOKEN)).thenReturn("not-a-uuid");
 
-        assertThatThrownBy(() -> service.rotate(RAW_TOKEN, user))
-                .isInstanceOf(InvalidRefreshTokenException.class);
+        assertThatThrownBy(() -> service.rotate(RAW_TOKEN, user)).isInstanceOf(InvalidRefreshTokenException.class);
     }
 
     @Test

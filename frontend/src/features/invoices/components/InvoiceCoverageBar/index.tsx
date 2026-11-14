@@ -45,7 +45,7 @@ export function InvoiceCoverageBar({
 
       {normalizedTotal <= 0 ? (
         <p className="text-[11px] text-muted-foreground mt-2">
-          Aun no hay montos para calcular cobertura.
+          Aún no hay montos para calcular cobertura.
         </p>
       ) : null}
 

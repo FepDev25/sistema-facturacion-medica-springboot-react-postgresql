@@ -1,7 +1,7 @@
 package com.fepdev.sfm.backend.domain.medicalrecord;
 
-import jakarta.persistence.Converter;
 import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 
 @Converter(autoApply = true)
 public class SeverityConverter implements AttributeConverter<Severity, String> {
@@ -15,5 +15,4 @@ public class SeverityConverter implements AttributeConverter<Severity, String> {
     public Severity convertToEntityAttribute(String dbData) {
         return dbData == null ? null : Severity.valueOf(dbData.toUpperCase());
     }
-    
 }

@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "mode": "manual",
+  "notes": "Umbrales del gate de release. Se ejecutan manualmente contra la API real (consumen cuota); el calculo de metricas si corre en CI con fixtures. Este archivo es la unica fuente de verdad: lo leen scripts/ai-eval.py y AiLabService.",
+  "features": {
+    "icd10": {
+      "minTop1": 0.6,
+      "minTop3": 0.8
+    },
+    "extraction": {
+      "minPrecision": 0.8,
+      "minRecall": 0.75,
+      "minCatalogAccuracy": 0.9,
+      "maxFalsePositiveRate": 0.2
+    },
+    "suggestion": {
+      "minPrecision": 0.8,
+      "minRecall": 0.75,
+      "minCatalogAccuracy": 0.9,
+      "maxFalsePositiveRate": 0.2
+    }
+  }
+}

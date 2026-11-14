@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import {
   createRouter,
   createRootRoute,
@@ -6,29 +7,100 @@ import {
   Outlet,
 } from '@tanstack/react-router'
 import { AppShell } from '@/components/AppShell'
-import { CatalogPage } from '@/features/catalog/components/CatalogPage'
-import { AppointmentDetailPage } from '@/features/appointments/components/AppointmentDetailPage'
-import { AppointmentsPage } from '@/features/appointments/components/AppointmentsPage'
-import { ForbiddenPage } from '@/features/auth/components/ForbiddenPage'
-import { LoginPage } from '@/features/auth/components/LoginPage'
-import { ProfilePage } from '@/features/auth/components/ProfilePage'
+import { DetailSkeleton } from '@/components/DetailState'
 import { requireAuth, requireRole } from '@/features/auth/guards/requireAuth'
 import { isAuthenticated } from '@/features/auth/store/authSessionStore'
-import { DashboardPage } from '@/features/dashboard/components/DashboardPage'
-import { DoctorDetailPage } from '@/features/doctors/components/DoctorDetailPage'
-import { DoctorsPage } from '@/features/doctors/components/DoctorsPage'
-import { InvoiceDetailPage } from '@/features/invoices/components/InvoiceDetailPage'
-import { InvoicesPage } from '@/features/invoices/components/InvoicesPage'
-import { InsurancePage } from '@/features/insurance/components/InsurancePage'
-import { MedicalRecordDetailPage } from '@/features/medical-records/components/MedicalRecordDetailPage'
-import { PatientsPage } from '@/features/patients/components/PatientsPage'
-import { PatientDetailPage } from '@/features/patients/components/PatientDetailPage'
+
+// Cada pagina se carga como chunk independiente. Los paneles de IA y
+// react-markdown quedan dentro de los chunks de las paginas que los usan.
+const AiLabPage = lazy(() =>
+  import('@/features/ai/components/AiLabPage').then((module) => ({ default: module.AiLabPage })),
+)
+const AppointmentDetailPage = lazy(() =>
+  import('@/features/appointments/components/AppointmentDetailPage').then((module) => ({
+    default: module.AppointmentDetailPage,
+  })),
+)
+const AppointmentsPage = lazy(() =>
+  import('@/features/appointments/components/AppointmentsPage').then((module) => ({
+    default: module.AppointmentsPage,
+  })),
+)
+const CatalogPage = lazy(() =>
+  import('@/features/catalog/components/CatalogPage').then((module) => ({
+    default: module.CatalogPage,
+  })),
+)
+const DashboardPage = lazy(() =>
+  import('@/features/dashboard/components/DashboardPage').then((module) => ({
+    default: module.DashboardPage,
+  })),
+)
+const DoctorDetailPage = lazy(() =>
+  import('@/features/doctors/components/DoctorDetailPage').then((module) => ({
+    default: module.DoctorDetailPage,
+  })),
+)
+const DoctorsPage = lazy(() =>
+  import('@/features/doctors/components/DoctorsPage').then((module) => ({
+    default: module.DoctorsPage,
+  })),
+)
+const ForbiddenPage = lazy(() =>
+  import('@/features/auth/components/ForbiddenPage').then((module) => ({
+    default: module.ForbiddenPage,
+  })),
+)
+const InsurancePage = lazy(() =>
+  import('@/features/insurance/components/InsurancePage').then((module) => ({
+    default: module.InsurancePage,
+  })),
+)
+const InvoiceDetailPage = lazy(() =>
+  import('@/features/invoices/components/InvoiceDetailPage').then((module) => ({
+    default: module.InvoiceDetailPage,
+  })),
+)
+const InvoicesPage = lazy(() =>
+  import('@/features/invoices/components/InvoicesPage').then((module) => ({
+    default: module.InvoicesPage,
+  })),
+)
+const LoginPage = lazy(() =>
+  import('@/features/auth/components/LoginPage').then((module) => ({
+    default: module.LoginPage,
+  })),
+)
+const MedicalRecordDetailPage = lazy(() =>
+  import('@/features/medical-records/components/MedicalRecordDetailPage').then((module) => ({
+    default: module.MedicalRecordDetailPage,
+  })),
+)
+const PatientDetailPage = lazy(() =>
+  import('@/features/patients/components/PatientDetailPage').then((module) => ({
+    default: module.PatientDetailPage,
+  })),
+)
+const PatientsPage = lazy(() =>
+  import('@/features/patients/components/PatientsPage').then((module) => ({
+    default: module.PatientsPage,
+  })),
+)
+const ProfilePage = lazy(() =>
+  import('@/features/auth/components/ProfilePage').then((module) => ({
+    default: module.ProfilePage,
+  })),
+)
 
 const rootRoute = createRootRoute({
   component: () => (
-    <AppShell>
-      <Outlet />
-    </AppShell>
+    <Suspense fallback={<DetailSkeleton label="Cargando aplicación" />}>
+      <AppShell>
+        <Suspense fallback={<DetailSkeleton label="Cargando página" />}>
+          <Outlet />
+        </Suspense>
+      </AppShell>
+    </Suspense>
   ),
 })
 
@@ -148,6 +220,13 @@ const profileRoute = createRoute({
   component: ProfilePage,
 })
 
+const aiLabRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/ai-lab',
+  beforeLoad: () => requireRole(['ADMIN'], '/ai-lab'),
+  component: AiLabPage,
+})
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
   indexRoute,
@@ -163,6 +242,7 @@ const routeTree = rootRoute.addChildren([
   invoiceDetailRoute,
   medicalRecordDetailRoute,
   profileRoute,
+  aiLabRoute,
   forbiddenRoute,
 ])
 

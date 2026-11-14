@@ -9,19 +9,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.UUID;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
-
 import com.fepdev.sfm.backend.domain.catalog.Category;
 import com.fepdev.sfm.backend.domain.catalog.ServiceCatalogController;
 import com.fepdev.sfm.backend.domain.catalog.ServiceCatalogService;
@@ -30,8 +17,18 @@ import com.fepdev.sfm.backend.domain.catalog.dto.ServiceSummaryResponse;
 import com.fepdev.sfm.backend.security.JwtAuthenticationFilter;
 import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
 import com.fepdev.sfm.backend.shared.exception.HandlerException;
-
 import jakarta.persistence.EntityNotFoundException;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(ServiceCatalogController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -51,8 +48,7 @@ class ServiceCatalogControllerWebMvcTest {
     void create_whenValidRequest_returns201() throws Exception {
         UUID id = UUID.randomUUID();
         ServiceResponse response = new ServiceResponse(
-                id, "SRV-1", "Consulta", "desc", new BigDecimal("50.00"),
-                Category.CONSULTATION, true, null, null);
+                id, "SRV-1", "Consulta", "desc", new BigDecimal("50.00"), Category.CONSULTATION, true, null, null);
         when(serviceCatalogService.createServicesCatalog(any())).thenReturn(response);
 
         String body = """
@@ -107,8 +103,8 @@ class ServiceCatalogControllerWebMvcTest {
     void list_whenFiltered_returnsPage() throws Exception {
         ServiceSummaryResponse summary = new ServiceSummaryResponse(
                 UUID.randomUUID(), "SRV-1", "Consulta", new BigDecimal("50.00"), Category.CONSULTATION, true);
-        var page = new org.springframework.data.domain.PageImpl<>(List.of(summary),
-                org.springframework.data.domain.PageRequest.of(0, 20), 1);
+        var page = new org.springframework.data.domain.PageImpl<>(
+                List.of(summary), org.springframework.data.domain.PageRequest.of(0, 20), 1);
         when(serviceCatalogService.getServiceCatalogs(any(), any(), any())).thenReturn(page);
 
         mockMvc.perform(get("/api/v1/catalog/services")

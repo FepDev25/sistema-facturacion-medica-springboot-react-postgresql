@@ -2,11 +2,6 @@ package com.fepdev.sfm.backend.domain.invoice;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.List;
-import java.util.UUID;
-
-import org.junit.jupiter.api.Test;
-
 import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceCreateRequest;
 import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceInsurancePolicyRequest;
 import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceItemRequest;
@@ -16,6 +11,9 @@ import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceResponse;
 import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceStatusUpdateRequest;
 import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceSummaryResponse;
 import com.fepdev.sfm.backend.domain.invoice.dto.InvoiceViewResponse;
+import java.util.List;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
 
 class InvoiceEnumsConvertersAndDtoTest {
 
@@ -28,7 +26,8 @@ class InvoiceEnumsConvertersAndDtoTest {
         assertThat(ItemType.fromJson("service")).isEqualTo(ItemType.SERVICE);
         assertThat(ItemType.fromJson(null)).isNull();
 
-        assertThat(itemTypeConverter.convertToDatabaseColumn(ItemType.MEDICATION)).isEqualTo("medication");
+        assertThat(itemTypeConverter.convertToDatabaseColumn(ItemType.MEDICATION))
+                .isEqualTo("medication");
         assertThat(itemTypeConverter.convertToDatabaseColumn(null)).isNull();
         assertThat(itemTypeConverter.convertToEntityAttribute("other")).isEqualTo(ItemType.OTHER);
         assertThat(itemTypeConverter.convertToEntityAttribute(null)).isNull();
@@ -40,7 +39,8 @@ class InvoiceEnumsConvertersAndDtoTest {
         assertThat(InvoiceStatus.fromJson("overdue")).isEqualTo(InvoiceStatus.OVERDUE);
         assertThat(InvoiceStatus.fromJson(null)).isNull();
 
-        assertThat(invoiceStatusConverter.convertToDatabaseColumn(InvoiceStatus.PAID)).isEqualTo("paid");
+        assertThat(invoiceStatusConverter.convertToDatabaseColumn(InvoiceStatus.PAID))
+                .isEqualTo("paid");
         assertThat(invoiceStatusConverter.convertToDatabaseColumn(null)).isNull();
         assertThat(invoiceStatusConverter.convertToEntityAttribute("draft")).isEqualTo(InvoiceStatus.DRAFT);
         assertThat(invoiceStatusConverter.convertToEntityAttribute(null)).isNull();
@@ -52,13 +52,9 @@ class InvoiceEnumsConvertersAndDtoTest {
         UUID appointmentId = UUID.randomUUID();
         UUID policyId = UUID.randomUUID();
         InvoiceItemRequest item = new InvoiceItemRequest(
-                UUID.randomUUID(),
-                null,
-                ItemType.SERVICE,
-                "Consulta",
-                1,
-                new java.math.BigDecimal("50.00"));
-        InvoiceCreateRequest create = new InvoiceCreateRequest(patientId, appointmentId, policyId, List.of(item), "nota");
+                UUID.randomUUID(), null, ItemType.SERVICE, "Consulta", 1, new java.math.BigDecimal("50.00"));
+        InvoiceCreateRequest create =
+                new InvoiceCreateRequest(patientId, appointmentId, policyId, List.of(item), "nota");
         InvoiceStatusUpdateRequest statusUpdate = new InvoiceStatusUpdateRequest(InvoiceStatus.CANCELLED);
         InvoiceSummaryResponse summary = new InvoiceSummaryResponse(
                 UUID.randomUUID(),
@@ -82,12 +78,25 @@ class InvoiceEnumsConvertersAndDtoTest {
         UUID id = UUID.randomUUID();
         UUID patientId = UUID.randomUUID();
         InvoiceResponse response = new InvoiceResponse(
-                id, patientId, "Ana", "Lopez", null, null, "FAC-2026-00001",
-                new java.math.BigDecimal("100.00"), new java.math.BigDecimal("15.00"),
-                new java.math.BigDecimal("115.00"), new java.math.BigDecimal("0.00"),
-                new java.math.BigDecimal("115.00"), InvoiceStatus.PENDING,
-                java.time.LocalDate.now(), java.time.LocalDate.now().plusDays(30),
-                "nota", List.of(), null, null);
+                id,
+                patientId,
+                "Ana",
+                "Lopez",
+                null,
+                null,
+                "FAC-2026-00001",
+                new java.math.BigDecimal("100.00"),
+                new java.math.BigDecimal("15.00"),
+                new java.math.BigDecimal("115.00"),
+                new java.math.BigDecimal("0.00"),
+                new java.math.BigDecimal("115.00"),
+                InvoiceStatus.PENDING,
+                java.time.LocalDate.now(),
+                java.time.LocalDate.now().plusDays(30),
+                "nota",
+                List.of(),
+                null,
+                null);
 
         assertThat(response.id()).isEqualTo(id);
         assertThat(response.patientId()).isEqualTo(patientId);
@@ -113,9 +122,18 @@ class InvoiceEnumsConvertersAndDtoTest {
         UUID id = UUID.randomUUID();
         UUID invoiceId = UUID.randomUUID();
         InvoiceItemResponse item = new InvoiceItemResponse(
-                id, invoiceId, null, "Consulta", null, null,
-                ItemType.SERVICE, "Consulta", 1,
-                new java.math.BigDecimal("50.00"), new java.math.BigDecimal("50.00"), null);
+                id,
+                invoiceId,
+                null,
+                "Consulta",
+                null,
+                null,
+                ItemType.SERVICE,
+                "Consulta",
+                1,
+                new java.math.BigDecimal("50.00"),
+                new java.math.BigDecimal("50.00"),
+                null);
 
         assertThat(item.id()).isEqualTo(id);
         assertThat(item.invoiceId()).isEqualTo(invoiceId);
@@ -136,10 +154,17 @@ class InvoiceEnumsConvertersAndDtoTest {
         UUID id = UUID.randomUUID();
         UUID patientId = UUID.randomUUID();
         InvoiceListViewResponse lvi = new InvoiceListViewResponse(
-                id, patientId, "Ana", "Lopez", "FAC-2026-00001",
-                new java.math.BigDecimal("100.00"), new java.math.BigDecimal("100.00"),
-                InvoiceStatus.PENDING, java.time.LocalDate.now(),
-                java.time.LocalDate.now().plusDays(30), null);
+                id,
+                patientId,
+                "Ana",
+                "Lopez",
+                "FAC-2026-00001",
+                new java.math.BigDecimal("100.00"),
+                new java.math.BigDecimal("100.00"),
+                InvoiceStatus.PENDING,
+                java.time.LocalDate.now(),
+                java.time.LocalDate.now().plusDays(30),
+                null);
 
         assertThat(lvi.id()).isEqualTo(id);
         assertThat(lvi.patientId()).isEqualTo(patientId);
@@ -162,20 +187,29 @@ class InvoiceEnumsConvertersAndDtoTest {
     @Test
     void invoiceViewResponse_andNestedRecords_accessors_work() {
         UUID id = UUID.randomUUID();
-        InvoiceViewResponse.PatientView patient = new InvoiceViewResponse.PatientView(
-                UUID.randomUUID(), "12345678", "Ana", "Lopez", "Polen");
+        InvoiceViewResponse.PatientView patient =
+                new InvoiceViewResponse.PatientView(UUID.randomUUID(), "12345678", "Ana", "Lopez", "Polen");
         InvoiceViewResponse.AppointmentView appointment = new InvoiceViewResponse.AppointmentView(
-                UUID.randomUUID(), java.time.OffsetDateTime.now(),
-                com.fepdev.sfm.backend.domain.appointment.Status.SCHEDULED, "Dolor");
+                UUID.randomUUID(),
+                java.time.OffsetDateTime.now(),
+                com.fepdev.sfm.backend.domain.appointment.Status.SCHEDULED,
+                "Dolor");
         InvoiceViewResponse.InsurancePolicyView policy = new InvoiceViewResponse.InsurancePolicyView(
                 UUID.randomUUID(), "POL-001", "Seguros XYZ", new java.math.BigDecimal("80.00"));
         InvoiceViewResponse.ServiceView service = new InvoiceViewResponse.ServiceView(
                 UUID.randomUUID(), "S001", "Consulta", new java.math.BigDecimal("100.00"));
-        InvoiceViewResponse.MedicationView med = new InvoiceViewResponse.MedicationView(
-                UUID.randomUUID(), "M001", "Ibuprofeno", true);
+        InvoiceViewResponse.MedicationView med =
+                new InvoiceViewResponse.MedicationView(UUID.randomUUID(), "M001", "Ibuprofeno", true);
         InvoiceViewResponse.InvoiceItemView itemView = new InvoiceViewResponse.InvoiceItemView(
-                UUID.randomUUID(), service, med, ItemType.SERVICE, "Consulta",
-                1, new java.math.BigDecimal("100.00"), new java.math.BigDecimal("100.00"), null);
+                UUID.randomUUID(),
+                service,
+                med,
+                ItemType.SERVICE,
+                "Consulta",
+                1,
+                new java.math.BigDecimal("100.00"),
+                new java.math.BigDecimal("100.00"),
+                null);
 
         assertThat(patient.id()).isNotNull();
         assertThat(patient.dni()).isEqualTo("12345678");
@@ -197,12 +231,23 @@ class InvoiceEnumsConvertersAndDtoTest {
         assertThat(itemView.itemType()).isEqualTo(ItemType.SERVICE);
 
         InvoiceViewResponse view = new InvoiceViewResponse(
-                id, "FAC-2026-00001", patient, appointment, policy,
-                new java.math.BigDecimal("100.00"), new java.math.BigDecimal("15.00"),
-                new java.math.BigDecimal("115.00"), new java.math.BigDecimal("0.00"),
-                new java.math.BigDecimal("115.00"), InvoiceStatus.PENDING,
-                java.time.LocalDate.now(), java.time.LocalDate.now().plusDays(30),
-                "nota", List.of(itemView), null, null);
+                id,
+                "FAC-2026-00001",
+                patient,
+                appointment,
+                policy,
+                new java.math.BigDecimal("100.00"),
+                new java.math.BigDecimal("15.00"),
+                new java.math.BigDecimal("115.00"),
+                new java.math.BigDecimal("0.00"),
+                new java.math.BigDecimal("115.00"),
+                InvoiceStatus.PENDING,
+                java.time.LocalDate.now(),
+                java.time.LocalDate.now().plusDays(30),
+                "nota",
+                List.of(itemView),
+                null,
+                null);
 
         assertThat(view.id()).isEqualTo(id);
         assertThat(view.invoiceNumber()).isEqualTo("FAC-2026-00001");

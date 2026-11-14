@@ -1,5 +1,8 @@
 package com.fepdev.sfm.backend.domain.auth.token;
 
+import com.fepdev.sfm.backend.security.JwtService;
+import com.fepdev.sfm.backend.security.SystemUser;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -8,17 +11,11 @@ import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.HexFormat;
 import java.util.UUID;
-
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.fepdev.sfm.backend.security.JwtService;
-import com.fepdev.sfm.backend.security.SystemUser;
-
-import io.micrometer.core.instrument.MeterRegistry;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Ciclo de vida de la sesion: login, rotacion de refresh tokens y logout.
@@ -82,8 +79,8 @@ public class AuthSessionService {
         UUID jti = parseUuid(safeExtractJti(rawToken));
         UUID familyId = safeExtractFamilyId(rawToken);
 
-        RefreshTokenRecord record = tokenRepository.findByJtiForUpdate(jti)
-                .orElseThrow(InvalidRefreshTokenException::new);
+        RefreshTokenRecord record =
+                tokenRepository.findByJtiForUpdate(jti).orElseThrow(InvalidRefreshTokenException::new);
 
         RefreshTokenFamily family = record.getFamily();
         OffsetDateTime now = OffsetDateTime.now(clock);
@@ -105,11 +102,12 @@ public class AuthSessionService {
                 // Reuso fuera de la ventana de concurrencia: el token fue robado o
                 // reutilizado. Se invalida toda la familia.
                 meterRegistry.counter("auth.refresh.reuse").increment();
-                log.warn("Reuso de refresh token detectado; se revoca la familia {} del usuario {}",
-                        family.getId(), family.getUserId());
+                log.warn(
+                        "Reuso de refresh token detectado; se revoca la familia {} del usuario {}",
+                        family.getId(),
+                        family.getUserId());
                 revokeFamily(family, now, "reuse");
-                throw new InvalidRefreshTokenException(
-                        "La sesion fue revocada por seguridad. Inicia sesion de nuevo.");
+                throw new InvalidRefreshTokenException("La sesion fue revocada por seguridad. Inicia sesion de nuevo.");
             }
             // Dentro de la ventana de gracia se asume refresh concurrente: se permite
             // rotar de nuevo sin castigar a la sesion.
@@ -162,8 +160,7 @@ public class AuthSessionService {
         record.setExpiresAt(now.plus(Duration.ofMillis(refreshTokenExpirationMs)));
         tokenRepository.save(record);
 
-        return new SessionTokens(accessToken, refreshToken, user.getRole().name(),
-                user.getId(), user.getUsername());
+        return new SessionTokens(accessToken, refreshToken, user.getRole().name(), user.getId(), user.getUsername());
     }
 
     private void revokeFamily(RefreshTokenFamily family, OffsetDateTime now, String reason) {

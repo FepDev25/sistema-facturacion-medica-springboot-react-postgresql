@@ -1,20 +1,5 @@
 import { expect, test } from '@playwright/test'
-
-const ADMIN_USER = process.env.E2E_ADMIN_USER ?? 'admin'
-const ADMIN_PASS = process.env.E2E_ADMIN_PASS ?? 'admin123'
-
-async function loginAsAdmin(page: import('@playwright/test').Page) {
-  await page.goto('/login')
-  await page.getByLabel('Usuario').fill(ADMIN_USER)
-  await page.getByLabel('Contraseña').fill(ADMIN_PASS)
-  await page.getByRole('button', { name: 'Ingresar' }).click()
-  await expect(page).toHaveURL(/\/(dashboard)?$/)
-}
-
-async function openPatients(page: import('@playwright/test').Page) {
-  await page.getByRole('link', { name: 'Pacientes', exact: true }).first().click()
-  await expect(page).toHaveURL('/patients')
-}
+import { E2E, loginAsAdmin, openE2EPatient, openPatients } from './fixtures'
 
 async function openFirstPatientDetail(page: import('@playwright/test').Page) {
   const detailLinks = page.getByRole('link', { name: 'Ver detalle del paciente' })
@@ -81,18 +66,15 @@ test.describe('Patients list page', () => {
     await openPatients(page)
 
     const newButton = page.getByRole('button', { name: /Nuevo paciente/ })
-    if ((await newButton.isVisible()) && (await newButton.isEnabled())) {
-      await newButton.click()
-      await expect(page.getByRole('heading', { name: 'Nuevo Paciente' })).toBeVisible()
-      await expect(page.getByLabel('DNI')).toBeVisible()
-      await expect(page.getByLabel('Nombre')).toBeVisible()
-      await expect(page.getByLabel('Apellido')).toBeVisible()
-      await expect(page.getByLabel('Fecha de nacimiento')).toBeVisible()
-      await expect(page.getByLabel('Género')).toBeVisible()
-      await expect(page.getByLabel('Teléfono')).toBeVisible()
-    } else {
-      test.skip(true, 'Botón Nuevo paciente no disponible')
-    }
+    await expect(newButton).toBeEnabled()
+    await newButton.click()
+    await expect(page.getByRole('heading', { name: 'Nuevo Paciente' })).toBeVisible()
+    await expect(page.getByLabel('DNI')).toBeVisible()
+    await expect(page.getByLabel('Nombre')).toBeVisible()
+    await expect(page.getByLabel('Apellido')).toBeVisible()
+    await expect(page.getByLabel('Fecha de nacimiento')).toBeVisible()
+    await expect(page.getByLabel('Género')).toBeVisible()
+    await expect(page.getByLabel('Teléfono')).toBeVisible()
   })
 
   test('navigates to patient detail page', async ({ page }) => {
@@ -106,16 +88,11 @@ test.describe('Patients list page', () => {
   test('edit button is enabled for admin users', async ({ page }) => {
     await loginAsAdmin(page)
     await openPatients(page)
+    await page.getByPlaceholder('Filtrar por apellido...').fill('Cobertura')
 
-    const editButtons = page.getByRole('button', { name: 'Editar paciente' })
-    const count = await editButtons.count()
-
-    if (count > 0) {
-      const firstEnabled = editButtons.first()
-      await expect(firstEnabled).toBeEnabled()
-    } else {
-      test.skip(true, 'No hay pacientes en el dataset')
-    }
+    const row = page.getByRole('row').filter({ hasText: E2E.patientName })
+    await expect(row).toBeVisible()
+    await expect(row.getByRole('button', { name: 'Editar paciente' })).toBeEnabled()
   })
 })
 
@@ -198,7 +175,7 @@ test.describe('Patient detail page', () => {
     await openPatients(page)
     await openFirstPatientDetail(page)
 
-    await expect(page.getByText('Expedientes clinicos')).toBeVisible()
+    await expect(page.getByText('Expedientes clínicos')).toBeVisible()
   })
 
   test('all four sub-tables have their own DataTable', async ({ page }) => {
@@ -231,25 +208,10 @@ test.describe('Patient detail page', () => {
 
   test('allergy alert renders when patient has allergies', async ({ page }) => {
     await loginAsAdmin(page)
-    await openPatients(page)
+    await openE2EPatient(page)
 
-    const detailLinks = page.getByRole('link', { name: 'Ver detalle del paciente' })
-    const count = await detailLinks.count()
-
-    for (let i = 0; i < count; i++) {
-      await detailLinks.first().click()
-      const allergySection = page.locator('[data-testid="allergy-alert"]')
-
-      if (await allergySection.isVisible()) {
-        await expect(allergySection).toBeVisible()
-        return
-      }
-
-      await page.goBack()
-      await expect(page).toHaveURL(/\/patients$/)
-    }
-
-    test.skip(true, 'No se encontró paciente con alergias')
+    await expect(page.getByText('AllergyAlert')).toBeVisible()
+    await expect(page.getByText('Penicilina').first()).toBeVisible()
   })
 })
 
@@ -259,11 +221,7 @@ test.describe('Patient CRUD via drawer', () => {
     await openPatients(page)
 
     const newButton = page.getByRole('button', { name: /Nuevo paciente/ })
-    if (!(await newButton.isVisible()) || !(await newButton.isEnabled())) {
-      test.skip(true, 'Botón Nuevo paciente no disponible')
-      return
-    }
-
+    await expect(newButton).toBeEnabled()
     await newButton.click()
     await expect(page.getByRole('heading', { name: 'Nuevo Paciente' })).toBeVisible()
 
@@ -284,11 +242,7 @@ test.describe('Patient CRUD via drawer', () => {
     await openPatients(page)
 
     const newButton = page.getByRole('button', { name: /Nuevo paciente/ })
-    if (!(await newButton.isVisible()) || !(await newButton.isEnabled())) {
-      test.skip(true, 'Botón Nuevo paciente no disponible')
-      return
-    }
-
+    await expect(newButton).toBeEnabled()
     await newButton.click()
     await expect(page.getByRole('heading', { name: 'Nuevo Paciente' })).toBeVisible()
 
@@ -304,11 +258,7 @@ test.describe('Patient CRUD via drawer', () => {
     await openPatients(page)
 
     const newButton = page.getByRole('button', { name: /Nuevo paciente/ })
-    if (!(await newButton.isVisible()) || !(await newButton.isEnabled())) {
-      test.skip(true, 'Botón Nuevo paciente no disponible')
-      return
-    }
-
+    await expect(newButton).toBeEnabled()
     await newButton.click()
     await expect(page.getByRole('heading', { name: 'Nuevo Paciente' })).toBeVisible()
 

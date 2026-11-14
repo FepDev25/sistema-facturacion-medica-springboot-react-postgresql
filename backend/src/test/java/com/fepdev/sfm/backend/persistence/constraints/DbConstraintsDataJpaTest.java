@@ -2,18 +2,6 @@ package com.fepdev.sfm.backend.persistence.constraints;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.OffsetDateTime;
-import java.util.UUID;
-
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.jdbc.Sql;
-
 import com.fepdev.sfm.backend.domain.appointment.Appointment;
 import com.fepdev.sfm.backend.domain.appointment.Status;
 import com.fepdev.sfm.backend.domain.doctor.Doctor;
@@ -28,8 +16,17 @@ import com.fepdev.sfm.backend.domain.payment.Payment;
 import com.fepdev.sfm.backend.domain.payment.PaymentMethod;
 import com.fepdev.sfm.backend.persistence.AbstractPostgresDataJpaTest;
 import com.fepdev.sfm.backend.persistence.TestJpaAuditingConfig;
-
 import jakarta.persistence.EntityManager;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.OffsetDateTime;
+import java.util.UUID;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.jdbc.Sql;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -51,9 +48,10 @@ class DbConstraintsDataJpaTest extends AbstractPostgresDataJpaTest {
         payment.setPaymentDate(OffsetDateTime.now());
 
         assertThatThrownBy(() -> {
-            entityManager.persist(payment);
-            entityManager.flush();
-        }).isInstanceOf(Exception.class);
+                    entityManager.persist(payment);
+                    entityManager.flush();
+                })
+                .isInstanceOf(Exception.class);
     }
 
     @Test
@@ -72,9 +70,10 @@ class DbConstraintsDataJpaTest extends AbstractPostgresDataJpaTest {
         policy.setActive(true);
 
         assertThatThrownBy(() -> {
-            entityManager.persist(policy);
-            entityManager.flush();
-        }).isInstanceOf(Exception.class);
+                    entityManager.persist(policy);
+                    entityManager.flush();
+                })
+                .isInstanceOf(Exception.class);
     }
 
     @Test
@@ -106,9 +105,10 @@ class DbConstraintsDataJpaTest extends AbstractPostgresDataJpaTest {
         duplicate.setRecordDate(OffsetDateTime.now());
 
         assertThatThrownBy(() -> {
-            entityManager.persist(duplicate);
-            entityManager.flush();
-        }).isInstanceOf(Exception.class);
+                    entityManager.persist(duplicate);
+                    entityManager.flush();
+                })
+                .isInstanceOf(Exception.class);
     }
 
     private Invoice persistInvoice(String invoiceNumber) {

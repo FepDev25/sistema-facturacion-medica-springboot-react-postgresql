@@ -1,22 +1,5 @@
 package com.fepdev.sfm.backend.domain.invoice;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.fepdev.sfm.backend.domain.appointment.Appointment;
 import com.fepdev.sfm.backend.domain.catalog.MedicationsCatalog;
 import com.fepdev.sfm.backend.domain.catalog.MedicationsCatalogRepository;
@@ -33,8 +16,22 @@ import com.fepdev.sfm.backend.domain.medicalrecord.PrescriptionRepository;
 import com.fepdev.sfm.backend.domain.patient.PatientRepository;
 import com.fepdev.sfm.backend.domain.payment.PaymentRepository;
 import com.fepdev.sfm.backend.shared.exception.BusinessRuleException;
-
 import jakarta.persistence.EntityNotFoundException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class InvoiceService {
@@ -57,7 +54,7 @@ public class InvoiceService {
     private final InvoiceItemRepository invoiceItemRepository;
 
     private final InvoiceSequenceRepository invoiceSequenceRepository;
-    
+
     private final PatientRepository patientRepository;
 
     private final ServicesCatalogRepository servicesCatalogRepository;
@@ -66,11 +63,18 @@ public class InvoiceService {
     private final PaymentRepository paymentRepository;
     private final InsurancePolicyRepository insurancePolicyRepository;
 
-    public InvoiceService(InvoiceRepository invoiceRepository, InvoiceItemRepository invoiceItemRepository,
-            InvoiceSequenceRepository invoiceSequenceRepository, InvoiceMapper invoiceMapper, InvoiceItemMapper invoiceItemMapper,
-            PatientRepository patientRepository, ServicesCatalogRepository servicesCatalogRepository,
-            MedicationsCatalogRepository medicationsCatalogRepository, PrescriptionRepository prescriptionRepository,
-            PaymentRepository paymentRepository, InsurancePolicyRepository insurancePolicyRepository,
+    public InvoiceService(
+            InvoiceRepository invoiceRepository,
+            InvoiceItemRepository invoiceItemRepository,
+            InvoiceSequenceRepository invoiceSequenceRepository,
+            InvoiceMapper invoiceMapper,
+            InvoiceItemMapper invoiceItemMapper,
+            PatientRepository patientRepository,
+            ServicesCatalogRepository servicesCatalogRepository,
+            MedicationsCatalogRepository medicationsCatalogRepository,
+            PrescriptionRepository prescriptionRepository,
+            PaymentRepository paymentRepository,
+            InsurancePolicyRepository insurancePolicyRepository,
             InvoiceViewMapper invoiceViewMapper) {
         this.invoiceRepository = invoiceRepository;
         this.invoiceItemRepository = invoiceItemRepository;
@@ -112,14 +116,16 @@ public class InvoiceService {
     // consulta de factura por ID
     @Transactional(readOnly = true)
     public InvoiceResponse getInvoiceById(UUID invoiceId) {
-        Invoice invoice = invoiceRepository.findById(invoiceId)
+        Invoice invoice = invoiceRepository
+                .findById(invoiceId)
                 .orElseThrow(() -> new EntityNotFoundException("Factura con ID: " + invoiceId + " no encontrada"));
         return buildFullResponse(invoice);
     }
 
     @Transactional(readOnly = true)
     public InvoiceViewResponse getInvoiceViewById(UUID invoiceId) {
-        Invoice invoice = invoiceRepository.findViewById(invoiceId)
+        Invoice invoice = invoiceRepository
+                .findViewById(invoiceId)
                 .orElseThrow(() -> new EntityNotFoundException("Factura con ID: " + invoiceId + " no encontrada"));
 
         List<InvoiceItem> items = invoiceItemRepository.findByInvoiceIdOrderByCreatedAtAsc(invoiceId);
@@ -129,8 +135,10 @@ public class InvoiceService {
     // consulta de factura por número
     @Transactional(readOnly = true)
     public InvoiceResponse getInvoiceByNumber(String invoiceNumber) {
-        Invoice invoice = invoiceRepository.findByInvoiceNumber(invoiceNumber)
-                .orElseThrow(() -> new EntityNotFoundException("Factura con número: " + invoiceNumber + " no encontrada"));
+        Invoice invoice = invoiceRepository
+                .findByInvoiceNumber(invoiceNumber)
+                .orElseThrow(
+                        () -> new EntityNotFoundException("Factura con número: " + invoiceNumber + " no encontrada"));
         return buildFullResponse(invoice);
     }
 
@@ -143,14 +151,15 @@ public class InvoiceService {
 
     @Transactional(readOnly = true)
     public Optional<InvoiceResponse> findInvoiceByAppointmentId(UUID appointmentId) {
-        return invoiceRepository.findTopByAppointmentIdOrderByCreatedAtDesc(appointmentId)
+        return invoiceRepository
+                .findTopByAppointmentIdOrderByCreatedAtDesc(appointmentId)
                 .map(this::buildFullResponse);
     }
 
     // consulta de facturas con filtros
     @Transactional(readOnly = true)
-    public Page<InvoiceResponse> getInvoicesWithFilters(UUID patientId, InvoiceStatus status,
-            LocalDate startDate, LocalDate endDate, Pageable pageable) {
+    public Page<InvoiceResponse> getInvoicesWithFilters(
+            UUID patientId, InvoiceStatus status, LocalDate startDate, LocalDate endDate, Pageable pageable) {
         if (patientId != null && !patientRepository.existsById(patientId)) {
             throw new EntityNotFoundException("Paciente con ID: " + patientId + " no encontrado");
         }
@@ -159,8 +168,8 @@ public class InvoiceService {
     }
 
     @Transactional(readOnly = true)
-    public Page<InvoiceListViewResponse> getInvoiceListViewWithFilters(UUID patientId, InvoiceStatus status,
-            LocalDate startDate, LocalDate endDate, Pageable pageable) {
+    public Page<InvoiceListViewResponse> getInvoiceListViewWithFilters(
+            UUID patientId, InvoiceStatus status, LocalDate startDate, LocalDate endDate, Pageable pageable) {
         if (patientId != null && !patientRepository.existsById(patientId)) {
             throw new EntityNotFoundException("Paciente con ID: " + patientId + " no encontrado");
         }
@@ -170,16 +179,18 @@ public class InvoiceService {
 
     // *** metodos de items ***
 
-    // metodo para agregar ítem a factura DRAFT, con validaciones específicas según el tipo de ítem (servicio o medicamento)
+    // metodo para agregar ítem a factura DRAFT, con validaciones específicas según el tipo de ítem (servicio o
+    // medicamento)
     @Transactional
     public InvoiceItemResponse addItem(UUID invoiceId, InvoiceItemRequest request) {
-        Invoice invoice = invoiceRepository.findById(invoiceId)
+        Invoice invoice = invoiceRepository
+                .findById(invoiceId)
                 .orElseThrow(() -> new EntityNotFoundException("Factura con ID: " + invoiceId + " no encontrada"));
 
         // solo se pueden agregar ítems a facturas en estado DRAFT
         if (invoice.getStatus() != InvoiceStatus.DRAFT) {
             throw new BusinessRuleException(
-                "Solo se pueden agregar ítems a facturas en estado DRAFT. Estado actual: " + invoice.getStatus());
+                    "Solo se pueden agregar ítems a facturas en estado DRAFT. Estado actual: " + invoice.getStatus());
         }
 
         InvoiceItem item = invoiceItemMapper.toEntity(request);
@@ -191,7 +202,8 @@ public class InvoiceService {
                 if (request.serviceId() == null) {
                     throw new BusinessRuleException("Se requiere serviceId para ítems de tipo SERVICE");
                 }
-                ServicesCatalog service = servicesCatalogRepository.findById(request.serviceId())
+                ServicesCatalog service = servicesCatalogRepository
+                        .findById(request.serviceId())
                         .orElseThrow(() -> new EntityNotFoundException(
                                 "Servicio con ID: " + request.serviceId() + " no encontrado"));
                 // el servicio debe estar activo
@@ -199,14 +211,21 @@ public class InvoiceService {
                     throw new BusinessRuleException("El servicio con ID: " + request.serviceId() + " no está activo");
                 }
                 item.setService(service);
-                applyCatalogValues(item, service.getName(), service.getPrice(),
-                        request.description(), request.unitPrice(), canOverrideCatalog, invoiceId);
+                applyCatalogValues(
+                        item,
+                        service.getName(),
+                        service.getPrice(),
+                        request.description(),
+                        request.unitPrice(),
+                        canOverrideCatalog,
+                        invoiceId);
             }
             case MEDICATION -> {
                 if (request.medicationId() == null) {
                     throw new BusinessRuleException("Se requiere medicationId para ítems de tipo MEDICATION");
                 }
-                MedicationsCatalog medication = medicationsCatalogRepository.findById(request.medicationId())
+                MedicationsCatalog medication = medicationsCatalogRepository
+                        .findById(request.medicationId())
                         .orElseThrow(() -> new EntityNotFoundException(
                                 "Medicamento con ID: " + request.medicationId() + " no encontrado"));
                 // el medicamento debe estar activo
@@ -228,18 +247,25 @@ public class InvoiceService {
                     }
                 }
                 item.setMedication(medication);
-                applyCatalogValues(item, medication.getName(), medication.getPrice(),
-                        request.description(), request.unitPrice(), canOverrideCatalog, invoiceId);
+                applyCatalogValues(
+                        item,
+                        medication.getName(),
+                        medication.getPrice(),
+                        request.description(),
+                        request.unitPrice(),
+                        canOverrideCatalog,
+                        invoiceId);
             }
             default -> {
                 // PROCEDURE y OTHER no tienen catálogo: descripción y precio son obligatorios.
                 if (request.description() == null || request.description().isBlank()) {
-                    throw new BusinessRuleException("La descripción es obligatoria para ítems de tipo "
-                            + request.itemType());
+                    throw new BusinessRuleException(
+                            "La descripción es obligatoria para ítems de tipo " + request.itemType());
                 }
                 if (request.unitPrice() == null || request.unitPrice().signum() <= 0) {
-                    throw new BusinessRuleException("El precio unitario es obligatorio y debe ser mayor a cero para ítems de tipo "
-                            + request.itemType());
+                    throw new BusinessRuleException(
+                            "El precio unitario es obligatorio y debe ser mayor a cero para ítems de tipo "
+                                    + request.itemType());
                 }
                 item.setDescription(request.description().trim());
                 item.setUnitPrice(request.unitPrice());
@@ -259,27 +285,42 @@ public class InvoiceService {
     // Para ítems de catálogo el servidor manda: descripción y precio salen del catálogo.
     // Solo ADMIN puede enviar valores distintos, y el override queda registrado en el log
     // (además del AuditLog que ya genera AuditAspect con el ítem resultante).
-    private void applyCatalogValues(InvoiceItem item, String catalogDescription, BigDecimal catalogPrice,
-            String requestedDescription, BigDecimal requestedPrice, boolean canOverride, UUID invoiceId) {
+    private void applyCatalogValues(
+            InvoiceItem item,
+            String catalogDescription,
+            BigDecimal catalogPrice,
+            String requestedDescription,
+            BigDecimal requestedPrice,
+            boolean canOverride,
+            UUID invoiceId) {
 
         if (catalogPrice == null) {
-            throw new BusinessRuleException(
-                    "El catálogo no tiene precio configurado para: " + catalogDescription);
+            throw new BusinessRuleException("El catálogo no tiene precio configurado para: " + catalogDescription);
         }
 
         String description = catalogDescription;
-        if (canOverride && requestedDescription != null && !requestedDescription.isBlank()
+        if (canOverride
+                && requestedDescription != null
+                && !requestedDescription.isBlank()
                 && !requestedDescription.trim().equalsIgnoreCase(catalogDescription)) {
             description = requestedDescription.trim();
-            log.warn("Override de descripción de catálogo en factura {}: '{}' -> '{}' por {}",
-                    invoiceId, catalogDescription, description, currentUsername());
+            log.warn(
+                    "Override de descripción de catálogo en factura {}: '{}' -> '{}' por {}",
+                    invoiceId,
+                    catalogDescription,
+                    description,
+                    currentUsername());
         }
 
         BigDecimal unitPrice = catalogPrice;
         if (canOverride && requestedPrice != null && requestedPrice.compareTo(catalogPrice) != 0) {
             unitPrice = requestedPrice;
-            log.warn("Override de precio de catálogo en factura {}: {} -> {} por {}",
-                    invoiceId, catalogPrice, unitPrice, currentUsername());
+            log.warn(
+                    "Override de precio de catálogo en factura {}: {} -> {} por {}",
+                    invoiceId,
+                    catalogPrice,
+                    unitPrice,
+                    currentUsername());
         }
 
         item.setDescription(description);
@@ -288,8 +329,8 @@ public class InvoiceService {
 
     private boolean isCurrentUserAdmin() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return auth != null && auth.getAuthorities().stream()
-                .anyMatch(authority -> "ADMIN".equals(authority.getAuthority()));
+        return auth != null
+                && auth.getAuthorities().stream().anyMatch(authority -> "ADMIN".equals(authority.getAuthority()));
     }
 
     private String currentUsername() {
@@ -297,21 +338,24 @@ public class InvoiceService {
         return auth != null ? auth.getName() : "system";
     }
 
-    // metodo para eliminar ítem de factura DRAFT, con validaciones para asegurar que el ítem pertenece a la factura y que la factura está en estado DRAFT
+    // metodo para eliminar ítem de factura DRAFT, con validaciones para asegurar que el ítem pertenece a la factura y
+    // que la factura está en estado DRAFT
     @Transactional
     public void removeItem(UUID invoiceId, UUID itemId) {
 
-        Invoice invoice = invoiceRepository.findById(invoiceId)
+        Invoice invoice = invoiceRepository
+                .findById(invoiceId)
                 .orElseThrow(() -> new EntityNotFoundException("Factura con ID: " + invoiceId + " no encontrada"));
 
         // solo se pueden eliminar ítems de facturas en estado DRAFT
         if (invoice.getStatus() != InvoiceStatus.DRAFT) {
             throw new BusinessRuleException(
-                "Solo se pueden eliminar ítems de facturas en estado DRAFT. Estado actual: " + invoice.getStatus());
+                    "Solo se pueden eliminar ítems de facturas en estado DRAFT. Estado actual: " + invoice.getStatus());
         }
 
         // validar que el ítem existe y pertenece a la factura
-        InvoiceItem item = invoiceItemRepository.findById(itemId)
+        InvoiceItem item = invoiceItemRepository
+                .findById(itemId)
                 .orElseThrow(() -> new EntityNotFoundException("Ítem con ID: " + itemId + " no encontrado"));
 
         if (!item.getInvoice().getId().equals(invoiceId)) {
@@ -326,7 +370,8 @@ public class InvoiceService {
 
     @Transactional
     public void assignInsurancePolicy(UUID invoiceId, UUID insurancePolicyId) {
-        Invoice invoice = invoiceRepository.findById(invoiceId)
+        Invoice invoice = invoiceRepository
+                .findById(invoiceId)
                 .orElseThrow(() -> new EntityNotFoundException("Factura con ID: " + invoiceId + " no encontrada"));
 
         if (invoice.getStatus() != InvoiceStatus.DRAFT) {
@@ -340,9 +385,10 @@ public class InvoiceService {
             return;
         }
 
-        InsurancePolicy policy = insurancePolicyRepository.findById(insurancePolicyId)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Póliza con ID: " + insurancePolicyId + " no encontrada"));
+        InsurancePolicy policy = insurancePolicyRepository
+                .findById(insurancePolicyId)
+                .orElseThrow(
+                        () -> new EntityNotFoundException("Póliza con ID: " + insurancePolicyId + " no encontrada"));
 
         if (!policy.getPatient().getId().equals(invoice.getPatient().getId())) {
             throw new BusinessRuleException("La póliza no pertenece al paciente de la factura");
@@ -359,17 +405,18 @@ public class InvoiceService {
 
     // *** metodos de estado de factura ***
 
-    // metodo para confirmar factura, que cambia su estado a PENDING, con validaciones para asegurar que la factura está 
+    // metodo para confirmar factura, que cambia su estado a PENDING, con validaciones para asegurar que la factura está
     // en estado DRAFT y que tiene al menos un ítem antes de confirmar.
     // También recalcula los totales antes de confirmar para asegurar que estén correctos.
     @Transactional
     public void confirmInvoice(UUID invoiceId) {
-        Invoice invoice = invoiceRepository.findById(invoiceId)
+        Invoice invoice = invoiceRepository
+                .findById(invoiceId)
                 .orElseThrow(() -> new EntityNotFoundException("Factura con ID: " + invoiceId + " no encontrada"));
 
         if (invoice.getStatus() != InvoiceStatus.DRAFT) {
             throw new BusinessRuleException(
-                "Solo se pueden confirmar facturas en estado DRAFT. Estado actual: " + invoice.getStatus());
+                    "Solo se pueden confirmar facturas en estado DRAFT. Estado actual: " + invoice.getStatus());
         }
 
         // Validar que la factura tenga al menos un ítem antes de confirmar
@@ -395,7 +442,8 @@ public class InvoiceService {
     // OVERDUE solo desde PENDING o PARTIAL_PAID
     @Transactional
     public void markOverdue(UUID invoiceId) {
-        Invoice invoice = invoiceRepository.findById(invoiceId)
+        Invoice invoice = invoiceRepository
+                .findById(invoiceId)
                 .orElseThrow(() -> new EntityNotFoundException("Factura con ID: " + invoiceId + " no encontrada"));
 
         if (invoice.getStatus() != InvoiceStatus.PENDING && invoice.getStatus() != InvoiceStatus.PARTIAL_PAID) {
@@ -410,7 +458,8 @@ public class InvoiceService {
     // CANCELLED solo desde DRAFT o PENDING, y solo si no tiene pagos aplicados
     @Transactional
     public void cancelInvoice(UUID invoiceId) {
-        Invoice invoice = invoiceRepository.findById(invoiceId)
+        Invoice invoice = invoiceRepository
+                .findById(invoiceId)
                 .orElseThrow(() -> new EntityNotFoundException("Factura con ID: " + invoiceId + " no encontrada"));
 
         if (invoice.getStatus() != InvoiceStatus.DRAFT && invoice.getStatus() != InvoiceStatus.PENDING) {
@@ -421,14 +470,12 @@ public class InvoiceService {
 
         // RN-14: no se puede cancelar si ya tiene pagos registrados
         if (paymentRepository.existsByInvoiceId(invoiceId)) {
-            throw new BusinessRuleException(
-                    "No se puede cancelar la factura porque tiene pagos aplicados (RN-14)");
+            throw new BusinessRuleException("No se puede cancelar la factura porque tiene pagos aplicados (RN-14)");
         }
 
         invoice.setStatus(InvoiceStatus.CANCELLED);
         invoiceRepository.save(invoice);
     }
-
 
     // *** metodos internos  ***
 
@@ -436,31 +483,43 @@ public class InvoiceService {
     // Este helper carga los items desde el repositorio e inyecta la lista en el response.
     private InvoiceResponse buildFullResponse(Invoice invoice) {
         InvoiceResponse base = invoiceMapper.toResponse(invoice);
-        List<InvoiceItemResponse> items = invoiceItemMapper.toResponseList(
-                invoiceItemRepository.findByInvoiceId(invoice.getId()));
+        List<InvoiceItemResponse> items =
+                invoiceItemMapper.toResponseList(invoiceItemRepository.findByInvoiceId(invoice.getId()));
         return new InvoiceResponse(
-                base.id(), base.patientId(), base.patientFirstName(), base.patientLastName(),
-                base.appointmentId(), base.insurancePolicyId(), base.invoiceNumber(),
-                base.subtotal(), base.tax(), base.total(),
-                base.insuranceCoverage(), base.patientResponsibility(),
-                base.status(), base.issueDate(), base.dueDate(), base.notes(),
-                items, base.createdAt(), base.updatedAt());
+                base.id(),
+                base.patientId(),
+                base.patientFirstName(),
+                base.patientLastName(),
+                base.appointmentId(),
+                base.insurancePolicyId(),
+                base.invoiceNumber(),
+                base.subtotal(),
+                base.tax(),
+                base.total(),
+                base.insuranceCoverage(),
+                base.patientResponsibility(),
+                base.status(),
+                base.issueDate(),
+                base.dueDate(),
+                base.notes(),
+                items,
+                base.createdAt(),
+                base.updatedAt());
     }
 
     // Recalcular montos de la factura
     // Método interno llamado por addItem y removeItem (10.4) cada vez que cambian los ítems.
     @Transactional
     void recalculateTotals(UUID invoiceId) {
-        Invoice invoice = invoiceRepository.findById(invoiceId)
+        Invoice invoice = invoiceRepository
+                .findById(invoiceId)
                 .orElseThrow(() -> new EntityNotFoundException("Factura con ID: " + invoiceId + " no encontrada"));
 
         List<InvoiceItem> items = invoiceItemRepository.findByInvoiceId(invoiceId);
 
         // subtotal = suma de los subtotales de los ítems (ya calculados al agregar)
-        BigDecimal subtotal = items.stream()
-                .map(InvoiceItem::getSubtotal)
-                .map(this::toMoney)
-                .reduce(ZERO, BigDecimal::add);
+        BigDecimal subtotal =
+                items.stream().map(InvoiceItem::getSubtotal).map(this::toMoney).reduce(ZERO, BigDecimal::add);
 
         BigDecimal tax = toMoney(subtotal.multiply(taxRate));
         BigDecimal total = toMoney(subtotal.add(tax));
@@ -474,16 +533,12 @@ public class InvoiceService {
         BigDecimal patientResponsibility;
 
         if (isPolicyActiveAndValid(policy, referenceDate)) {
-            BigDecimal coveragePercentage = policy.getCoveragePercentage() != null
-                    ? policy.getCoveragePercentage()
-                    : BigDecimal.ZERO;
-            BigDecimal deductible = policy.getDeductible() != null
-                    ? policy.getDeductible()
-                    : BigDecimal.ZERO;
+            BigDecimal coveragePercentage =
+                    policy.getCoveragePercentage() != null ? policy.getCoveragePercentage() : BigDecimal.ZERO;
+            BigDecimal deductible = policy.getDeductible() != null ? policy.getDeductible() : BigDecimal.ZERO;
 
             // cobertura bruta = total * (coveragePercentage / 100) - deductible, mínimo 0
-            BigDecimal grossCoverage = total.multiply(
-                    coveragePercentage.divide(ONE_HUNDRED, 6, RoundingMode.HALF_UP));
+            BigDecimal grossCoverage = total.multiply(coveragePercentage.divide(ONE_HUNDRED, 6, RoundingMode.HALF_UP));
             insuranceCoverage = toMoney(grossCoverage.subtract(deductible));
 
             if (insuranceCoverage.compareTo(ZERO) < 0) insuranceCoverage = ZERO;
@@ -509,8 +564,10 @@ public class InvoiceService {
     // Generacion del numero de factura con bloqueo pesimista
     //   1. La transaccion lee la fila de invoice_sequences para el año actual.
     //   2. El lock PESSIMISTIC_WRITE hace que la BD bloquee esa fila.
-    //   3. Cualquier otra transaccion que intente el mismo SELECT FOR UPDATE queda BLOQUEADA hasta que esta transaccion haga commit.
-    //   4. Solo entonces la segunda transaccion puede leer el valor actualizado e incrementarlo, garantizando secuencialidad sin gaps.
+    //   3. Cualquier otra transaccion que intente el mismo SELECT FOR UPDATE queda BLOQUEADA hasta que esta transaccion
+    // haga commit.
+    //   4. Solo entonces la segunda transaccion puede leer el valor actualizado e incrementarlo, garantizando
+    // secuencialidad sin gaps.
 
     // Caso primer uso del año (fila no existe):
     //   No hay fila que bloquear, por lo que se inserta con saveAndFlush.
@@ -518,7 +575,8 @@ public class InvoiceService {
     //   por lo que si dos transacciones corren en paralelo en el cambio de año,
     //   la segunda recibirá una excepción de PK duplicada.
     private String generateInvoiceNumber(int year) {
-        InvoiceSequence seq = invoiceSequenceRepository.findByYearForUpdate(year)
+        InvoiceSequence seq = invoiceSequenceRepository
+                .findByYearForUpdate(year)
                 .orElseGet(() -> {
                     InvoiceSequence newSeq = new InvoiceSequence();
                     newSeq.setYear(year);
@@ -533,7 +591,8 @@ public class InvoiceService {
         return String.format("FAC-%d-%05d", year, seq.getLastSequence());
     }
 
-    // Verifica que la póliza y su proveedor estén activos, y que la fecha de referencia esté dentro del período de cobertura.
+    // Verifica que la póliza y su proveedor estén activos, y que la fecha de referencia esté dentro del período de
+    // cobertura.
     private boolean isPolicyActiveAndValid(InsurancePolicy policy, LocalDate referenceDate) {
         if (policy == null || !policy.isActive()) return false;
         if (policy.getProvider() == null || !policy.getProvider().isActive()) return false;

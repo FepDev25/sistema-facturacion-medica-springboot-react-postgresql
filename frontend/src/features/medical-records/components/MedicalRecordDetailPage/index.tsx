@@ -129,7 +129,7 @@ export function MedicalRecordDetailPage() {
   if (!record) {
     return (
       <div className="px-6 py-8">
-        <p className="text-sm text-muted-foreground mb-4">No se encontro el expediente.</p>
+        <p className="text-sm text-muted-foreground mb-4">No se encontró el expediente.</p>
         <BackToListButton fallbackTo="/patients" label="Volver a pacientes" />
       </div>
     )
@@ -140,7 +140,7 @@ export function MedicalRecordDetailPage() {
   return (
     <div className="flex flex-col h-full">
       <PageHeader
-        title="Expediente clinico"
+        title="Expediente clínico"
         subtitle={`Registro ${record.id}`}
         actions={
           <>
@@ -201,7 +201,7 @@ export function MedicalRecordDetailPage() {
               <p className="text-sm text-foreground">{formatDateTime(record.recordDate)}</p>
             </div>
             <div className="md:col-span-2 lg:col-span-2">
-              <p className="text-xs text-muted-foreground">Notas clinicas</p>
+              <p className="text-xs text-muted-foreground">Notas clínicas</p>
               <p className="text-sm text-foreground">{record.clinicalNotes}</p>
             </div>
           </div>
@@ -209,7 +209,7 @@ export function MedicalRecordDetailPage() {
 
         <section className="rounded-xl border border-border bg-card p-5 shadow-card">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-foreground">Diagnosticos</h2>
+            <h2 className="text-sm font-semibold text-foreground">Diagnósticos</h2>
             <Dialog open={diagnosisOpen} onOpenChange={setDiagnosisOpen}>
               <DialogTrigger asChild>
                 <Button size="sm" variant="outline">
@@ -247,7 +247,7 @@ export function MedicalRecordDetailPage() {
                       name="icd10Code"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Codigo ICD-10</FormLabel>
+                          <FormLabel>Código ICD-10</FormLabel>
                           <FormControl>
                             <Input {...field} placeholder="J02.9" />
                           </FormControl>
@@ -260,7 +260,7 @@ export function MedicalRecordDetailPage() {
                       name="description"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Descripcion</FormLabel>
+                          <FormLabel>Descripción</FormLabel>
                           <FormControl>
                             <Textarea {...field} rows={3} className="resize-none" />
                           </FormControl>
@@ -314,8 +314,8 @@ export function MedicalRecordDetailPage() {
           </div>
           <DataTable
             columns={[
-              { accessorKey: 'icd10Code', header: 'Codigo' },
-              { accessorKey: 'description', header: 'Descripcion' },
+              { accessorKey: 'icd10Code', header: 'Código' },
+              { accessorKey: 'description', header: 'Descripción' },
               {
                 accessorKey: 'severity',
                 header: 'Severidad',
@@ -330,7 +330,7 @@ export function MedicalRecordDetailPage() {
             data={diagnosesQuery.data ?? []}
             isLoading={diagnosesQuery.isLoading}
             pageSize={5}
-            emptyMessage="Sin diagnosticos registrados."
+            emptyMessage="Sin diagnósticos registrados."
           />
         </section>
 
@@ -423,7 +423,7 @@ export function MedicalRecordDetailPage() {
                       name="durationDays"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Duracion (dias)</FormLabel>
+                          <FormLabel>Duración (días)</FormLabel>
                           <FormControl>
                             <Input
                               type="number"
@@ -463,7 +463,7 @@ export function MedicalRecordDetailPage() {
               { accessorKey: 'medicationName', header: 'Medicamento' },
               { accessorKey: 'dosage', header: 'Dosis' },
               { accessorKey: 'frequency', header: 'Frecuencia' },
-              { accessorKey: 'durationDays', header: 'Dias' },
+              { accessorKey: 'durationDays', header: 'Días' },
               {
                 accessorKey: 'createdAt',
                 header: 'Creada',
@@ -512,7 +512,7 @@ export function MedicalRecordDetailPage() {
                       name="procedureCode"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Codigo</FormLabel>
+                          <FormLabel>Código</FormLabel>
                           <FormControl>
                             <Input {...field} placeholder="PROC-001" />
                           </FormControl>
@@ -525,7 +525,7 @@ export function MedicalRecordDetailPage() {
                       name="description"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Descripcion</FormLabel>
+                          <FormLabel>Descripción</FormLabel>
                           <FormControl>
                             <Textarea {...field} rows={3} className="resize-none" />
                           </FormControl>
@@ -569,8 +569,8 @@ export function MedicalRecordDetailPage() {
           </div>
           <DataTable
             columns={[
-              { accessorKey: 'procedureCode', header: 'Codigo' },
-              { accessorKey: 'description', header: 'Descripcion' },
+              { accessorKey: 'procedureCode', header: 'Código' },
+              { accessorKey: 'description', header: 'Descripción' },
               {
                 accessorKey: 'performedAt',
                 header: 'Realizado',

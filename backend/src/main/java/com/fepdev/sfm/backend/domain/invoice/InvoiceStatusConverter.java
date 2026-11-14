@@ -1,6 +1,5 @@
 package com.fepdev.sfm.backend.domain.invoice;
 
-
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
@@ -16,5 +15,4 @@ public class InvoiceStatusConverter implements AttributeConverter<InvoiceStatus,
     public InvoiceStatus convertToEntityAttribute(String dbData) {
         return dbData == null ? null : InvoiceStatus.valueOf(dbData.toUpperCase());
     }
-    
 }

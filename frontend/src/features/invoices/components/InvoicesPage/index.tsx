@@ -50,7 +50,12 @@ export function InvoicesPage() {
     invoice: InvoiceListViewResponse
   } | null>(null)
 
-  const { data: invoicesPage, isLoading } = useInvoices({
+  const {
+    data: invoicesPage,
+    isLoading,
+    isError,
+    refetch,
+  } = useInvoices({
     status: statusFilter === 'all' ? undefined : statusFilter,
     startDate: startDate || undefined,
     endDate: endDate || undefined,
@@ -110,7 +115,7 @@ export function InvoicesPage() {
   const CONFIRM_MESSAGES: Record<string, { title: string; description: string }> = {
     confirm: {
       title: 'Confirmar factura',
-      description: `Se confirmara la factura ${confirmAction?.invoice.invoiceNumber}. Esta accion no se puede deshacer.`,
+      description: `Se confirmará la factura ${confirmAction?.invoice.invoiceNumber}. Esta acción no se puede deshacer.`,
     },
     overdue: {
       title: 'Marcar como vencida',
@@ -118,7 +123,7 @@ export function InvoicesPage() {
     },
     cancel: {
       title: 'Cancelar factura',
-      description: `Se cancelara la factura ${confirmAction?.invoice.invoiceNumber}. Esta accion no se puede deshacer.`,
+      description: `Se cancelará la factura ${confirmAction?.invoice.invoiceNumber}. Esta acción no se puede deshacer.`,
     },
   }
 
@@ -199,14 +204,16 @@ export function InvoicesPage() {
           columns={columns}
           data={invoices}
           isLoading={isLoading}
+          isError={isError}
+          onRetry={() => void refetch()}
           pageSize={20}
           emptyMessage="No hay facturas para el filtro seleccionado."
         />
 
-        {!isLoading && invoicesPage && invoicesPage.totalPages > 1 ? (
+        {!isLoading && !isError && invoicesPage && invoicesPage.totalPages > 1 ? (
           <div className="mt-3 flex items-center justify-between px-1">
             <p className="text-xs text-muted-foreground">
-              Pagina {invoicesPage.number + 1} de {invoicesPage.totalPages} -{' '}
+              Página {invoicesPage.number + 1} de {invoicesPage.totalPages} -{' '}
               {invoicesPage.totalElements} facturas
             </p>
             <div className="flex items-center gap-1">
@@ -214,7 +221,7 @@ export function InvoicesPage() {
                 variant="outline"
                 size="icon"
                 className="h-7 w-7"
-                aria-label="Pagina anterior"
+                aria-label="Página anterior"
                 onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
                 disabled={invoicesPage.number <= 0}
               >
@@ -224,7 +231,7 @@ export function InvoicesPage() {
                 variant="outline"
                 size="icon"
                 className="h-7 w-7"
-                aria-label="Pagina siguiente"
+                aria-label="Página siguiente"
                 onClick={() =>
                   setPage((prev) =>
                     invoicesPage.number + 1 >= invoicesPage.totalPages ? prev : prev + 1,
