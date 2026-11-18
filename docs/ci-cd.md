@@ -206,9 +206,9 @@ npm run build
 | Backend | 82% líneas / 66% ramas (JaCoCo, `verify`) |
 | Frontend | 41% statements / 39% branches / 40% functions / 42% lines (Vitest) |
 
-Cobertura real medida el 2026-11-13: backend **90.62% líneas / 73.88% ramas**;
-frontend **50.23 / 47.72 / 50.00 / 50.98**. Los umbrales siguen siendo un piso:
-se suben cuando la cobertura mejore y no se bajan para destrabar un PR.
+Cobertura real medida el 2026-11-18: backend **90.62% líneas / 73.88% ramas**;
+frontend **51.2 / 48.19 / 50.56 / 51.91** (Vitest 5). Los umbrales siguen siendo
+un piso: se suben cuando la cobertura mejore y no se bajan para destrabar un PR.
 
 ## Formato Java (Spotless)
 
