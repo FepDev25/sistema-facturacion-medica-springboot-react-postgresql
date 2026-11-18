@@ -130,8 +130,15 @@ todo vuelve a responder, cierra los issues de uptime automáticamente. GitHub no
 a los watchers del repositorio.
 
 Limitaciones: GitHub puede retrasar los crons en horas pico y desactiva los workflows
-programados tras 60 días sin actividad. Para un SLA estricto, conectar el mismo chequeo
-a BetterStack/UptimeRobot.
+programados tras 60 días sin actividad.
+
+> **Decisión (2026-11-18):** se adopta un monitor externo gratuito
+> (UptimeRobot o BetterStack) apuntando a
+> `https://sfm-backend-fepdev-a04e4eeac708.herokuapp.com/actuator/health` y al
+> frontend, como señal independiente de GitHub. El workflow `uptime.yml` se
+> mantiene como capa interna (issues automáticos + registro histórico). Setup
+> pendiente: crear la cuenta (5 min) y anotar el contacto de alertas en este
+> runbook.
 
 ### 3.2 Métricas (Prometheus/Alertmanager)
 
