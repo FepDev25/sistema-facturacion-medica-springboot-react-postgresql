@@ -1,5 +1,12 @@
 # Staging
 
+> **Decisión (2026-11-18):** para el alcance actual del proyecto (demo de
+> portafolio) **no se aprovisiona un ambiente completo**: la validación previa a
+> producción se hace con **previews de Vercel por PR** apuntando a una **branch
+> de Neon** con datos seeds. El diseño de ambiente completo de este documento
+> queda como referencia para cuando el proyecto crezca o se exija SLA. El
+> workflow `staging.yml` sigue deshabilitado.
+
 Plan del ambiente de staging para validar cambios antes de producción. **Este
 documento describe el diseño; los recursos cloud no se crean desde el
 repositorio.** El workflow
