@@ -121,14 +121,17 @@ Cuatro asistentes Claude conectados a las páginas de dominio. Siguen el mismo p
 | ---------------------------- | -------------------------------------- | ------------------------- | --------------------- |
 | Sugerencia ICD-10            | `POST /ai/icd10/suggest`               | `MedicalRecordDetailPage` | `Icd10Suggester`      |
 | Extracción de notas clínicas | `POST /ai/records/extract`             | `MedicalRecordDetailPage` | `ExtractionPanel`     |
-| Consulta de historial        | `POST /ai/patients/{id}/query`         | `PatientDetailPage`       | `PatientHistoryChat`  |
+| Consulta de historial        | `POST /ai/patients/{id}/query` (+ `/query/stream`) | `PatientDetailPage`       | `PatientHistoryChat`  |
 | Sugerencia de ítems          | `POST /ai/invoices/{id}/suggest-items` | `InvoiceDetailPage`       | `ItemSuggestionPanel` |
+| AI Lab (solo ADMIN)          | `GET /ai/lab`                           | `AiLabPage` (`/ai-lab`)    | —                     |
 
 **`Icd10Suggester`** — Busca códigos ICD-10 por texto libre dentro del dialog de diagnóstico. Muestra hasta 5 sugerencias con código y descripción; al hacer clic rellena automáticamente los campos del formulario.
 
 **`ExtractionPanel`** — Sheet lateral que analiza las notas clínicas del expediente y extrae diagnósticos, prescripciones y procedimientos candidatos. Presenta checkboxes por ítem (todos pre-seleccionados); los ítems con medicamento no resuelto en catálogo quedan deshabilitados. Guarda los seleccionados en paralelo con `Promise.allSettled` e invalida los query keys correspondientes.
 
-**`PatientHistoryChat`** — Interfaz de conversación sobre el historial clínico completo del paciente. El backend conserva memoria por `userId + patientId` en Redis (TTL y N turnos configurables), así que los seguimientos ("¿y desde cuándo?", "¿y la dosis?") mantienen contexto; `DELETE /ai/patients/{id}/conversation` limpia la memoria. Respuestas renderizadas con `react-markdown + remark-gfm`. Las fuentes aparecen como chips clickeables que navegan al expediente médico correspondiente. El primer query puede tardar hasta 10 s adicionales por indexación on-demand.
+**`PatientHistoryChat`** — Interfaz de conversación sobre el historial clínico completo del paciente. El backend conserva memoria por `userId + patientId` en Redis (TTL y N turnos configurables), así que los seguimientos ("¿y desde cuándo?", "¿y la dosis?") mantienen contexto; `DELETE /ai/patients/{id}/conversation` limpia la memoria. La respuesta llega por **streaming SSE** (`/query/stream`, eventos `token` → `done`) con fallback transparente al endpoint JSON. Respuestas renderizadas con `react-markdown + remark-gfm`. Las fuentes aparecen como chips clickeables que navegan al expediente médico correspondiente. El primer query puede tardar hasta 10 s adicionales por indexación on-demand.
+
+**`AiLabPage`** (`/ai-lab`) — Panel operativo solo para ADMIN: modelo y versión de prompt, rate limit (distribuido/memoria), configuración de memoria, consumo acumulado por feature (requests, errores, tokens, costo USD, latencia) desde contadores de Micrometer, precios por modelo y umbrales de eval. Sin datos clínicos ni prompts.
 
 **`ItemSuggestionPanel`** — Sheet con ítems de factura sugeridos a partir del expediente médico asociado. Solo disponible en estado `draft`. Cada ítem se agrega individualmente con loading state propio; los ítems sin `matchedCatalogId` se muestran deshabilitados.
 
