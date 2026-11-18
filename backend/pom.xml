@@ -34,7 +34,7 @@
 		<lombok.version>1.18.48</lombok.version>
 		<jacoco.version>0.8.16</jacoco.version>
 		<spring-ai.version>2.1.0-RC2</spring-ai.version>
-		<spotless.version>2.46.1</spotless.version>
+		<spotless.version>3.11.0</spotless.version>
 		<palantir-java-format.version>2.103.0</palantir-java-format.version>
 	</properties>
 
