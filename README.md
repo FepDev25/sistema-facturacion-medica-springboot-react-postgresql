@@ -119,6 +119,8 @@ Pipeline **RAG** de tres pasos: Query Expansion normaliza el lenguaje coloquial 
 
 El médico formula preguntas en lenguaje natural sobre el historial completo del paciente. La arquitectura **Dual Retrieval** clasifica la intención: queries específicas van por vector search, resúmenes completos van por contexto estructurado de base de datos. La respuesta incluye chips que navegan directamente al expediente fuente.
 
+La conversación tiene **memoria por usuario y paciente** (Redis, TTL 30 min, máx 6 turnos): los seguimientos como "¿y desde cuándo?" conservan el tema, con aislamiento total entre pacientes y usuarios. La respuesta llega por **streaming SSE** (`token` → `done`) y el médico puede borrar la conversación con un clic.
+
 ---
 
 ### Facturación
@@ -138,6 +140,12 @@ El médico formula preguntas en lenguaje natural sobre el historial completo del
 ![Sugerencia ítems](docs/img/15.png)
 
 A partir del expediente clínico asociado, Claude sugiere servicios y medicamentos del catálogo mediante **Tool Calling**, con justificación clínica por ítem. Cada sugerencia se agrega individualmente con loading state independiente.
+
+---
+
+### IA — AI Lab (operación)
+
+Panel ADMIN en `/ai-lab` que expone la configuración y el consumo de los asistentes: modelo y versión de prompt, rate limit distribuido, consumo acumulado por feature (requests, errores, tokens entrada/salida, costo USD y latencia) y umbrales de eval como gate de release. Sin datos clínicos ni prompts completos. Los costos se calculan desde el `usage` real de cada respuesta con precios por modelo en `app.ai.pricing`.
 
 ---
 

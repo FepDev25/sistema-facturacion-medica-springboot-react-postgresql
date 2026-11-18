@@ -104,7 +104,8 @@ export function AiLabPage() {
               <div className="border-b border-border px-4 py-3">
                 <h2 className="text-sm font-semibold text-foreground">Consumo acumulado</h2>
                 <p className="text-xs text-muted-foreground">
-                  Contadores Micrometer desde el último arranque del backend.
+                  Contadores Micrometer desde el último arranque del backend; la latencia es un
+                  máximo de ventana rodante (~2 min), no acumulativa.
                 </p>
               </div>
               <div className="overflow-x-auto">
@@ -117,7 +118,7 @@ export function AiLabPage() {
                       <th className="px-4 py-2 text-right font-medium">Tokens in</th>
                       <th className="px-4 py-2 text-right font-medium">Tokens out</th>
                       <th className="px-4 py-2 text-right font-medium">Costo</th>
-                      <th className="px-4 py-2 text-right font-medium">Latencia máx.</th>
+                      <th className="px-4 py-2 text-right font-medium">Latencia máx. reciente</th>
                     </tr>
                   </thead>
                   <tbody>

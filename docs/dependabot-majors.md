@@ -1,17 +1,25 @@
 # Plan de migración de majors de Dependabot
 
-Estado a **2026-11-13**. Este documento planifica los majors que Dependabot
-propuso y que se cerraron para no mezclarlos con features. **No se ejecuta
-ninguna migración en este bloque**: cada una se hará en una rama y un PR
-dedicados.
+Estado a **2026-11-13**, con actualización del **2026-11-18**. Este documento
+planifica los majors que Dependabot propuso y que se cerraron para no mezclarlos
+con features. **No se ejecuta ninguna migración en este bloque**: cada una se
+hará en una rama y un PR dedicados.
+
+> **Actualización 2026-11-18:** `jsdom 31`, `lucide-react 1.72`, `jest-dom 7` y
+> `spotless-maven-plugin 3.11` ya están mergeados en `main` (PRs #24, #21, #23 y
+> #19 de Dependabot, con CI y Playwright en verde y producción verificada).
+> `vitest 4 → 5` se migró en la rama `ft/vitest-5-pulido` (suite de 692 tests
+> verde sin cambios de código; cobertura 51.2/48.19/50.56/51.91 con los umbrales
+> 41/39/40/42 cumplidos). Quedan pendientes `@tanstack/react-table 9` y
+> `@types/node 26`.
 
 ## 1. Situación actual
 
 | Paquete | Instalado | Último estable | Major pendiente | Tipo |
 |---|---:|---:|---|---|
-| `jsdom` | 29.0.2 | 31.0.1 | 30 → 31 | dev (entorno de test) |
+| `jsdom` | ~~29.0.2~~ → 31.0.0 | 31.0.1 | ✅ mergeado 18-nov (#24) | dev (entorno de test) |
 | `@tanstack/react-table` | 8.21.3 | 9.3.1 | 9 | producción |
-| `lucide-react` | 0.577.0 | 1.72.0 | 1 | producción |
+| `lucide-react` | ~~0.577.0~~ → 1.72.0 | 1.72.0 | ✅ mergeado 18-nov (#21) | producción |
 | `@types/node` | 24.12.0 | 26.6.6 | 26 | dev (tipos) |
 
 Comprobado contra el registry npm el 2026-11-13. `jsdom 30` ya fue superado por
@@ -21,7 +29,7 @@ se fija `30.1.3` y se pospone 31.
 Contexto del proyecto:
 
 - Node local y CI: `22.x` (`.nvmrc`); la máquina de desarrollo corre 22.23.4.
-- React 19.3, Vite 8.3, Vitest 4.1, TypeScript 5.9.
+- React 19.3, Vite 8.3, Vitest 5.1, TypeScript 5.9.
 - `@tanstack/react-table` está centralizado en `src/components/DataTable/index.tsx`;
   las columnas de 11 features solo importan tipos.
 - No hay iconos de marca de Lucide (`Github`, `Linkedin`, `Twitter`, etc.) ni uso
@@ -96,6 +104,9 @@ una corrida si se sube Node.
 
 ## 5. `jsdom` 29 → 31
 
+> **Estado:** ✅ mergeado el 2026-11-18 vía PR #24 de Dependabot (CI + Playwright
+> en verde). El plan de abajo queda como referencia histórica.
+
 ### Impacto
 
 - Cambio de entorno de tests unitarios exclusivamente; Playwright/E2E no usa
@@ -131,6 +142,10 @@ aplica, pero una corrida de humo no está de más.
 - Rollback: `npm install --save-dev jsdom@29.0.2`.
 
 ## 6. `lucide-react` 0.577 → 1.x
+
+> **Estado:** ✅ mergeado el 2026-11-18 vía PR #21 de Dependabot (CI + Playwright
+> en verde; verificado sin íconos de marca ni uso de `LucideIcon`). El plan de
+> abajo queda como referencia histórica.
 
 ### Impacto
 
