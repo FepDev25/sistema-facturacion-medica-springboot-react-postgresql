@@ -177,7 +177,7 @@ Panel ADMIN en `/ai-lab` que expone la configuración y el consumo de los asiste
 | **IA — LLM** | **Spring AI 2.1 · Claude claude-haiku-4-5-20251001** | **react-markdown + remark-gfm** |
 | **IA — Embeddings** | **Google AI Studio · gemini-embedding-001 (768 dims)** | — |
 | **IA — Vector store** | **pgvector (HNSW, cosine)** | — |
-| Testing | JUnit 5 + Mockito + Testcontainers + JaCoCo | Vitest 4 + RTL 16 + Playwright 1.65 |
+| Testing | JUnit 5 + Mockito + Testcontainers + JaCoCo | Vitest 5 + RTL 16 + Playwright 1.65 |
 
 ---
 
@@ -242,11 +242,11 @@ Flujos E2E verificados con base de datos real (Testcontainers):
 
 | Capa | Tests | Herramientas |
 |---|---|---|
-| Unit / componentes | 692 (62 archivos) | Vitest 4 + React Testing Library 16 |
+| Unit / componentes | 692 (62 archivos) | Vitest 5 + React Testing Library 16 |
 | E2E | 129 (5 archivos) | Playwright 1.65 + Chromium |
 
-Cobertura unitaria (2026-11-13): **50.23 / 47.72 / 50.00 / 50.98** (statements,
-branches, functions, lines). Umbral: **41 / 39 / 40 / 42**.
+Cobertura unitaria (2026-11-18, tras migrar a Vitest 5): **51.2 / 48.19 / 50.56 /
+51.91** (statements, branches, functions, lines). Umbral: **41 / 39 / 40 / 42**.
 
 ---
 
