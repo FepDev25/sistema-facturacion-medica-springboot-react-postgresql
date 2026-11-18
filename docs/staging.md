@@ -7,6 +7,43 @@
 > queda como referencia para cuando el proyecto crezca o se exija SLA. El
 > workflow `staging.yml` sigue deshabilitado.
 
+## 0. Setup en vigor (2026-11-18)
+
+### 0.1 Previews de Vercel (ya activas)
+
+Cada PR de `frontend/` genera un preview en Vercel automáticamente. **Las
+previews solo contienen el frontend**: las rewrites de `vercel.json` apuntan
+`/api/*` al backend de producción, así que un preview valida el build del
+frontend contra la API real, no cambios de backend (los valida CI con la suite
+de 572 tests + 129 E2E).
+
+### 0.2 Branch `migration-preview` de Neon (creada)
+
+Para validar **migraciones Flyway nuevas (V15+) antes de producción**:
+
+| Dato | Valor |
+|---|---|
+| Proyecto Neon | `sfm-production` (`rough-unit-49483984`) |
+| Branch | `migration-preview` (`br-young-cloud-atk55c50`), parent `production`, **sin** auto-delete |
+| Estado al crear | Copia copy-on-write de producción: `flyway_schema_history` en rank 13 |
+| Connection string (pooled) | En `.env` local como `NEON_PREVIEW_DATABASE_URL` (gitignored) |
+
+**Procedimiento al agregar una migración:**
+
+1. Resetear la branch desde la consola (botón **Reset from parent**) para
+   partir del estado actual de producción.
+2. Apuntar el backend a la branch (run local con
+   `SPRING_DATASOURCE_URL` = `NEON_PREVIEW_DATABASE_URL`; para JDBC usar
+   `sslmode=require` y omitir `channel_binding`, que es parámetro de libpq).
+3. Arrancar y dejar que Flyway aplique la migración nueva; verificar datos y
+   `clean verify` si aplica.
+4. Publicar el PR; producción aplicará la migración al hacer deploy.
+5. Al terminar, resetear de nuevo la branch para el siguiente ciclo.
+
+**Nota de seguridad:** la connection string vive solo en `.env` (ignorado por
+git). Si en el futuro se automatiza con CI (crear branch desechable por PR),
+usar `NEON_API_KEY` como secret de GitHub — hoy no se necesita.
+
 Plan del ambiente de staging para validar cambios antes de producción. **Este
 documento describe el diseño; los recursos cloud no se crean desde el
 repositorio.** El workflow
