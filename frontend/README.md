@@ -117,13 +117,13 @@ Métricas operativas: pacientes totales, médicos activos, citas del día, citas
 
 Cuatro asistentes Claude conectados a las páginas de dominio. Siguen el mismo patrón `api/ → hooks/ → components/` del resto del sistema. No tienen datos mock — todas las llamadas van directamente al backend real.
 
-| Integración                  | Endpoint backend                       | Página                    | Componente            |
-| ---------------------------- | -------------------------------------- | ------------------------- | --------------------- |
-| Sugerencia ICD-10            | `POST /ai/icd10/suggest`               | `MedicalRecordDetailPage` | `Icd10Suggester`      |
-| Extracción de notas clínicas | `POST /ai/records/extract`             | `MedicalRecordDetailPage` | `ExtractionPanel`     |
+| Integración                  | Endpoint backend                                   | Página                    | Componente            |
+| ---------------------------- | -------------------------------------------------- | ------------------------- | --------------------- |
+| Sugerencia ICD-10            | `POST /ai/icd10/suggest`                           | `MedicalRecordDetailPage` | `Icd10Suggester`      |
+| Extracción de notas clínicas | `POST /ai/records/extract`                         | `MedicalRecordDetailPage` | `ExtractionPanel`     |
 | Consulta de historial        | `POST /ai/patients/{id}/query` (+ `/query/stream`) | `PatientDetailPage`       | `PatientHistoryChat`  |
-| Sugerencia de ítems          | `POST /ai/invoices/{id}/suggest-items` | `InvoiceDetailPage`       | `ItemSuggestionPanel` |
-| AI Lab (solo ADMIN)          | `GET /ai/lab`                           | `AiLabPage` (`/ai-lab`)    | —                     |
+| Sugerencia de ítems          | `POST /ai/invoices/{id}/suggest-items`             | `InvoiceDetailPage`       | `ItemSuggestionPanel` |
+| AI Lab (solo ADMIN)          | `GET /ai/lab`                                      | `AiLabPage` (`/ai-lab`)   | —                     |
 
 **`Icd10Suggester`** — Busca códigos ICD-10 por texto libre dentro del dialog de diagnóstico. Muestra hasta 5 sugerencias con código y descripción; al hacer clic rellena automáticamente los campos del formulario.
 
@@ -219,7 +219,7 @@ Suite en dos capas complementarias. Documentación completa en [`docs/02-testing
 
 ### Unit tests — 692 tests, 62 archivos
 
-Ejecutados con **Vitest 4** + **React Testing Library 16** en entorno `jsdom`.
+Ejecutados con **Vitest 5** + **React Testing Library 16** en entorno `jsdom`.
 
 | Área                      | Archivos |
 | ------------------------- | -------- |
@@ -236,8 +236,8 @@ Ejecutados con **Vitest 4** + **React Testing Library 16** en entorno `jsdom`.
 | Utilidades y HTTP (`lib`) | 3        |
 | **Total**                 | **62**   |
 
-Cobertura real (2026-11-13): **50.23 % statements / 47.72 % branches /
-50.00 % functions / 50.98 % lines**. Umbral en `vitest.config.ts`:
+Cobertura real (2026-11-18, Vitest 5): **51.2 % statements / 48.19 % branches /
+50.56 % functions / 51.91 % lines**. Umbral en `vitest.config.ts`:
 **41 / 39 / 40 / 42**. No se baja para destrabar un PR; se sube cuando la
 cobertura real mejore.
 

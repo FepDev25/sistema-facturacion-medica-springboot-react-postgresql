@@ -28,7 +28,7 @@
 
 ## Hallazgo menor
 
-- **"Latencia máx." es una ventana rodante, no acumulativo.** `AiLabService.latencyMaxMs` usa `Timer.max()` de Micrometer, que es un máximo de ventana (~1-2 min): decae a 0 si no hay tráfico. El subtítulo "Contadores Micrometer desde el último arranque del backend" es correcto para requests/tokens/costo (Counters) pero no para esa columna. Corrección sugerida: aclarar el label ("latencia máx. reciente") o acumular el máximo en un gauge propio.
+- ~~**"Latencia máx." es una ventana rodante, no acumulativo.**~~ **Corregido el 2026-11-18** (rama `ft/vitest-5-pulido`): la columna pasó a "Latencia máx. reciente" y el subtítulo aclara que la latencia es un máximo de ventana rodante (~2 min), no acumulativo desde el arranque. Contexto original: `AiLabService.latencyMaxMs` usa `Timer.max()` de Micrometer, que decae a 0 sin tráfico; los contadores de requests/tokens/costo sí son acumulativos.
 
 ## Notas operativas de la sesión
 
